@@ -1,4 +1,10 @@
 {
+  "name": "plexi-web-app",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GiorgosSarakatsanos/Plexi"
+  },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
     "eslint": "^9.11.1",
