@@ -1,0 +1,20 @@
+{
+  "git": {
+    "requireBranch": "main",
+    "commitMessage": "chore: release v${version}"
+  },
+
+  "hooks": {
+    "before:init": [
+      "git pull",
+      "npx run eslint"
+    ],
+    "after:bump": "npx auto-changelog -p"
+  },
+  "github": {
+    "release": true
+  },
+  "npm": {
+    "publish": true
+  }
+}
