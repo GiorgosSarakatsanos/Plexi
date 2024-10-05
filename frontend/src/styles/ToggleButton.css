@@ -1,0 +1,32 @@
+@import url('./root.css');
+
+.toggle-switch {
+    width: calc(var(--input-height) * 2);
+    height: var(--input-height);
+    background-color: var(--backround-color);
+    border-radius: var(--input-height);
+    position: relative;
+    cursor: grabbing;
+    transition: var(--transition-duration);
+}
+
+/* The circle inside the switch */
+.toggle-circle {
+    width: calc(var(--input-height) - var(--s-gap));
+    height: calc(var(--input-height) - var(--s-gap));
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    transform: translateY(-50%);
+    transition: left var(--transition-duration) ease;
+}
+
+.toggle-switch.toggled {
+    background-color: var(--active-color);
+}
+
+.toggle-switch.toggled .toggle-circle {
+    left: calc(100% - var(--input-height) + 2px);
+}

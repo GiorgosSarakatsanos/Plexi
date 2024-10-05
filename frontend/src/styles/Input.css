@@ -1,0 +1,50 @@
+/* Input.css */
+.input-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    gap: 10px;
+    /* Space between inputs */
+}
+
+.size-input {
+    width: 80px;
+    /* Fixed width for width and height inputs */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.separator {
+    font-size: 16px;
+    margin: 0 5px;
+}
+
+.unit-dropdown {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    margin-right: 8px;
+    /* Space between the icon and input */
+}
+
+.custom-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+}
