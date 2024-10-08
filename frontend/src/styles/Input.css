@@ -1,50 +1,90 @@
-/* Input.css */
+.size-selector {
+    position: relative;
+    margin-bottom: 20px;
+}
+
 .input-row {
     display: flex;
     align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.dropdown-button {
+    padding: 8px 12px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.dropdown {
+    border: 1px solid #ccc;
+    max-width: 300px;
+    background-color: white;
+    position: absolute;
+    z-index: 10;
+    width: 100%;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
     padding: 8px;
-    gap: 10px;
-    /* Space between inputs */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+.remove-button {
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.name-input {
+    width: 150px;
+    padding: 4px;
+}
+
+.ok-button {
+    padding: 4px 8px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.ok-button:hover {
+    background-color: #0056b3;
+}
+
+.cancel-button {
+    padding: 4px 8px;
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.cancel-button:hover {
+    background-color: darkred;
 }
 
 .size-input {
-    width: 80px;
-    /* Fixed width for width and height inputs */
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-
-.separator {
-    font-size: 16px;
-    margin: 0 5px;
+    width: 60px;
+    padding: 4px;
 }
 
 .unit-dropdown {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: white;
-    font-size: 14px;
+    padding: 4px;
 }
 
-.input-container {
-    display: flex;
-    align-items: center;
-}
-
-.input-icon {
-    margin-right: 8px;
-    /* Space between the icon and input */
-}
-
-.custom-input {
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%;
+.separator {
+    margin: 0 4px;
 }
