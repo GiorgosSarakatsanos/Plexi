@@ -1,32 +1,14 @@
-// src/App.tsx
 import React from "react";
-import SizeSelector from "../context/SizeSelector";
-import { sizeMap } from "../data/SizeMap";
+import SizeSelector from "../components/SizeSelector";
 
 const App: React.FC = () => {
-  const handleSizeSelect = (size: string) => {
-    console.log("Selected size:", size);
-    // Implement any additional logic you need when a size is selected
-  };
-
   return (
-    <div>
-      <h1>Select Sizes</h1>
-      <div>
-        <SizeSelector
-          type="paperSize"
-          predefinedSizes={sizeMap.paperSize}
-          onSizeSelect={handleSizeSelect}
-        />
-      </div>
-      <div>
-        <SizeSelector
-          type="imageSize"
-          predefinedSizes={sizeMap.imageSize}
-          onSizeSelect={handleSizeSelect}
-        />
-      </div>
-      {/* You can add more SizeSelectors for other types if needed */}
+    <div className="App">
+      {/* Paper Size Selector */}
+      <SizeSelector type="paperSize" onSizeSelect={() => {}} />
+
+      {/* Image Size Selector */}
+      <SizeSelector type="imageSize" onSizeSelect={() => {}} />
     </div>
   );
 };
