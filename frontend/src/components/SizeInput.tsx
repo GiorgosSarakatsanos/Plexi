@@ -2,10 +2,11 @@ interface SizeInputProps {
   width: string;
   height: string;
   unit: string;
-  units: string[]; // Added units array
   onWidthChange: (value: string) => void;
   onHeightChange: (value: string) => void;
   onUnitChange: (value: string) => void;
+  units: string[];
+  widthRef?: React.RefObject<HTMLInputElement>; // Accept widthRef as an optional prop
 }
 
 const SizeInputComponent: React.FC<SizeInputProps> = ({
@@ -16,27 +17,40 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
   onHeightChange,
   onUnitChange,
   units,
+  widthRef,
 }) => {
+  const evaluateExpression = (expression: string): string => {
+    try {
+      // Safely evaluate the expression and return the result
+      // The eval function is dangerous, so we'll use a safer way using new Function
+      const result = new Function("return " + expression)();
+      if (isNaN(result)) throw new Error("Invalid expression");
+      return result.toString(); // Return the result as a string to store in state
+    } catch (error) {
+      console.error("Invalid expression:", error);
+      return expression; // Return the original expression if invalid
+    }
+  };
+
   return (
     <div className="input-row">
       <input
-        type="number"
-        inputMode="numeric"
+        ref={widthRef} // Attach the ref to the width input
+        type="text" // Allow text input for mathematical expressions
         value={width}
-        onChange={(e) => onWidthChange(e.target.value)}
+        onChange={(e) => onWidthChange(e.target.value)} // Store the raw input
+        onBlur={() => onWidthChange(evaluateExpression(width))} // Evaluate the expression on blur (when focus leaves the input)
         placeholder="Width"
         className="size-input"
-        min="5"
       />
       <span className="separator">x</span>
       <input
-        type="number"
-        inputMode="numeric"
+        type="text" // Allow text input for mathematical expressions
         value={height}
-        onChange={(e) => onHeightChange(e.target.value)}
+        onChange={(e) => onHeightChange(e.target.value)} // Store the raw input
+        onBlur={() => onHeightChange(evaluateExpression(height))} // Evaluate the expression on blur
         placeholder="Height"
         className="size-input"
-        min="5"
       />
       <select
         value={unit}

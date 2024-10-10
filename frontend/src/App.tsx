@@ -1,5 +1,5 @@
 import React from "react";
-import SizeSelector from "../components/SizeSelector";
+import SizeSelector from "./components/SizeSelector";
 
 const App: React.FC = () => {
   return (

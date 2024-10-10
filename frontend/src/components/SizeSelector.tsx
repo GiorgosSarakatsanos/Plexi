@@ -24,7 +24,23 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
 
   const [showNameInput, setShowNameInput] = useState<boolean>(false); // Controls visibility of name input
 
+  const inputRef = useRef<HTMLInputElement>(null); // Reference for the name input field
+  const widthRef = useRef<HTMLInputElement>(null); // Reference for the width input field
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Focus on the name input when it becomes visible
+  useEffect(() => {
+    if (showNameInput && inputRef.current) {
+      inputRef.current.focus(); // Focus the input when it's shown
+    }
+  }, [showNameInput]); // Run this effect when `showNameInput` changes
+
+  // Focus on the width input when the custom size is selected
+  useEffect(() => {
+    if (isCustom && widthRef.current) {
+      widthRef.current.focus(); // Focus the width input when custom size input is shown
+    }
+  }, [isCustom]); // Run this effect when `isCustom` changes
 
   // Load named custom sizes from localStorage on mount
   useEffect(() => {
@@ -156,7 +172,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
   return (
     <div className="size-selector" ref={dropdownRef}>
       <div className="input-row">
-        {!isCustom && ( // Only show the dropdown when custom size is not selected
+        {!isCustom && (
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="dropdown-button"
@@ -168,6 +184,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
         {showNameInput && (
           <>
             <input
+              ref={inputRef} // Attach the ref to the name input field
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -185,7 +202,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
         )}
       </div>
 
-      {isCustom && ( // Show the custom size input when isCustom is true
+      {isCustom && (
         <div className="input-row">
           <SizeInputComponent
             width={width}
@@ -194,58 +211,57 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
             onWidthChange={setWidth}
             onHeightChange={setHeight}
             onUnitChange={setUnit}
-            units={units} // Pass the available units to SizeInputComponent
+            units={units}
+            widthRef={widthRef} // Pass the widthRef to the SizeInputComponent
           />
           <button onClick={handleConfirmCustomSize} className="ok-button">
             OK
           </button>
-          {/* Tooltip for invalid size */}
           {showTooltip && <span className="tooltip">{tooltip}</span>}
         </div>
       )}
 
-      {isDropdownOpen &&
-        !isCustom && ( // Show the dropdown only when it's open and not custom
-          <div className="dropdown">
-            {predefinedSizes.map((size) => (
-              <div className="dropdown-item" key={size}>
-                <span
-                  className="dropdown-item-content"
-                  onClick={() => handleSelectChange(size)}
-                >
-                  {size}
-                </span>
-              </div>
-            ))}
-
-            {customSizes.map((size) => (
-              <div className="dropdown-item" key={size}>
-                <span
-                  className="dropdown-item-content"
-                  onClick={() => handleSelectChange(size)}
-                >
-                  {size}
-                </span>
-                <button
-                  className="remove-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveCustomSize(size);
-                  }}
-                >
-                  x
-                </button>
-              </div>
-            ))}
-
-            <div
-              className="dropdown-item"
-              onClick={() => handleSelectChange("custom")}
-            >
-              Custom
+      {isDropdownOpen && !isCustom && (
+        <div className="size-dropdown">
+          {predefinedSizes.map((size) => (
+            <div className="size-dropdown-item" key={size}>
+              <span
+                className="dropdown-item-content"
+                onClick={() => handleSelectChange(size)}
+              >
+                {size}
+              </span>
             </div>
+          ))}
+
+          {customSizes.map((size) => (
+            <div className="size-dropdown-item" key={size}>
+              <span
+                className="size-dropdown-item-content"
+                onClick={() => handleSelectChange(size)}
+              >
+                {size}
+              </span>
+              <button
+                className="remove-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveCustomSize(size);
+                }}
+              >
+                x
+              </button>
+            </div>
+          ))}
+
+          <div
+            className="size-dropdown-item"
+            onClick={() => handleSelectChange("custom")}
+          >
+            Custom
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

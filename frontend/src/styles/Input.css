@@ -34,9 +34,13 @@
 }
 
 .name-input {
-    width: 150px;
-    padding: var(--s-gap);
+    width: 15ch;
+    height: var(--input-height);
+    padding: 0 var(--s-gap);
+    border: var(--border);
+    border-radius: var(--border-radius);
     font-size: var(--s-text);
+    font-weight: var(--font-weight);
 }
 
 .ok-button,
@@ -79,7 +83,7 @@
     box-sizing: border-box;
 }
 
-.dropdown {
+.size-dropdown {
     margin-top: var(--s-gap);
     position: absolute;
     background-color: white;
@@ -95,7 +99,7 @@
 
 }
 
-.dropdown-item {
+.size-dropdown-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -115,10 +119,11 @@
     padding: var(--s-gap);
 }
 
-.dropdown-item:hover .dropdown-item-content {
+.size-dropdown-item:hover {
     border-color: var(--border-color);
-    /* Change the border color on hover */
     box-shadow: var(--box-shadow-normal);
+    background-color: var(--active-color);
+    color: #fff;
 }
 
 .dropdown-button {
@@ -128,9 +133,7 @@
     cursor: pointer;
     min-width: 120px;
     max-width: 100%;
-    /* Allow it to grow up to the parent container width */
     width: auto;
-    /* Set width to auto to adapt to the content */
     border-radius: var(--border-radius);
     font-weight: var(--font-weight);
 }
