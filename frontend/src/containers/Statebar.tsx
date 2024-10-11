@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Button from "../components/Button";
 import { StatebarButtons } from "../data/ButtonMap";
 
-const Toolbox: React.FC = () => {
+const Statebar: React.FC = () => {
   const [activeButton, setActiveButton] = useState<number | null>(null);
 
   const handleButtonClick = (id: number) => {
@@ -25,4 +25,4 @@ const Toolbox: React.FC = () => {
   );
 };
 
-export default Toolbox;
+export default Statebar;

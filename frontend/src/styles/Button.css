@@ -1,5 +1,3 @@
-@import url('./root.css');
-
 .button-container {
     position: relative;
     display: inline-block;
@@ -11,27 +9,37 @@
     align-items: center;
     justify-content: center;
     padding: var(--s-gap);
+    gap: var(--s-gap);
+    border: 1px solid transparent;
+    /* Transparent border to prevent movement */
+    border-radius: var(--border-radius);
     margin-bottom: var(--s-gap);
-    width: var(--button-widht);
-    height: 32px;
-    font-size: 12px;
+    width: var(--button-width);
+    height: var(--input-height);
+    font-size: var(--s-text);
     font-weight: var(--font-weight);
     cursor: pointer;
     text-align: left;
     background-color: transparent;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    /* No initial shadow but set it */
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+    /* Smooth transition */
 }
 
 .button:hover {
-    border: 1px solid black;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.25);
-
+    border: var(--border);
+    /* Actual border on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    /* Add shadow on hover */
 }
 
 .button.active {
     background-color: #007bff;
     color: white;
     font-weight: bold;
-    box-shadow: var(--box-shadow-normal);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    /* Keep shadow when active */
     transition: box-shadow 0.5s ease;
 }
 
@@ -41,6 +49,66 @@
 
 .button:focus {
     outline: none;
-    box-shadow: var(--box-shadow-focused);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    /* Keep shadow on focus */
     transition: box-shadow 0.5s ease;
+}
+
+/* Dropdown Menu */
+.dropdown {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1;
+    background-color: white;
+    min-width: var(--button-width);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    /* Drop shadow for dropdown */
+    border-radius: var(--border-radius);
+    padding: var(--s-gap);
+}
+
+.button-container:hover .dropdown {
+    display: block;
+}
+
+/* Dropdown item */
+.dropdown-item {
+    padding: var(--s-gap);
+    cursor: pointer;
+    border: 1px solid transparent;
+    /* Add transparent border */
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    /* No shadow initially */
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+    border: var(--border);
+    /* Show border on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    /* Show shadow on hover */
+}
+
+/* Media Query: Hide button text for screen width < 600px */
+@media (max-width: 1000px) {
+    .button .button-text {
+        display: none;
+        /* Hide the text */
+    }
+
+    .button {
+        justify-content: center;
+        /* Center the icon */
+        width: auto;
+        /* Adjust width to fit the icon only */
+    }
+}
+
+.button:hover {
+    border: var(--border);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    /* Add shadow on hover */
 }

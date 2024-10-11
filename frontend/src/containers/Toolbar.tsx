@@ -1,15 +1,14 @@
-// src/components/Toolbar.tsx
-import React, { useState } from 'react';
-import Button from '../components/Button';
-import { ToolbarButtons } from '../data/ButtonMap';
+import React, { useState } from "react";
+import Button from "../components/Button";
+import { ToolbarButtons } from "../data/ButtonMap";
+import { handleToolbarButtonClick } from "../utils/toolbarActions"; // Import the logic
 
-const Toolbar: React.FC = () => {
+interface ToolbarProps {
+  setAddBox: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const Toolbar: React.FC<ToolbarProps> = ({ setAddBox }) => {
   const [activeButtonId, setActiveButtonId] = useState<number | null>(null);
-
-  // Function to handle button activation
-  const handleButtonClick = (id: number) => {
-    setActiveButtonId(id); // Set the clicked button as active
-  };
 
   return (
     <div className="button-panel">
@@ -20,7 +19,9 @@ const Toolbar: React.FC = () => {
           iconName={button.iconName}
           dropdownItems={button.dropdownItems}
           isActive={activeButtonId === button.id}
-          onClick={() => handleButtonClick(button.id)} // Pass onClick to activate button
+          onClick={() =>
+            handleToolbarButtonClick(button.id, setActiveButtonId, setAddBox)
+          } // Use external logic
         />
       ))}
     </div>
