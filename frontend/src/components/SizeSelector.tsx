@@ -5,7 +5,7 @@ import { sizeMap } from "../data/SizeMap"; // Import the sizeMap
 
 interface SizeSelectorProps {
   type: "paperSize" | "imageSize"; // Can be extended for other types
-  onSizeSelect: (size: string) => void; // Callback to notify parent of selected size
+  onSizeSelect: (size: string, unit: "mm" | "cm" | "inches" | "pixels") => void; // Updated to pass both size and unit
 }
 
 const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
@@ -85,7 +85,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
     } else {
       setIsCustom(false);
       setSelectedSize(size);
-      onSizeSelect(size);
+      onSizeSelect(size, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
     }
     setIsDropdownOpen(false);
   };
@@ -109,7 +109,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
 
     const sizeWithoutName = `${widthValue} x ${heightValue} ${unit}`;
     setSelectedSize(sizeWithoutName);
-    onSizeSelect(sizeWithoutName);
+    onSizeSelect(sizeWithoutName, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
     setTemporarySizes([...temporarySizes, sizeWithoutName]); // Add to temporary sizes
     setIsCustom(false);
     setWidth("");
@@ -139,7 +139,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
     setTemporarySizes(updatedTemporarySizes); // Remove from temporary sizes
     setCustomSizes([...customSizes, newSizeWithName]); // Add to named sizes
     setSelectedSize(newSizeWithName);
-    onSizeSelect(newSizeWithName);
+    onSizeSelect(newSizeWithName, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
     setName("");
     setShowNameInput(false);
   };
@@ -165,7 +165,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
     if (selectedSize === sizeToRemove) {
       const defaultSize = predefinedSizes[0] || "";
       setSelectedSize(defaultSize);
-      onSizeSelect(defaultSize);
+      onSizeSelect(defaultSize, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
     }
   };
 

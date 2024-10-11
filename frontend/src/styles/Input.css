@@ -172,3 +172,13 @@
     border-color: black transparent transparent transparent;
     /* Create the arrow */
 }
+
+.custom-input {
+    width: 50px;
+    background-color: var(--background-color);
+    border: var(--border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-normal);
+    font-size: var(--s-text);
+    font-weight: var(--font-weight);
+}

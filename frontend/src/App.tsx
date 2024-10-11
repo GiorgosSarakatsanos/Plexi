@@ -1,27 +1,32 @@
 import React, { useState } from "react";
-import SizeSelector from "./components/SizeSelector"; // Import SizeSelector
-import CanvasComponent from "./components/CanvasComponent"; // Import CanvasComponent
-import Toolbar from "./containers/Toolbar"; // Import Toolbar
-import Statebar from "./containers/Statebar"; // Import Toolbar
-import "./App.css"; // Import the CSS file
-import { handleSizeSelect } from "./data/canvasSetup"; // Import logic for size selection
-import ColorPickerButton from "./components/ColorPickerButton"; // Import ColorPickerButton
+import SizeSelector from "./components/SizeSelector";
+import CanvasComponent from "./components/CanvasComponent";
+import Toolbar from "./containers/Toolbar";
+import Statebar from "./containers/Statebar";
+import "./App.css";
+import { handleSizeSelect } from "./data/canvasSetup";
+import ColorPickerButton from "./components/ColorPickerButton";
 
 const App: React.FC = () => {
-  const [canvasWidth, setCanvasWidth] = useState<number>(800); // Default width
-  const [canvasHeight, setCanvasHeight] = useState<number>(600); // Default height
-  const [addBox, setAddBox] = useState<boolean>(false); // State to trigger adding the box
+  const [canvasWidth, setCanvasWidth] = useState<number>(800);
+  const [canvasHeight, setCanvasHeight] = useState<number>(600);
+  const [addBox, setAddBox] = useState<boolean>(false);
   const [canvasBackgroundColor, setCanvasBackgroundColor] =
-    useState<string>("white"); // Default background color
+    useState<string>("white");
+  const [unit, setUnit] = useState<"mm" | "cm" | "inches" | "pixels">("pixels");
 
   // Handle size selection
-  const onSizeSelect = (size: string) => {
-    const newSize = handleSizeSelect(size); // Get the new width and height
-    if (newSize) {
-      setCanvasWidth(newSize.width); // Update the canvas width
-      setCanvasHeight(newSize.height); // Update the canvas height
-    }
-  };
+ const onSizeSelect = (
+   size: string,
+   selectedUnit: "mm" | "cm" | "inches" | "pixels"
+ ) => {
+   const newSize = handleSizeSelect(size); // Get the new width and height
+   if (newSize) {
+     setCanvasWidth(newSize.width); // Update the canvas width
+     setCanvasHeight(newSize.height); // Update the canvas height
+   }
+   setUnit(selectedUnit); // Update the selected unit
+ };
 
   // Handle color change from ColorPickerButton
   const handleColorChange = (newColor: string) => {
@@ -36,13 +41,12 @@ const App: React.FC = () => {
             <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
           </div>
           <div className="toolbox-container">
-            {/* Color Picker to change the background color of the canvas */}
             <ColorPickerButton onChangeColor={handleColorChange} />
           </div>
         </div>
         <div className="toolbar-wrapper">
           <div className="toolbar">
-            <Toolbar setAddBox={setAddBox} /> {/* Pass setAddBox to Toolbar */}
+            <Toolbar setAddBox={setAddBox} />
           </div>
         </div>
         <div className="statebar">
@@ -50,13 +54,13 @@ const App: React.FC = () => {
         </div>
       </div>
       <div className="canvas-container">
-        {/* Render Canvas with dynamic width, height, and background color */}
         <CanvasComponent
           width={canvasWidth}
           height={canvasHeight}
           addBox={addBox}
           setAddBox={setAddBox}
-          backgroundColor={canvasBackgroundColor} // Pass the selected background color
+          backgroundColor={canvasBackgroundColor}
+          unit={unit} // Pass the selected unit to CanvasComponent
         />
       </div>
     </div>

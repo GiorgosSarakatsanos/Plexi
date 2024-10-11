@@ -13,6 +13,6 @@ export const sizeMap = {
       "1280 x 720 pixels",
       "1920 x 1080 pixels",
     ],
-    units: ["pixels", "mm", "cm"], // Allowed units for image size
+    units: ["pixels", "mm", "cm", "inches"], // Allowed units for image size
   },
 };
