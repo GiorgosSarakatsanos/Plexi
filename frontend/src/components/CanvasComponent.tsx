@@ -6,6 +6,7 @@ interface CanvasComponentProps {
   height: number;
   addBox: boolean;
   setAddBox: React.Dispatch<React.SetStateAction<boolean>>;
+  backgroundColor: string; // Add background color as a prop
 }
 
 const CanvasComponent: React.FC<CanvasComponentProps> = ({
@@ -13,6 +14,7 @@ const CanvasComponent: React.FC<CanvasComponentProps> = ({
   height,
   addBox,
   setAddBox,
+  backgroundColor,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null); // Ref for the canvas element
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null); // Fabric.js canvas instance
@@ -35,6 +37,14 @@ const CanvasComponent: React.FC<CanvasComponentProps> = ({
       fabricCanvasRef.current.setHeight(height);
     }
   }, [width, height]); // Trigger when width or height changes
+
+  // Effect to update the background color
+  useEffect(() => {
+    if (fabricCanvasRef.current) {
+      fabricCanvasRef.current.backgroundColor = backgroundColor; // Set the background color
+      fabricCanvasRef.current.renderAll(); // Re-render the canvas
+    }
+  }, [backgroundColor]); // Trigger when backgroundColor changes
 
   // Effect to handle adding a box when the button is clicked
   useEffect(() => {

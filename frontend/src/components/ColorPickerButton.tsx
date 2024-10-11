@@ -1,14 +1,22 @@
 import React, { useState, useRef } from "react";
 import "../styles/ColorPickerButton.css"; // Import styles
 
-const ColorPickerButton: React.FC = () => {
-  const [selectedColor, setSelectedColor] = useState<string>("000000"); // Default color (without hashtag)
+interface ColorPickerButtonProps {
+  onChangeColor: (newColor: string) => void; // Accept onChangeColor as a prop
+}
+
+const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
+  onChangeColor,
+}) => {
+  const [selectedColor, setSelectedColor] = useState<string>("ffffff"); // Default color (without hashtag)
   const [showTooltip, setShowTooltip] = useState<boolean>(false); // Tooltip visibility state
   const tooltipRef = useRef<HTMLDivElement | null>(null); // Reference to the tooltip element
 
   // Handle color change from the color picker
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedColor(e.target.value.replace("#", "").toLowerCase()); // Remove any hashtags and convert to lowercase
+    const newColor = e.target.value.replace("#", "").toLowerCase();
+    setSelectedColor(newColor); // Update internal state
+    onChangeColor(`#${newColor}`); // Notify parent component
   };
 
   // Handle color change from the text input (hex code)
