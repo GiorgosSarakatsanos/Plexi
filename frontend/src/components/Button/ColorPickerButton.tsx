@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import "../../styles/Button.css";
 
 interface ColorPickerButtonProps {
@@ -9,8 +9,6 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   onChangeColor,
 }) => {
   const [selectedColor, setSelectedColor] = useState<string>("ffffff"); // Default color (without hashtag)
-  const [showTooltip, setShowTooltip] = useState<boolean>(false); // Tooltip visibility state
-  const tooltipRef = useRef<HTMLDivElement | null>(null); // Reference to the tooltip element
 
   // Handle color change from the color picker
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,42 +26,14 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
     }
   };
 
-  // Handle text selection when input is focused
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.select(); // Select the entire text when the input is focused
-  };
-
-  // Handle text pasted into the input
-  const handleInputPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault(); // Prevent the default paste behavior
-    const pastedText = e.clipboardData.getData("Text"); // Get the pasted text
-    // Remove unwanted characters (hashtags, spaces, and limit to valid hex characters)
-    const sanitizedText = pastedText.replace(/[^0-9a-f]/gi, "").toLowerCase();
-    setSelectedColor(sanitizedText.slice(0, 6)); // Limit to 6 characters
-  };
-
-  // Handle key events for copy (Ctrl + C) and paste (Ctrl + V)
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-      showCopyTooltip(); // Show tooltip when Ctrl + C is pressed
-    }
-  };
-
-  // Show the "HEX copied!" tooltip and hide it after a short delay
-  const showCopyTooltip = () => {
-    setShowTooltip(true);
-    setTimeout(() => setShowTooltip(false), 2000); // Hide after 2 seconds
-  };
-
   return (
-    <div className="color-picker-container" style={{ position: "relative" }}>
+    <div className="color-picker-container">
       {/* The clickable color preview rectangle */}
-      <div
-        className="color-preview"
-        style={{ backgroundColor: `#${selectedColor}` }}
-      >
+      <div className="color-preview">
+        <label htmlFor="color-input">Pick a color:</label>
         <input
           type="color"
+          id="color-input"
           value={`#${selectedColor}`} // Add the hashtag when displaying the color picker
           onChange={handleColorChange}
           className="color-input"
@@ -72,24 +42,17 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
 
       {/* Input field for HEX color */}
       <div className="hex-input-container">
+        <label htmlFor="hex-input">HEX code:</label>
         <input
           type="text"
+          id="hex-input"
           value={selectedColor}
           onChange={handleInputChange}
-          onFocus={handleInputFocus} // Select the text when the input is focused
-          onPaste={handleInputPaste} // Handle pasted content
-          onKeyDown={handleKeyDown} // Detect key presses for copy/paste
           className="hex-input"
           maxLength={6} // Limit to 6 hex characters (no hashtag)
+          title="Enter HEX color code"
         />
       </div>
-
-      {/* Tooltip for "HEX copied!" */}
-      {showTooltip && (
-        <div className="tooltip" ref={tooltipRef}>
-          HEX copied!
-        </div>
-      )}
     </div>
   );
 };

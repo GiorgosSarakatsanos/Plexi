@@ -35,18 +35,7 @@ const App: React.FC = () => {
           height={canvasSize.height}
           backgroundColor={backgroundColor}
         />
-        {addBox && (
-          <div
-            style={{
-              width: 100,
-              height: 100,
-              backgroundColor: "gray",
-              borderRadius: "4px",
-            }}
-          >
-            New Box
-          </div>
-        )}
+        {addBox && <div>New Box</div>}
       </div>
     </div>
   );

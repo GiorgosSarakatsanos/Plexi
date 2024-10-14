@@ -32,13 +32,6 @@ const Canvas: React.FC<CanvasProps> = ({ width, height, backgroundColor }) => {
       ref={canvasRef}
       width={width} // These control the pixel drawing size
       height={height}
-      style={{
-        border: "1px solid #000",
-        display: "block",
-        margin: "0 auto",
-        width: `${width}px`, // This controls the CSS size
-        height: `${height}px`, // Match both drawing and CSS size
-      }}
     />
   );
 };
