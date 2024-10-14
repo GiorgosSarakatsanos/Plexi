@@ -1,67 +1,52 @@
 import React, { useState } from "react";
-import SizeSelector from "./components/SizeSelector";
-import CanvasComponent from "./components/CanvasComponent";
-import Toolbar from "./containers/Toolbar";
-import Statebar from "./containers/Statebar";
-import "./App.css";
-import { handleSizeSelect } from "./data/canvasSetup";
-import ColorPickerButton from "./components/ColorPickerButton";
+import Toolbar from "./components/Toolbar/Toolbar";
+import Statebar from "./components/Statebar/Statebar";
+import Canvas from "./components/Canvas/Canvas";
+import BackgroundColorPicker from "./components/Canvas/CanvasBackground";
+import SizeSelector from "./components/Input/SizeSelector";
+import { useCanvasSize } from "./hooks/useCanvasSize";
+import { useBackgroundColor } from "./hooks/useBackgroundColor";
+
+import "./styles/App.css";
 
 const App: React.FC = () => {
-  const [canvasWidth, setCanvasWidth] = useState<number>(800);
-  const [canvasHeight, setCanvasHeight] = useState<number>(600);
-  const [addBox, setAddBox] = useState<boolean>(false);
-  const [canvasBackgroundColor, setCanvasBackgroundColor] =
-    useState<string>("white");
-  const [unit, setUnit] = useState<"mm" | "cm" | "inches" | "pixels">("pixels");
-
-  // Handle size selection
- const onSizeSelect = (
-   size: string,
-   selectedUnit: "mm" | "cm" | "inches" | "pixels"
- ) => {
-   const newSize = handleSizeSelect(size); // Get the new width and height
-   if (newSize) {
-     setCanvasWidth(newSize.width); // Update the canvas width
-     setCanvasHeight(newSize.height); // Update the canvas height
-   }
-   setUnit(selectedUnit); // Update the selected unit
- };
-
-  // Handle color change from ColorPickerButton
-  const handleColorChange = (newColor: string) => {
-    setCanvasBackgroundColor(newColor); // Update the canvas background color
-  };
+  const { canvasSize, onSizeSelect } = useCanvasSize(); // Using the custom hook for canvas size
+  const { backgroundColor, handleColorChange } = useBackgroundColor(); // Using the custom hook for background color
+  const [addBox, setAddBox] = useState(false); // This should be passed to Toolbar
 
   return (
     <div className="App">
       <div className="toolbar-container">
         <div className="canvas-setup">
-          <div>
-            <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-          </div>
-          <div className="toolbox-container">
-            <ColorPickerButton onChangeColor={handleColorChange} />
-          </div>
+          <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
+          <BackgroundColorPicker onChangeColor={handleColorChange} />
         </div>
         <div className="toolbar-wrapper">
-          <div className="toolbar">
-            <Toolbar setAddBox={setAddBox} />
-          </div>
+          {/* Pass setAddBox as a prop to Toolbar */}
+          <Toolbar setAddBox={setAddBox} />
         </div>
         <div className="statebar">
           <Statebar />
         </div>
       </div>
       <div className="canvas-container">
-        <CanvasComponent
-          width={canvasWidth}
-          height={canvasHeight}
-          addBox={addBox}
-          setAddBox={setAddBox}
-          backgroundColor={canvasBackgroundColor}
-          unit={unit} // Pass the selected unit to CanvasComponent
+        <Canvas
+          width={canvasSize.width}
+          height={canvasSize.height}
+          backgroundColor={backgroundColor}
         />
+        {addBox && (
+          <div
+            style={{
+              width: 100,
+              height: 100,
+              backgroundColor: "gray",
+              borderRadius: "4px",
+            }}
+          >
+            New Box
+          </div>
+        )}
       </div>
     </div>
   );

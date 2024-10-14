@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Button from "../components/Button";
-import { ToolbarButtons } from "../data/ButtonMap";
-import { handleToolbarButtonClick } from "../utils/toolbarActions"; // Import the logic
+import Button from "../Button/Button";
+import { ToolbarButtons } from "../../data/ButtonMap";
+import { handleToolbarButtonClick } from "../Toolbar/ToolbarActions";
 
 interface ToolbarProps {
   setAddBox: React.Dispatch<React.SetStateAction<boolean>>;

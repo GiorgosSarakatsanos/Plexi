@@ -1,6 +1,6 @@
-import React from 'react';
-import Icon from '../components/Icon';
-import '../styles/Input.css';
+import React from "react";
+import Icon from "../Icon/Icon";
+import "../../styles/Button.css";
 
 interface DropdownItem {
   label: string;
@@ -14,7 +14,12 @@ interface DropdownProps {
   activeItem: string; // Pass the active item label to highlight
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ items, visible, onItemClick, activeItem }) => {
+const Dropdown: React.FC<DropdownProps> = ({
+  items,
+  visible,
+  onItemClick,
+  activeItem,
+}) => {
   if (!visible) return null;
 
   return (
@@ -22,7 +27,9 @@ const Dropdown: React.FC<DropdownProps> = ({ items, visible, onItemClick, active
       {items.map((item, index) => (
         <div
           key={index}
-          className={`dropdown-item ${item.label === activeItem ? 'active' : ''}`} // Highlight active item
+          className={`dropdown-item ${
+            item.label === activeItem ? "active" : ""
+          }`} // Highlight active item
           onClick={() => onItemClick(item)} // Handle item selection
         >
           <Icon name={item.iconName} />

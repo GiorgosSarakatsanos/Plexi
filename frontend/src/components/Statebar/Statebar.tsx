@@ -1,7 +1,7 @@
 // src/components/Toolbox.tsx
 import React, { useState } from "react";
-import Button from "../components/Button";
-import { StatebarButtons } from "../data/ButtonMap";
+import Button from "../Button/Button";
+import { StatebarButtons } from "../../data/ButtonMap";
 
 const Statebar: React.FC = () => {
   const [activeButton, setActiveButton] = useState<number | null>(null);

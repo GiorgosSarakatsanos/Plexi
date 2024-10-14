@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import Icon from '../components/Icon';
-import '../styles/FourSidedInput.css';
+import React, { useState, useRef, useEffect } from "react";
+import Input from "./Input";
+import Button from "../Button/Button";
+import Icon from "../Icon/Icon";
+import "../styles/FourSidedInput.css";
 
 // Define the prop types for FourSidedInput
 interface FourSidedInputProps {
@@ -24,7 +24,7 @@ interface FourSidedInputProps {
 
 const FourSidedInput: React.FC<FourSidedInputProps> = ({
   label,
-  unit = '',
+  unit = "",
   defaultValue,
   topLabel,
   rightLabel,
@@ -43,7 +43,8 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
   const [right, setRight] = useState<string>(defaultValue);
   const [bottom, setBottom] = useState<string>(defaultValue);
   const [left, setLeft] = useState<string>(defaultValue);
-  const [showIndividualInputs, setShowIndividualInputs] = useState<boolean>(false);
+  const [showIndividualInputs, setShowIndividualInputs] =
+    useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleGenericValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +56,10 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
     setLeft(value);
   };
 
-  const handleIndividualInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
+  const handleIndividualInputChange = (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    value: string
+  ) => {
     setter(value);
   };
 
@@ -65,14 +69,17 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setShowIndividualInputs(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -87,7 +94,9 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
   return (
     <div ref={containerRef} className="four-sided-input-container">
       <div className="generic-input">
-        <label>{label} {unit}</label>
+        <label>
+          {label} {unit}
+        </label>
         <Input
           placeholder={`Set ${label} for all sides`}
           value={genericValue}
@@ -97,7 +106,9 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
 
       <div className="show-sides-button">
         <Button
-          label={showIndividualInputs ? buttonTextWhenOpen : buttonTextWhenClosed}
+          label={
+            showIndividualInputs ? buttonTextWhenOpen : buttonTextWhenClosed
+          }
           onClick={handleShowIndividualInputs}
           iconName={buttonIconName}
         />
@@ -110,7 +121,9 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
             <Input
               placeholder={topLabel}
               value={top}
-              onChange={(e) => handleIndividualInputChange(setTop, e.target.value)}
+              onChange={(e) =>
+                handleIndividualInputChange(setTop, e.target.value)
+              }
               icon={topIconName ? <Icon name={topIconName} /> : null}
             />
           </div>
@@ -119,7 +132,9 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
             <Input
               placeholder={rightLabel}
               value={right}
-              onChange={(e) => handleIndividualInputChange(setRight, e.target.value)}
+              onChange={(e) =>
+                handleIndividualInputChange(setRight, e.target.value)
+              }
               icon={rightIconName ? <Icon name={rightIconName} /> : null}
             />
           </div>
@@ -128,7 +143,9 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
             <Input
               placeholder={bottomLabel}
               value={bottom}
-              onChange={(e) => handleIndividualInputChange(setBottom, e.target.value)}
+              onChange={(e) =>
+                handleIndividualInputChange(setBottom, e.target.value)
+              }
               icon={bottomIconName ? <Icon name={bottomIconName} /> : null}
             />
           </div>
@@ -137,7 +154,9 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
             <Input
               placeholder={leftLabel}
               value={left}
-              onChange={(e) => handleIndividualInputChange(setLeft, e.target.value)}
+              onChange={(e) =>
+                handleIndividualInputChange(setLeft, e.target.value)
+              }
               icon={leftIconName ? <Icon name={leftIconName} /> : null}
             />
           </div>

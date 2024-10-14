@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import SizeInputComponent from "./SizeInput";
-import "../styles/Input.css";
-import { sizeMap } from "../data/SizeMap"; // Import the sizeMap
+import "../../styles/Input.css";
+import { sizeMap } from "../../data/SizeMap"; // Import the sizeMap
 
 interface SizeSelectorProps {
   type: "paperSize" | "imageSize"; // Can be extended for other types
@@ -33,14 +33,14 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
     if (showNameInput && inputRef.current) {
       inputRef.current.focus(); // Focus the input when it's shown
     }
-  }, [showNameInput]); // Run this effect when `showNameInput` changes
+  }, [showNameInput]);
 
   // Focus on the width input when the custom size is selected
   useEffect(() => {
     if (isCustom && widthRef.current) {
       widthRef.current.focus(); // Focus the width input when custom size input is shown
     }
-  }, [isCustom]); // Run this effect when `isCustom` changes
+  }, [isCustom]);
 
   // Load named custom sizes from localStorage on mount
   useEffect(() => {
@@ -77,16 +77,24 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
   const predefinedSizes = sizeMap[type].predefined;
   const units = sizeMap[type].units;
 
-  // Handle size selection (predefined, named, or custom)
   const handleSelectChange = (size: string) => {
-    if (size === "custom") {
-      setIsCustom(true);
-      setSelectedSize("");
-    } else {
+    // Use regex to match only two numeric parts (for width and height) separated by "x"
+    const sizeMatch = size.match(/(\d+)\s*x\s*(\d+)/);
+
+    if (sizeMatch) {
+      const width = sizeMatch[1]; // First captured number (width)
+      const height = sizeMatch[2]; // Second captured number (height)
+
+      const cleanedSize = `${width}x${height}`;
       setIsCustom(false);
-      setSelectedSize(size);
-      onSizeSelect(size, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
+      setSelectedSize(cleanedSize);
+
+      // Pass the cleaned size to onSizeSelect
+      onSizeSelect(cleanedSize, unit as "mm" | "cm" | "inches" | "pixels");
+    } else {
+      console.error("Invalid size format:", size);
     }
+
     setIsDropdownOpen(false);
   };
 
@@ -95,7 +103,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
     const widthValue = parseFloat(width);
     const heightValue = parseFloat(height);
 
-    if (!widthValue || !heightValue || !unit) {
+    if (isNaN(widthValue) || isNaN(heightValue) || !unit) {
       setTooltip("Please enter valid width, height, and unit.");
       setShowTooltip(true);
       return;
@@ -107,7 +115,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
       return;
     }
 
-    const sizeWithoutName = `${widthValue} x ${heightValue} ${unit}`;
+    const sizeWithoutName = `${widthValue}x${heightValue}`; // Ensure proper format
     setSelectedSize(sizeWithoutName);
     onSizeSelect(sizeWithoutName, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
     setTemporarySizes([...temporarySizes, sizeWithoutName]); // Add to temporary sizes
@@ -184,7 +192,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
         {showNameInput && (
           <>
             <input
-              ref={inputRef} // Attach the ref to the name input field
+              ref={inputRef}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -212,7 +220,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
             onHeightChange={setHeight}
             onUnitChange={setUnit}
             units={units}
-            widthRef={widthRef} // Pass the widthRef to the SizeInputComponent
+            widthRef={widthRef}
           />
           <button onClick={handleConfirmCustomSize} className="ok-button">
             OK

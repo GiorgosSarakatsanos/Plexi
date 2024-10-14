@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import {
+  getFromLocalStorage,
+  setToLocalStorage,
+} from "../../services/LocalStorageService";
 
 const LocalStorageComponent: React.FC = () => {
-  const [value, setValue] = useState<string>('');
+  const [value, setValue] = useState<string>("");
 
   useEffect(() => {
-    const savedValue = localStorage.getItem('designData');
+    const savedValue = getFromLocalStorage("designData");
     if (savedValue) {
       setValue(savedValue);
     }
   }, []);
 
   const handleSave = () => {
-    localStorage.setItem('designData', value);
-    alert('Data saved to local storage!');
+    setToLocalStorage("designData", value);
+    alert("Data saved to local storage!");
   };
 
   return (
