@@ -18,6 +18,7 @@ const App: React.FC = () => {
     <div className="App">
       <div className="toolbar-container">
         <div className="canvas-setup">
+          {/* Pass unit, width, and height to onSizeSelect */}
           <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
           <BackgroundColorPicker onChangeColor={handleColorChange} />
         </div>
@@ -30,6 +31,7 @@ const App: React.FC = () => {
         </div>
       </div>
       <div className="canvas-container">
+        {/* Use the converted canvasSize here */}
         <Canvas
           width={canvasSize.width}
           height={canvasSize.height}

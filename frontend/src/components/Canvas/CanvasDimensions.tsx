@@ -1,58 +1,37 @@
-import React from "react";
-import SizeSelector from "../Input/SizeSelector";
-
-interface CanvasDimensionsProps {
-  onSizeSelect: (size: string, unit: "mm" | "cm" | "inches" | "pixels") => void;
-}
-
-const CanvasDimensions: React.FC<CanvasDimensionsProps> = ({
-  onSizeSelect,
-}) => {
-  const handleSizeSelect = (
-    size: string,
-    unit: "mm" | "cm" | "inches" | "pixels"
-  ) => {
-    const sizeParts = size.split("x");
-
-    if (sizeParts.length !== 2) {
-      console.error("Invalid size format:", size);
-      return;
-    }
-
-    let width = Number(sizeParts[0].trim());
-    let height = Number(sizeParts[1].trim());
-
-    // Convert the dimensions based on the selected unit
-    switch (unit) {
-      case "mm":
-        width = width * 3.7795;
-        height = height * 3.7795;
-        break;
-      case "cm":
-        width = width * 37.795;
-        height = height * 37.795;
-        break;
-      case "inches":
-        width = width * 96;
-        height = height * 96;
-        break;
-      case "pixels":
-        // No conversion needed for pixels
-        break;
-      default:
-        console.error("Unknown unit:", unit);
-        return;
-    }
-
-    // Now pass the dimensions as pixels to update the canvas size
-    onSizeSelect(`${width}x${height}`, "pixels");
-  };
-
-  return (
-    <div className="canvas-dimensions">
-      <SizeSelector type="imageSize" onSizeSelect={handleSizeSelect} />
-    </div>
-  );
+export const convertToPixels = (value: number, unit: string): number => {
+  const pixelsPerInch = 96;
+  switch (unit) {
+    case "mm":
+      return (value * pixelsPerInch) / 25.4;
+    case "cm":
+      return (value * pixelsPerInch) / 2.54;
+    case "m":
+      return value * pixelsPerInch * 39.37; // 1 meter = 39.37 inches
+    case "inches":
+      return value * pixelsPerInch;
+    default:
+      return value; // If already in pixels
+  }
 };
 
-export default CanvasDimensions;
+export const getCanvasDimensions = (
+  width: number,
+  height: number,
+  unit: string
+): { widthInPixels: number; heightInPixels: number } => {
+  const widthInPixels = convertToPixels(width, unit);
+  const heightInPixels = convertToPixels(height, unit);
+
+  // Set the fixed canvas height to 700px
+  const fixedCanvasHeight = 700;
+  let adjustedHeight = fixedCanvasHeight;
+  let adjustedWidth = (widthInPixels / heightInPixels) * fixedCanvasHeight;
+
+  // If the width exceeds 1500px, reduce the height to maintain the aspect ratio
+  if (adjustedWidth > 1500) {
+    adjustedWidth = 1500;
+    adjustedHeight = (heightInPixels / widthInPixels) * adjustedWidth;
+  }
+
+  return { widthInPixels: adjustedWidth, heightInPixels: adjustedHeight };
+};

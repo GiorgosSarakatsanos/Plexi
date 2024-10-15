@@ -9,9 +9,9 @@ export const sizeMap = {
   },
   imageSize: {
     predefined: [
-      "1024 x 768 pixels",
-      "1280 x 720 pixels",
-      "1920 x 1080 pixels",
+      "Web view (1920 x 1080 pixels)",
+      "Business card (85 x 55 mm)",
+      "Square web image (1080 x 1080 pixels)",
     ],
     units: ["pixels", "mm", "cm", "inches"], // Allowed units for image size
   },

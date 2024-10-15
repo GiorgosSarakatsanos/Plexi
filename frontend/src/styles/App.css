@@ -33,12 +33,6 @@ body {
   /* Ensure the shadow stays below the content */
 }
 
-.canvas-setup {
-  display: flex;
-  justify-content: flex-start;
-  gap: var(--m-gap);
-}
-
 .toolbar-wrapper {
   display: flex;
   justify-content: center;

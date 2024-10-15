@@ -1,27 +1,30 @@
 import { useState } from "react";
+import { getCanvasDimensions } from "../components/Canvas/CanvasDimensions";
+import { sizeMap } from "../data/SizeMap"; // Import sizeMap
 
 export const useCanvasSize = () => {
-  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  // Extract the default image size from sizeMap
+  const defaultImageSize = sizeMap.imageSize.predefined[0]; // "1800 x 768 pixels"
+  const sizeMatch = defaultImageSize.match(/(\d+)\s*x\s*(\d+)/);
+  const defaultWidth = sizeMatch ? parseInt(sizeMatch[1], 10) : 1000;
+  const defaultHeight = sizeMatch ? parseInt(sizeMatch[2], 10) : 1000;
 
-  const onSizeSelect = (
-    size: string,
-    unit: "mm" | "cm" | "inches" | "pixels"
-  ) => {
-    const [width, height] = size.split("x").map(Number);
+  const [canvasSize, setCanvasSize] = useState<{
+    width: number;
+    height: number;
+  }>({
+    width: defaultWidth,
+    height: defaultHeight,
+  });
 
-    if (unit === "mm") {
-      setCanvasSize({ width: width * 3.7795, height: height * 3.7795 });
-    } else if (unit === "cm") {
-      setCanvasSize({ width: width * 37.795, height: height * 37.795 });
-    } else if (unit === "inches") {
-      setCanvasSize({ width: width * 96, height: height * 96 });
-    } else {
-      setCanvasSize({ width, height });
-    }
+  const onSizeSelect = (width: number, height: number, unit: string) => {
+    const { widthInPixels, heightInPixels } = getCanvasDimensions(
+      width,
+      height,
+      unit
+    );
+    setCanvasSize({ width: widthInPixels, height: heightInPixels });
   };
 
-  return {
-    canvasSize,
-    onSizeSelect,
-  };
+  return { canvasSize, onSizeSelect };
 };

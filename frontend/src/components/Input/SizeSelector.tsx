@@ -5,7 +5,11 @@ import { sizeMap } from "../../data/SizeMap"; // Import the sizeMap
 
 interface SizeSelectorProps {
   type: "paperSize" | "imageSize"; // Can be extended for other types
-  onSizeSelect: (size: string, unit: "mm" | "cm" | "inches" | "pixels") => void; // Updated to pass both size and unit
+  onSizeSelect: (
+    width: number,
+    height: number,
+    unit: "mm" | "cm" | "inches" | "pixels"
+  ) => void; // Updated to pass width, height, and unit
 }
 
 const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
@@ -42,20 +46,53 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
     }
   }, [isCustom]);
 
-  // Load named custom sizes from localStorage on mount
   useEffect(() => {
-    const savedSizes = localStorage.getItem(`${type}CustomSizes`);
-    if (savedSizes) {
-      setCustomSizes(JSON.parse(savedSizes));
+    // Set default size from sizeMap only once when the component mounts
+    if (!selectedSize) {
+      // Only set the size if it hasn't been set yet
+      if (type === "imageSize") {
+        const defaultImageSize = sizeMap.imageSize.predefined[0]; // e.g., "1800 x 768 pixels"
+        const sizeMatch = defaultImageSize.match(/(\d+)\s*x\s*(\d+)/);
+        if (sizeMatch) {
+          const width = sizeMatch[1]; // Default width
+          const height = sizeMatch[2]; // Default height
+          const defaultUnit = "pixels"; // Default unit for image size
+
+          setWidth(width);
+          setHeight(height);
+          setUnit(defaultUnit);
+          setSelectedSize(defaultImageSize);
+
+          // Call onSizeSelect with the default size on component mount
+          onSizeSelect(parseFloat(width), parseFloat(height), defaultUnit);
+        }
+      } else if (type === "paperSize") {
+        const defaultPaperSize = sizeMap.paperSize.predefined[0]; // e.g., "A4 (210 x 297 mm)"
+        const sizeMatch = defaultPaperSize.match(/(\d+)\s*x\s*(\d+)/);
+        if (sizeMatch) {
+          const width = sizeMatch[1]; // Default width
+          const height = sizeMatch[2]; // Default height
+          const defaultUnit = "mm"; // Default unit for paper size
+
+          setWidth(width);
+          setHeight(height);
+          setUnit(defaultUnit);
+          setSelectedSize(defaultPaperSize);
+
+          // Call onSizeSelect with the default size on component mount
+          onSizeSelect(parseFloat(width), parseFloat(height), defaultUnit);
+        }
+      }
+    }
+  }, [type, onSizeSelect, selectedSize]);
+
+  useEffect(() => {
+    // Retrieve custom sizes from localStorage when the component mounts
+    const savedCustomSizes = localStorage.getItem(`${type}CustomSizes`);
+    if (savedCustomSizes) {
+      setCustomSizes(JSON.parse(savedCustomSizes)); // Load saved custom sizes
     }
   }, [type]);
-
-  // Save named custom sizes to localStorage when they change
-  useEffect(() => {
-    if (customSizes.length > 0) {
-      localStorage.setItem(`${type}CustomSizes`, JSON.stringify(customSizes));
-    }
-  }, [customSizes, type]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -78,19 +115,31 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
   const units = sizeMap[type].units;
 
   const handleSelectChange = (size: string) => {
-    // Use regex to match only two numeric parts (for width and height) separated by "x"
+    // Use regex to match the numeric parts (for width and height)
     const sizeMatch = size.match(/(\d+)\s*x\s*(\d+)/);
+    const nameMatch = size.match(/^[^(]+/); // Match everything before the parentheses for name
 
     if (sizeMatch) {
-      const width = sizeMatch[1]; // First captured number (width)
-      const height = sizeMatch[2]; // Second captured number (height)
+      const width = sizeMatch[1]; // Extract width
+      const height = sizeMatch[2]; // Extract height
+      const name = nameMatch ? nameMatch[0].trim() : ""; // Extract name if available
 
-      const cleanedSize = `${width}x${height}`;
-      setIsCustom(false);
-      setSelectedSize(cleanedSize);
+      // Store the full size name with unit internally (for the canvas)
+      const fullSizeWithUnit = `${width} x ${height} ${unit}`;
+      setSelectedSize(fullSizeWithUnit); // Store the full size internally
 
-      // Pass the cleaned size to onSizeSelect
-      onSizeSelect(cleanedSize, unit as "mm" | "cm" | "inches" | "pixels");
+      // For display: show name (if available) or dimensions without the unit
+      const displayText = name
+        ? `${name} (${width} x ${height})`
+        : `${width} x ${height}`;
+      setSelectedSize(displayText); // Store the display size without unit for the button
+
+      // Pass the width, height, and unit to the canvas
+      onSizeSelect(
+        parseFloat(width),
+        parseFloat(height),
+        unit as "mm" | "cm" | "inches" | "pixels"
+      );
     } else {
       console.error("Invalid size format:", size);
     }
@@ -115,17 +164,29 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
       return;
     }
 
-    const sizeWithoutName = `${widthValue}x${heightValue}`; // Ensure proper format
-    setSelectedSize(sizeWithoutName);
-    onSizeSelect(sizeWithoutName, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
-    setTemporarySizes([...temporarySizes, sizeWithoutName]); // Add to temporary sizes
+    const sizeWithoutName = `${widthValue} x ${heightValue} ${unit}`; // Include the unit
+
+    // Set the size in the dropdown
+    setSelectedSize(sizeWithoutName); // Include unit here
+
+    // Immediately pass the new custom size to update the canvas
+    onSizeSelect(
+      widthValue,
+      heightValue,
+      unit as "mm" | "cm" | "inches" | "pixels"
+    );
+
+    // Add the new custom size to the temporary list
+    setTemporarySizes([...temporarySizes, sizeWithoutName]);
+
+    // Reset the input fields and close the dropdown
     setIsCustom(false);
     setWidth("");
     setHeight("");
     setUnit(units[0]); // Reset unit to the first in the list
     setIsDropdownOpen(false);
     setShowNameInput(true); // Prompt for optional naming
-    setShowTooltip(false); // Hide the tooltip when size is valid
+    setShowTooltip(false); // Hide the tooltip when the size is valid
   };
 
   // Handle saving a named custom size
@@ -144,10 +205,21 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
     const updatedTemporarySizes = temporarySizes.filter(
       (size) => size !== selectedSize
     );
+
+    // Update the custom sizes without affecting the canvas size
     setTemporarySizes(updatedTemporarySizes); // Remove from temporary sizes
-    setCustomSizes([...customSizes, newSizeWithName]); // Add to named sizes
+    const updatedCustomSizes = [...customSizes, newSizeWithName];
+    setCustomSizes(updatedCustomSizes); // Add to named sizes
+
+    // Save the custom sizes to localStorage
+    localStorage.setItem(
+      `${type}CustomSizes`,
+      JSON.stringify(updatedCustomSizes)
+    ); // Save to localStorage
+
+    // Keep the selected size unchanged, but update its name
     setSelectedSize(newSizeWithName);
-    onSizeSelect(newSizeWithName, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
+
     setName("");
     setShowNameInput(false);
   };
@@ -159,21 +231,33 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
   };
 
   const handleRemoveCustomSize = (sizeToRemove: string) => {
+    // Update the customSizes state by filtering out the size to be removed
     const updatedCustomSizes = customSizes.filter(
       (size) => size !== sizeToRemove
     );
     setCustomSizes(updatedCustomSizes);
 
+    // Update localStorage with the updated customSizes array
+    localStorage.setItem(
+      `${type}CustomSizes`,
+      JSON.stringify(updatedCustomSizes)
+    );
+
+    // Remove the size from the temporarySizes array (if applicable)
     const updatedTemporarySizes = temporarySizes.filter(
       (size) => size !== sizeToRemove
     );
     setTemporarySizes(updatedTemporarySizes);
 
-    // If the removed size is currently selected, reset to default
+    // If the removed size is currently selected, reset to the default size
     if (selectedSize === sizeToRemove) {
       const defaultSize = predefinedSizes[0] || "";
       setSelectedSize(defaultSize);
-      onSizeSelect(defaultSize, unit as "mm" | "cm" | "inches" | "pixels"); // Pass both size and unit
+      onSizeSelect(
+        parseFloat(width),
+        parseFloat(height),
+        unit as "mm" | "cm" | "inches" | "pixels"
+      );
     }
   };
 
@@ -197,7 +281,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Size Name"
-              maxLength={15}
+              maxLength={20}
               className="name-input"
             />
             <button onClick={handleSaveNamedSize} className="ok-button">
@@ -262,10 +346,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
             </div>
           ))}
 
-          <div
-            className="size-dropdown-item"
-            onClick={() => handleSelectChange("custom")}
-          >
+          <div className="size-dropdown-item" onClick={() => setIsCustom(true)}>
             Custom
           </div>
         </div>
