@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Button from "../Button/Button";
-import { ToolbarButtons } from "../../data/ButtonMap";
+import Button from "../Button";
+import { ToolbarButtons } from "../ButtonMap";
 import { handleToolbarButtonClick } from "../Toolbar/ToolbarActions";
 
 interface ToolbarProps {

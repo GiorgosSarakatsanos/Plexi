@@ -1,4 +1,4 @@
-@import url('../index.css');
+@import url('../../index.css');
 
 .toggle-switch {
     width: calc(var(--input-height) * 2);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import SizeInputComponent from "./SizeInput";
-import "../../styles/Input.css";
-import { sizeMap } from "../../data/SizeMap"; // Import the sizeMap
+import "../Input.css";
+import { sizeMap } from "./SizeMap"; // Import the sizeMap
 
 interface SizeSelectorProps {
   type: "paperSize" | "imageSize"; // Can be extended for other types

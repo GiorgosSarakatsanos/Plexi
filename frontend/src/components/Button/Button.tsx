@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Icon from "../Icon/Icon";
 import Dropdown from "../Dropdown/Dropdown";
-import "../../styles/Button.css";
+import "./Button.css";
 
 interface DropdownItem {
   label: string;
@@ -59,7 +59,7 @@ const Button: React.FC<ButtonProps> = ({
         className={`button ${isActive ? "active" : ""}`}
         onClick={onClick}
       >
-        
+
         <Icon name={activeItem.iconName} />
         <span className="button-text">{activeItem.label}</span>{" "}
 

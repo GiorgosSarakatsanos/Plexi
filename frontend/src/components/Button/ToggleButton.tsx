@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../styles/ToggleButton.css"; // Import the styles
+import "./ToggleButton.css"; // Import the styles
 
 const ToggleButton: React.FC = () => {
   const [isToggled, setIsToggled] = useState(false);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../../styles/Button.css";
+import "../Button/Button.css";
 
 interface ColorPickerButtonProps {
   onChangeColor: (newColor: string) => void; // Accept onChangeColor as a prop

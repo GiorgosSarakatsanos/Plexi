@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import Toolbar from "./components/Toolbar/Toolbar";
-import Statebar from "./components/Statebar/Statebar";
+import Toolbar from "./components/Button/Toolbar/Toolbar";
+import Statebar from "./components/Button/Statebar/Statebar";
 import Canvas from "./components/Canvas/Canvas";
 import BackgroundColorPicker from "./components/Canvas/CanvasBackground";
-import SizeSelector from "./components/Input/SizeSelector";
-import { useCanvasSize } from "./hooks/useCanvasSize";
+import SizeSelector from "./components/Input/Size/SizeSelector";
+import { useCanvasSize } from "./components/Canvas/useCanvasSize";
 import { useBackgroundColor } from "./hooks/useBackgroundColor";
 
 import "./styles/App.css";
+import "./index.css";
 
 const App: React.FC = () => {
   const { canvasSize, onSizeSelect } = useCanvasSize(); // Using the custom hook for canvas size
