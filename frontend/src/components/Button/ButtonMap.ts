@@ -10,29 +10,33 @@ export const StatebarButtons = [
 export const ToolbarButtons = [
   {
     id: 1,
-    label: "Brush",
+    label: "Line",
     iconName: "Paintbrush",
     dropdownItems: [],
+    shapeType: "line", // Not a shape, Brush tool logic would be handled separately
   },
   {
     id: 2,
     label: "Text",
     iconName: "Typography",
     dropdownItems: [],
+    shapeType: "i-text", // Shape type corresponds to text (fabric.IText)
   },
   {
     id: 3,
     label: "Rectangle",
     iconName: "Rectangular",
+    shapeType: "rectangle", // Adds rectangle to the canvas
     dropdownItems: [
-      { label: "Circle", iconName: "Circle" },
-      { label: "Line", iconName: "Line" },
+      { label: "Circle", iconName: "Circle", shapeType: "circle" }, // Adds circle
+      { label: "Line", iconName: "Line", shapeType: "line" }, // Adds line
     ],
   },
   {
     id: 4,
-    label: "Holder",
+    label: "Ellipse",
     iconName: "Hashtag",
+    shapeType: "circle",
     dropdownItems: [],
   },
   {
@@ -40,5 +44,6 @@ export const ToolbarButtons = [
     label: "Image",
     iconName: "Picture",
     dropdownItems: [],
+    shapeType: "image", // Adds an image (handled with fabric.Image)
   },
 ];

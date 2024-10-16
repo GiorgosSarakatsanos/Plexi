@@ -1,28 +1,42 @@
-import React, { useState } from "react";
+import React from "react";
 import Button from "../Button";
 import { ToolbarButtons } from "../ButtonMap";
-import { handleToolbarButtonClick } from "../Toolbar/ToolbarActions";
+import { shapeDataMap } from "../../Shapes/ShapeDataMap";
 
 interface ToolbarProps {
-  setAddBox: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedShape: React.Dispatch<
+    React.SetStateAction<keyof typeof shapeDataMap | null>
+  >;
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ setAddBox }) => {
-  const [activeButtonId, setActiveButtonId] = useState<number | null>(null);
+const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
+  const handleShapeSelection = (shapeType: string | undefined) => {
+    // Ensure shapeType is a valid string and exists in shapeDataMap
+    if (shapeType && shapeType in shapeDataMap) {
+      setSelectedShape(shapeType as keyof typeof shapeDataMap);
+    }
+  };
 
   return (
     <div className="button-panel">
       {ToolbarButtons.map((button) => (
-        <Button
-          key={button.id}
-          label={button.label}
-          iconName={button.iconName}
-          dropdownItems={button.dropdownItems}
-          isActive={activeButtonId === button.id}
-          onClick={() =>
-            handleToolbarButtonClick(button.id, setActiveButtonId, setAddBox)
-          } // Use external logic
-        />
+        <div key={button.id}>
+          <Button
+            label={button.label}
+            onClick={() => handleShapeSelection(button.shapeType)} // Ensure shapeType is passed correctly
+          />
+          {button.dropdownItems && button.dropdownItems.length > 0 && (
+            <div className="dropdown">
+              {button.dropdownItems.map((dropdownItem) => (
+                <Button
+                  key={dropdownItem.label}
+                  label={dropdownItem.label}
+                  onClick={() => handleShapeSelection(dropdownItem.shapeType)} // Ensure dropdown shapeType is handled
+                />
+              ))}
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );

@@ -1,45 +1,59 @@
 import React, { useRef, useEffect } from "react";
-import "./Canvas.css"; // Import the external CSS file
+import * as fabric from "fabric";
+import { useAddShape } from "../Shapes/useAddShape";
+import { shapeDataMap } from "../Shapes/ShapeDataMap"; // Import shapeDataMap
 
 interface CanvasProps {
-  width: number; // The original width of the canvas
-  height: number; // The original height of the canvas
+  width: number;
+  height: number;
   backgroundColor: string;
+  selectedShape: keyof typeof shapeDataMap | null; // Selected shape type
+  setSelectedShape: React.Dispatch<
+    React.SetStateAction<keyof typeof shapeDataMap | null>
+  >;
 }
 
-const Canvas: React.FC<CanvasProps> = ({ width, height, backgroundColor }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const aspectRatio = width / height;
+const Canvas: React.FC<CanvasProps> = ({
+  width,
+  height,
+  backgroundColor,
+  selectedShape,
+  setSelectedShape,
+}) => {
+  const canvasRef = useRef<fabric.Canvas | null>(null); // fabric.Canvas can be null initially
+  const { addShape } = useAddShape(canvasRef.current || undefined); // Pass undefined if null
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ratio = window.devicePixelRatio || 1; // Get the pixel ratio
+    const canvasElement = document.getElementById(
+      "fabricCanvas"
+    ) as HTMLCanvasElement;
 
-    if (canvas) {
-      // Set the actual canvas width and height to match the original dimensions
-      canvas.width = width * ratio;
-      canvas.height = height * ratio;
-
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.scale(ratio, ratio);
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = backgroundColor;
-        context.fillRect(0, 0, width, height);
-      }
-
-      // Set the CSS variable for the dynamic width
-      canvas.style.setProperty("--canvas-width", `${700 * aspectRatio}px`);
+    if (!canvasRef.current && canvasElement) {
+      canvasRef.current = new fabric.Canvas(canvasElement);
     }
-  }, [width, height, backgroundColor, aspectRatio]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="canvas" // Apply the external CSS class
-    />
-  );
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.setWidth(width);
+      canvas.setHeight(height);
+      canvas.backgroundColor = backgroundColor;
+      canvas.renderAll();
+
+      if (selectedShape) {
+        addShape(selectedShape); // Add the selected shape dynamically
+        setSelectedShape(null); // Reset the selected shape after adding it
+      }
+    }
+  }, [
+    width,
+    height,
+    backgroundColor,
+    selectedShape,
+    addShape,
+    setSelectedShape,
+  ]);
+
+  return <canvas id="fabricCanvas" className="canvas" />;
 };
 
 export default Canvas;
