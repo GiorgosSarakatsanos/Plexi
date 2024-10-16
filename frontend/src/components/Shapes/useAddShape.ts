@@ -3,8 +3,9 @@ import { shapeDataMap } from "./ShapeData";
 import { useLineTool } from "./Line/LineTool";
 import { usePolylineTool } from "./Polyline/PolylineTool";
 import { useRectangleTool } from "./Rectangle/RectangleTool";
-import { useTriangleTool } from "./Triangle/TriangleTool"; // Import the triangle tool
-import { CircleData, TextData, ShapeData } from "./ShapeTypes";
+import { useTriangleTool } from "./Triangle/TriangleTool";
+import { useEllipseTool } from "./Ellipse/EllipseTool"; // Import the ellipse tool
+import { TextData, ShapeData } from "./ShapeTypes"; // Remove CircleData
 
 export const useAddShape = (canvas: fabric.Canvas | undefined) => {
   const { startLine, extendLine, finishLine } = useLineTool(canvas);
@@ -13,7 +14,8 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
   const { startRectangle, extendRectangle, finishRectangle } =
     useRectangleTool(canvas);
   const { startTriangle, extendTriangle, finishTriangle } =
-    useTriangleTool(canvas); // Use the triangle tool
+    useTriangleTool(canvas);
+  const { startEllipse, extendEllipse, finishEllipse } = useEllipseTool(canvas); // Use the ellipse tool
 
   const addShape = (shapeType: keyof typeof shapeDataMap) => {
     if (!canvas) return;
@@ -25,6 +27,7 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
       return;
     }
 
+    // Rectangle Tool
     if (shapeData.type === "rect") {
       canvas.on("mouse:down", startRectangle);
       canvas.on("mouse:move", extendRectangle);
@@ -34,16 +37,19 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:move", extendRectangle);
         canvas.off("mouse:up", finishRectangle);
       });
+
+      // Ellipse Tool
     } else if (shapeData.type === "circle") {
-      const circleData = shapeData as CircleData;
-      const circle = new fabric.Circle({
-        radius: circleData.radius,
-        fill: circleData.fill,
-        stroke: circleData.stroke,
-        strokeWidth: circleData.strokeWidth,
+      canvas.on("mouse:down", startEllipse);
+      canvas.on("mouse:move", extendEllipse);
+      canvas.on("mouse:up", () => {
+        finishEllipse();
+        canvas.off("mouse:down", startEllipse);
+        canvas.off("mouse:move", extendEllipse);
+        canvas.off("mouse:up", finishEllipse);
       });
-      canvas.add(circle);
-      canvas.setActiveObject(circle);
+
+      // Line Tool
     } else if (shapeData.type === "line") {
       canvas.on("mouse:down", startLine);
       canvas.on("mouse:move", extendLine);
@@ -53,6 +59,8 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:move", extendLine);
         canvas.off("mouse:up", finishLine);
       });
+
+      // Text Tool
     } else if (shapeData.type === "i-text") {
       canvas.on("mouse:down", (event) => {
         const pointer = canvas.getPointer(event.e);
@@ -66,6 +74,8 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.add(iText);
         canvas.setActiveObject(iText);
       });
+
+      // Triangle Tool
     } else if (shapeData.type === "triangle") {
       canvas.on("mouse:down", startTriangle);
       canvas.on("mouse:move", extendTriangle);
@@ -75,6 +85,8 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:move", extendTriangle);
         canvas.off("mouse:up", finishTriangle);
       });
+
+      // Polyline Tool
     } else if (shapeType === "polyline") {
       canvas.on("mouse:down", startPolyline);
       canvas.on("mouse:move", extendPolyline);
