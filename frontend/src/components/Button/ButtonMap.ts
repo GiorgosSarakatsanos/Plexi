@@ -41,9 +41,16 @@ export const ToolbarButtons = [
   },
   {
     id: 5,
-    label: "Image",
+    label: "Triangle",
     iconName: "Picture",
     dropdownItems: [],
-    shapeType: "image", // Adds an image (handled with fabric.Image)
+    shapeType: "triangle",
+  },
+  {
+    id: 6,
+    label: "Polyline",
+    iconName: "Picture",
+    dropdownItems: [],
+    shapeType: "polyline",
   },
 ];
