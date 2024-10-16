@@ -40,8 +40,19 @@ const Canvas: React.FC<CanvasProps> = ({
       canvas.renderAll();
 
       if (selectedShape) {
-        addShape(selectedShape); // Add the selected shape dynamically
-        setSelectedShape(null); // Reset the selected shape after adding it
+        // Disable selection while drawing
+        canvas.selection = false;
+
+        // Add the selected shape dynamically
+        addShape(selectedShape);
+
+        // Re-enable selection after the shape is added
+        setTimeout(() => {
+          canvas.selection = true;
+        }, 100); // Short delay to ensure drawing finishes before re-enabling
+
+        // Reset the selected shape after adding it
+        setSelectedShape(null);
       }
     }
   }, [

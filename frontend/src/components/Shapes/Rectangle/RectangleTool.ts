@@ -1,9 +1,27 @@
 import * as fabric from "fabric";
 
 export const useRectangleTool = (canvas: fabric.Canvas | undefined) => {
-  let rect: fabric.Rect | null = null;
+  let rectangle: fabric.Rect | null = null;
   let startX = 0;
   let startY = 0;
+
+  const disableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = false;
+    canvas.forEachObject((obj) => {
+      obj.selectable = false;
+      obj.evented = false;
+    });
+  };
+
+  const enableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = true;
+    canvas.forEachObject((obj) => {
+      obj.selectable = true;
+      obj.evented = true;
+    });
+  };
 
   const startRectangle = (
     event: fabric.TPointerEventInfo<fabric.TPointerEvent>
@@ -14,51 +32,46 @@ export const useRectangleTool = (canvas: fabric.Canvas | undefined) => {
     startX = pointer.x;
     startY = pointer.y;
 
-    rect = new fabric.Rect({
+    disableObjectSelection(); // Disable selection when the tool starts
+
+    rectangle = new fabric.Rect({
       left: startX,
       top: startY,
-      width: 0,
-      height: 0,
-      fill: "white",
-      stroke: "black",
-      strokeDashArray: [0, 0],
+      width: 0, // Start with zero width
+      height: 0, // Start with zero height
+      fill: "transparent",
+      stroke: "gray",
       strokeWidth: 1,
       selectable: false,
     });
 
-    canvas.add(rect);
+    canvas.add(rectangle);
   };
 
   const extendRectangle = (
     event: fabric.TPointerEventInfo<fabric.TPointerEvent>
   ) => {
-    if (!canvas || !rect) return;
+    if (!canvas || !rectangle) return;
 
     const pointer = canvas.getPointer(event.e);
-
-    // Update the width and height of the rectangle
     const width = pointer.x - startX;
     const height = pointer.y - startY;
 
-    rect.set({
-      width: Math.abs(width),
-      height: Math.abs(height),
-      left: width < 0 ? pointer.x : startX,
-      top: height < 0 ? pointer.y : startY,
-    });
+    rectangle.set({ width: Math.abs(width), height: Math.abs(height) });
+    rectangle.set({ left: width < 0 ? pointer.x : startX });
+    rectangle.set({ top: height < 0 ? pointer.y : startY });
 
     canvas.renderAll();
   };
 
   const finishRectangle = () => {
-    if (!canvas || !rect) return;
+    if (!canvas || !rectangle) return;
 
-    // Make the rectangle selectable after drawing
-    rect.set({ selectable: true });
-    canvas.setActiveObject(rect);
+    rectangle.set({ selectable: true });
+    canvas.setActiveObject(rectangle);
     canvas.renderAll();
-
-    rect = null;
+    enableObjectSelection(); // Re-enable selection after the tool finishes
+    rectangle = null;
   };
 
   return { startRectangle, extendRectangle, finishRectangle };

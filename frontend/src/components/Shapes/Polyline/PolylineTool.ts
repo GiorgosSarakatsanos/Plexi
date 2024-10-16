@@ -9,55 +9,57 @@ export const usePolylineTool = (canvas: fabric.Canvas | undefined) => {
   ) => {
     if (!canvas) return;
 
-    const pointer = canvas.getPointer(event.e); // Get the pointer position on canvas
+    const pointer = canvas.getPointer(event.e);
     const point = new fabric.Point(pointer.x, pointer.y);
 
-    // Add the clicked point to the points array
-    points.push(point);
-
-    // If more than one point, start or update the polyline
-    if (points.length > 1) {
-      if (polyline) {
-        canvas.remove(polyline); // Remove the previous version of the polyline
-      }
-
-      // Create a new polyline using the points
+    // If this is the first click, create a polyline starting with the first point
+    if (!polyline) {
+      points.push(point);
       polyline = new fabric.Polyline(points, {
         stroke: "red",
         strokeWidth: 2,
         fill: "transparent",
         selectable: false, // Prevent moving while drawing
       });
-
       canvas.add(polyline); // Add the polyline to the canvas
     } else {
-      // Start a new polyline with the first point
-      polyline = new fabric.Polyline([point], {
-        stroke: "red",
-        strokeWidth: 2,
-        fill: "transparent",
-        selectable: false,
-      });
-
-      canvas.add(polyline); // Add the first point as a start
+      // If polyline already exists, add a new point when mouse is released
+      points.push(point);
+      polyline.set({ points }); // Update the polyline with the new points
     }
-    canvas.renderAll(); // Update canvas to show the changes
+
+    canvas.renderAll(); // Update the canvas to show changes
+  };
+
+  const extendPolyline = (
+    event: fabric.TPointerEventInfo<fabric.TPointerEvent>
+  ) => {
+    if (!canvas || !polyline) return;
+
+    const pointer = canvas.getPointer(event.e);
+    const lastPointIndex = points.length - 1;
+
+    // Update the last point of the polyline as the mouse moves
+    points[lastPointIndex] = new fabric.Point(pointer.x, pointer.y);
+    polyline.set({ points });
+
+    canvas.renderAll(); // Render the canvas to show the updated polyline
   };
 
   const finishPolyline = (event: KeyboardEvent) => {
     if (event.key === "Enter") {
       if (!canvas || !polyline) return;
 
-      // Finalize polyline, make it selectable
+      // Finalize polyline and make it selectable
       polyline.set({ selectable: true });
       canvas.setActiveObject(polyline);
       canvas.renderAll();
 
-      // Reset the points array and polyline
+      // Reset the tool
       points = [];
       polyline = null;
     }
   };
 
-  return { startPolyline, finishPolyline };
+  return { startPolyline, extendPolyline, finishPolyline };
 };

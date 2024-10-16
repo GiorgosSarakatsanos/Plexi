@@ -4,8 +4,9 @@ import { useLineTool } from "./Line/LineTool";
 import { usePolylineTool } from "./Polyline/PolylineTool";
 import { useRectangleTool } from "./Rectangle/RectangleTool";
 import { useTriangleTool } from "./Triangle/TriangleTool";
-import { useEllipseTool } from "./Ellipse/EllipseTool"; // Import the ellipse tool
-import { TextData, ShapeData } from "./ShapeTypes"; // Remove CircleData
+import { useEllipseTool } from "./Ellipse/EllipseTool";
+import { useTextTool } from "./Text/TextTool";
+import { TextData, ShapeData } from "./ShapeTypes";
 
 export const useAddShape = (canvas: fabric.Canvas | undefined) => {
   const { startLine, extendLine, finishLine } = useLineTool(canvas);
@@ -15,7 +16,26 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
     useRectangleTool(canvas);
   const { startTriangle, extendTriangle, finishTriangle } =
     useTriangleTool(canvas);
-  const { startEllipse, extendEllipse, finishEllipse } = useEllipseTool(canvas); // Use the ellipse tool
+  const { startEllipse, extendEllipse, finishEllipse } = useEllipseTool(canvas);
+  const { addText } = useTextTool(canvas);
+
+  const disableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = false; // Disable selection box
+    canvas.forEachObject((obj) => {
+      obj.selectable = false; // Disable object selection
+      obj.evented = false; // Disable events for objects
+    });
+  };
+
+  const enableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = true; // Enable selection box
+    canvas.forEachObject((obj) => {
+      obj.selectable = true; // Enable object selection
+      obj.evented = true; // Enable events for objects
+    });
+  };
 
   const addShape = (shapeType: keyof typeof shapeDataMap) => {
     if (!canvas) return;
@@ -27,6 +47,8 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
       return;
     }
 
+    disableObjectSelection(); // Disable selection before starting the draw
+
     // Rectangle Tool
     if (shapeData.type === "rect") {
       canvas.on("mouse:down", startRectangle);
@@ -36,6 +58,7 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:down", startRectangle);
         canvas.off("mouse:move", extendRectangle);
         canvas.off("mouse:up", finishRectangle);
+        enableObjectSelection(); // Re-enable selection after drawing is done
       });
 
       // Ellipse Tool
@@ -47,6 +70,7 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:down", startEllipse);
         canvas.off("mouse:move", extendEllipse);
         canvas.off("mouse:up", finishEllipse);
+        enableObjectSelection(); // Re-enable selection after drawing is done
       });
 
       // Line Tool
@@ -58,21 +82,16 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:down", startLine);
         canvas.off("mouse:move", extendLine);
         canvas.off("mouse:up", finishLine);
+        enableObjectSelection(); // Re-enable selection after drawing is done
       });
 
       // Text Tool
     } else if (shapeData.type === "i-text") {
       canvas.on("mouse:down", (event) => {
-        const pointer = canvas.getPointer(event.e);
         const textData = shapeData as TextData;
-        const iText = new fabric.IText(textData.text, {
-          left: pointer.x,
-          top: pointer.y,
-          fontSize: textData.fontSize,
-          fill: textData.fill,
-        });
-        canvas.add(iText);
-        canvas.setActiveObject(iText);
+        addText(event, textData.text, textData.fontSize, textData.fill);
+        canvas.off("mouse:down");
+        enableObjectSelection(); // Re-enable selection after text is added
       });
 
       // Triangle Tool
@@ -84,6 +103,7 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:down", startTriangle);
         canvas.off("mouse:move", extendTriangle);
         canvas.off("mouse:up", finishTriangle);
+        enableObjectSelection(); // Re-enable selection after drawing is done
       });
 
       // Polyline Tool
@@ -93,9 +113,18 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
       document.addEventListener("keydown", finishPolyline);
 
       canvas.on("mouse:up", () => {
-        canvas.off("mouse:down", startPolyline);
-        canvas.off("mouse:move", extendPolyline);
-        document.removeEventListener("keydown", finishPolyline);
+        // Keep drawing continuous lines, so no cleanup on mouse up
+      });
+
+      // Clean up when finishing polyline
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          finishPolyline(event);
+          canvas.off("mouse:down", startPolyline);
+          canvas.off("mouse:move", extendPolyline);
+          document.removeEventListener("keydown", finishPolyline);
+          enableObjectSelection(); // Re-enable selection after polyline is finished
+        }
       });
     }
   };

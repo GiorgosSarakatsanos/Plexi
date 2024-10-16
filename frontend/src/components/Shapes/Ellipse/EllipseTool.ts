@@ -5,6 +5,24 @@ export const useEllipseTool = (canvas: fabric.Canvas | undefined) => {
   let startX = 0;
   let startY = 0;
 
+  const disableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = false;
+    canvas.forEachObject((obj) => {
+      obj.selectable = false;
+      obj.evented = false;
+    });
+  };
+
+  const enableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = true;
+    canvas.forEachObject((obj) => {
+      obj.selectable = true;
+      obj.evented = true;
+    });
+  };
+
   const startEllipse = (
     event: fabric.TPointerEventInfo<fabric.TPointerEvent>
   ) => {
@@ -14,11 +32,13 @@ export const useEllipseTool = (canvas: fabric.Canvas | undefined) => {
     startX = pointer.x;
     startY = pointer.y;
 
+    disableObjectSelection(); // Disable selection when the tool starts
+
     ellipse = new fabric.Ellipse({
       left: startX,
       top: startY,
-      rx: 0, // Radius X, initially 0, will expand based on mouse movement
-      ry: 0, // Radius Y, initially 0, will expand based on mouse movement
+      rx: 0,
+      ry: 0,
       fill: "transparent",
       stroke: "gray",
       strokeWidth: 1,
@@ -53,6 +73,7 @@ export const useEllipseTool = (canvas: fabric.Canvas | undefined) => {
     ellipse.set({ selectable: true });
     canvas.setActiveObject(ellipse);
     canvas.renderAll();
+    enableObjectSelection(); // Re-enable selection after the tool finishes
     ellipse = null;
   };
 

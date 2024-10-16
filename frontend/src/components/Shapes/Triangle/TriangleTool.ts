@@ -5,27 +5,49 @@ export const useTriangleTool = (canvas: fabric.Canvas | undefined) => {
   let startX = 0;
   let startY = 0;
 
+  const disableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = false;
+    canvas.forEachObject((obj) => {
+      obj.selectable = false;
+      obj.evented = false;
+    });
+  };
+
+  const enableObjectSelection = () => {
+    if (!canvas) return;
+    canvas.selection = true;
+    canvas.forEachObject((obj) => {
+      obj.selectable = true;
+      obj.evented = true;
+    });
+  };
+
   const startTriangle = (
     event: fabric.TPointerEventInfo<fabric.TPointerEvent>
   ) => {
     if (!canvas) return;
 
+    // Get starting position and disable selection
     const pointer = canvas.getPointer(event.e);
     startX = pointer.x;
     startY = pointer.y;
 
+    // Create the triangle
     triangle = new fabric.Triangle({
       left: startX,
       top: startY,
-      width: 0, // Initially set to 0, will expand as the user moves the mouse
-      height: 0, // Initially set to 0, will expand as the user moves the mouse
+      width: 0, // Initially 0, will expand as user moves the mouse
+      height: 0, // Initially 0, will expand as user moves the mouse
       fill: "transparent",
       stroke: "red",
       strokeWidth: 4,
       selectable: false, // Disable selection while drawing
     });
 
-    canvas.add(triangle);
+    disableObjectSelection(); // Disable object selection while drawing
+
+    canvas.add(triangle); // Add triangle to canvas
   };
 
   const extendTriangle = (
@@ -33,10 +55,12 @@ export const useTriangleTool = (canvas: fabric.Canvas | undefined) => {
   ) => {
     if (!canvas || !triangle) return;
 
+    // Get current pointer position
     const pointer = canvas.getPointer(event.e);
     const width = pointer.x - startX;
     const height = pointer.y - startY;
 
+    // Update triangle size and position
     triangle.set({ width: Math.abs(width), height: Math.abs(height) });
 
     if (width < 0) {
@@ -47,16 +71,19 @@ export const useTriangleTool = (canvas: fabric.Canvas | undefined) => {
       triangle.set({ top: pointer.y });
     }
 
-    canvas.renderAll();
+    canvas.renderAll(); // Redraw canvas with updated triangle
   };
 
   const finishTriangle = () => {
     if (!canvas || !triangle) return;
 
+    // Enable object selection after drawing
     triangle.set({ selectable: true });
     canvas.setActiveObject(triangle);
     canvas.renderAll();
-    triangle = null; // Reset the triangle for the next draw
+
+    enableObjectSelection(); // Re-enable object selection
+    triangle = null; // Reset triangle for future use
   };
 
   return { startTriangle, extendTriangle, finishTriangle };
