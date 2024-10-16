@@ -1,18 +1,19 @@
-// useAddShape.ts
 import * as fabric from "fabric";
 import { shapeDataMap } from "./ShapeData";
-import { useLineTool } from "./LineTool";
-import {
-  RectangleData,
-  CircleData,
-  TextData,
-  TriangleData,
-  PolylineData,
-  ShapeData,
-} from "./ShapeTypes";
+import { useLineTool } from "./Line/LineTool";
+import { usePolylineTool } from "./Polyline/PolylineTool";
+import { useRectangleTool } from "./Rectangle/RectangleTool";
+import { useTriangleTool } from "./Triangle/TriangleTool"; // Import the triangle tool
+import { CircleData, TextData, ShapeData } from "./ShapeTypes";
 
 export const useAddShape = (canvas: fabric.Canvas | undefined) => {
   const { startLine, extendLine, finishLine } = useLineTool(canvas);
+  const { startPolyline, extendPolyline, finishPolyline } =
+    usePolylineTool(canvas);
+  const { startRectangle, extendRectangle, finishRectangle } =
+    useRectangleTool(canvas);
+  const { startTriangle, extendTriangle, finishTriangle } =
+    useTriangleTool(canvas); // Use the triangle tool
 
   const addShape = (shapeType: keyof typeof shapeDataMap) => {
     if (!canvas) return;
@@ -24,21 +25,15 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
       return;
     }
 
-    // Type guard for Rectangle
     if (shapeData.type === "rect") {
-      const rectData = shapeData as RectangleData;
-      const rect = new fabric.Rect({
-        width: rectData.width,
-        height: rectData.height,
-        fill: rectData.fill,
-        stroke: rectData.stroke,
-        strokeDashArray: rectData.strokeDashArray,
-        strokeWidth: rectData.strokeWidth,
+      canvas.on("mouse:down", startRectangle);
+      canvas.on("mouse:move", extendRectangle);
+      canvas.on("mouse:up", () => {
+        finishRectangle();
+        canvas.off("mouse:down", startRectangle);
+        canvas.off("mouse:move", extendRectangle);
+        canvas.off("mouse:up", finishRectangle);
       });
-      canvas.add(rect);
-      canvas.setActiveObject(rect);
-
-      // Type guard for Circle
     } else if (shapeData.type === "circle") {
       const circleData = shapeData as CircleData;
       const circle = new fabric.Circle({
@@ -49,8 +44,6 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
       });
       canvas.add(circle);
       canvas.setActiveObject(circle);
-
-      // Type guard for Line
     } else if (shapeData.type === "line") {
       canvas.on("mouse:down", startLine);
       canvas.on("mouse:move", extendLine);
@@ -60,40 +53,38 @@ export const useAddShape = (canvas: fabric.Canvas | undefined) => {
         canvas.off("mouse:move", extendLine);
         canvas.off("mouse:up", finishLine);
       });
-
-      // Type guard for Text
     } else if (shapeData.type === "i-text") {
-      const textData = shapeData as TextData;
-      const iText = new fabric.IText(textData.text, {
-        fontSize: textData.fontSize,
-        fill: textData.fill,
+      canvas.on("mouse:down", (event) => {
+        const pointer = canvas.getPointer(event.e);
+        const textData = shapeData as TextData;
+        const iText = new fabric.IText(textData.text, {
+          left: pointer.x,
+          top: pointer.y,
+          fontSize: textData.fontSize,
+          fill: textData.fill,
+        });
+        canvas.add(iText);
+        canvas.setActiveObject(iText);
       });
-      canvas.add(iText);
-      canvas.setActiveObject(iText);
-
-      // Type guard for Triangle
     } else if (shapeData.type === "triangle") {
-      const triangleData = shapeData as TriangleData;
-      const triangle = new fabric.Triangle({
-        width: triangleData.width,
-        height: triangleData.height,
-        fill: triangleData.fill,
-        stroke: triangleData.stroke,
-        strokeWidth: triangleData.strokeWidth,
+      canvas.on("mouse:down", startTriangle);
+      canvas.on("mouse:move", extendTriangle);
+      canvas.on("mouse:up", () => {
+        finishTriangle();
+        canvas.off("mouse:down", startTriangle);
+        canvas.off("mouse:move", extendTriangle);
+        canvas.off("mouse:up", finishTriangle);
       });
-      canvas.add(triangle);
-      canvas.setActiveObject(triangle);
+    } else if (shapeType === "polyline") {
+      canvas.on("mouse:down", startPolyline);
+      canvas.on("mouse:move", extendPolyline);
+      document.addEventListener("keydown", finishPolyline);
 
-      // Type guard for Polyline
-    } else if (shapeData.type === "polyline") {
-      const polylineData = shapeData as PolylineData;
-      const polyline = new fabric.Polyline(polylineData.points, {
-        stroke: polylineData.stroke,
-        strokeWidth: polylineData.strokeWidth,
-        fill: polylineData.fill,
+      canvas.on("mouse:up", () => {
+        canvas.off("mouse:down", startPolyline);
+        canvas.off("mouse:move", extendPolyline);
+        document.removeEventListener("keydown", finishPolyline);
       });
-      canvas.add(polyline);
-      canvas.setActiveObject(polyline);
     }
   };
 

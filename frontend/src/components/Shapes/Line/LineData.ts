@@ -1,5 +1,5 @@
 // LineData.ts
-import { LineData } from "./ShapeTypes";
+import { LineData } from "../ShapeTypes";
 
 export const lineData: LineData = {
   type: "line",

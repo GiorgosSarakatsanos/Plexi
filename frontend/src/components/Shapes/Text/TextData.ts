@@ -1,5 +1,5 @@
 // TextData.ts
-import { TextData } from "./ShapeTypes";
+import { TextData } from "../ShapeTypes";
 
 export const textData: TextData = {
   type: "i-text",

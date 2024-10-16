@@ -1,5 +1,5 @@
 // CircleData.ts
-import { CircleData } from "./ShapeTypes";
+import { CircleData } from "../ShapeTypes";
 
 export const circleData: CircleData = {
   type: "circle",

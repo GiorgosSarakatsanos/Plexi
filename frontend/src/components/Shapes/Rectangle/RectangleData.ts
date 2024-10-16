@@ -1,5 +1,5 @@
 // RectangleData.ts
-import { RectangleData } from "./ShapeTypes";
+import { RectangleData } from "../ShapeTypes";
 
 export const rectangleData: RectangleData = {
   type: "rect",

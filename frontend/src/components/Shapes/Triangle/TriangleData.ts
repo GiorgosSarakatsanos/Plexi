@@ -1,5 +1,5 @@
 // TriangleData.ts
-import { TriangleData } from "./ShapeTypes";
+import { TriangleData } from "../ShapeTypes";
 
 export const triangleData: TriangleData = {
   type: "triangle",

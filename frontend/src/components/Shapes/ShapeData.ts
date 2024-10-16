@@ -1,11 +1,11 @@
 // ShapeData.ts
 import { ShapeData } from "./ShapeTypes";
-import { rectangleData } from "./RectangleData";
-import { circleData } from "./CircleData";
-import { lineData } from "./LineData";
-import { textData } from "./TextData"; // Similarly for text shapes
-import { triangleData } from "./TriangleData";
-import { polylineData } from "./PolylineData";  // For triangle shapes
+import { rectangleData } from "./Rectangle/RectangleData";
+import { circleData } from "./Ellipse/EllipseData";
+import { lineData } from "./Line/LineData";
+import { textData } from "./Text/TextData"; // Similarly for text shapes
+import { triangleData } from "./Triangle/TriangleData";
+import { polylineData } from "./Polyline/PolylineData"; // For triangle shapes
 
 export const shapeDataMap: Record<string, ShapeData> = {
   rectangle: rectangleData,
@@ -13,5 +13,5 @@ export const shapeDataMap: Record<string, ShapeData> = {
   line: lineData,
   "i-text": textData,
   triangle: triangleData,
-   polyline: polylineData,
+  polyline: polylineData,
 };
