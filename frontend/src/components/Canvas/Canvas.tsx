@@ -21,8 +21,8 @@ const Canvas: React.FC<CanvasProps> = ({
   setSelectedShape,
 }) => {
   const canvasRef = useRef<fabric.Canvas | null>(null); // fabric.Canvas can be null initially
-  const { addShape } = useAddShape(canvasRef.current || undefined); // Pass undefined if null
 
+  // Initialize the canvas and update its size and background color
   useEffect(() => {
     const canvasElement = document.getElementById(
       "fabricCanvas"
@@ -38,31 +38,24 @@ const Canvas: React.FC<CanvasProps> = ({
       canvas.setHeight(height);
       canvas.backgroundColor = backgroundColor;
       canvas.renderAll();
-
-      if (selectedShape) {
-        // Disable selection while drawing
-        canvas.selection = false;
-
-        // Add the selected shape dynamically
-        addShape(selectedShape);
-
-        // Re-enable selection after the shape is added
-        setTimeout(() => {
-          canvas.selection = true;
-        }, 100); // Short delay to ensure drawing finishes before re-enabling
-
-        // Reset the selected shape after adding it
-        setSelectedShape(null);
-      }
     }
-  }, [
-    width,
-    height,
-    backgroundColor,
-    selectedShape,
-    addShape,
-    setSelectedShape,
-  ]);
+  }, [width, height, backgroundColor]);
+
+  // Use the shape-adding hook outside of useEffect
+  const { addShapeWithType } = useAddShape(canvasRef.current || undefined);
+
+  // Ensure addShape logic only runs when selectedShape changes and after canvas is ready
+  useEffect(() => {
+    if (selectedShape && canvasRef.current) {
+      addShapeWithType(selectedShape); // Add the shape dynamically
+
+      setTimeout(() => {
+        canvasRef.current!.selection = true; // Re-enable selection after adding shape
+      }, 100);
+
+      setSelectedShape(null); // Reset selected shape
+    }
+  }, [selectedShape, setSelectedShape, addShapeWithType]);
 
   return <canvas id="fabricCanvas" className="canvas" />;
 };

@@ -11,22 +11,22 @@ export const ToolbarButtons = [
   {
     id: 1,
     label: "Line",
-    iconName: "Paintbrush",
+    iconName: "Line",
     dropdownItems: [],
-    shapeType: "line", // Not a shape, Brush tool logic would be handled separately
+    shapeType: "line",
   },
   {
     id: 2,
     label: "Text",
     iconName: "Typography",
     dropdownItems: [],
-    shapeType: "i-text", // Shape type corresponds to text (fabric.IText)
+    shapeType: "text",
   },
   {
     id: 3,
     label: "Rectangle",
     iconName: "Rectangular",
-    shapeType: "rectangle", // Adds rectangle to the canvas
+    shapeType: "rect",
     dropdownItems: [
       { label: "Circle", iconName: "Circle", shapeType: "circle" }, // Adds circle
       { label: "Line", iconName: "Line", shapeType: "line" }, // Adds line
@@ -35,8 +35,8 @@ export const ToolbarButtons = [
   {
     id: 4,
     label: "Ellipse",
-    iconName: "Hashtag",
-    shapeType: "circle",
+    iconName: "Circle",
+    shapeType: "ellipse",
     dropdownItems: [],
   },
   {
@@ -45,12 +45,5 @@ export const ToolbarButtons = [
     iconName: "Picture",
     dropdownItems: [],
     shapeType: "triangle",
-  },
-  {
-    id: 6,
-    label: "Polyline",
-    iconName: "Picture",
-    dropdownItems: [],
-    shapeType: "polyline",
   },
 ];
