@@ -1,3 +1,5 @@
+//Toolbar.tsx
+
 import React from "react";
 import Button from "../Button";
 import { ToolbarButtons } from "../ButtonMap";
@@ -24,6 +26,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
           <Button
             label={button.label}
             onClick={() => handleShapeSelection(button.shapeType)} // Ensure shapeType is passed correctly
+            iconName={button.iconName} // Pass iconName prop
           />
           {button.dropdownItems && button.dropdownItems.length > 0 && (
             <div className="dropdown">
@@ -31,7 +34,8 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
                 <Button
                   key={dropdownItem.label}
                   label={dropdownItem.label}
-                  onClick={() => handleShapeSelection(dropdownItem.shapeType)} // Ensure dropdown shapeType is handled
+                  onClick={() => handleShapeSelection(dropdownItem.shapeType)}
+                  iconName={dropdownItem.iconName} // Pass iconName for dropdown
                 />
               ))}
             </div>

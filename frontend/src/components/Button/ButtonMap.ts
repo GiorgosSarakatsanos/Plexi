@@ -1,4 +1,4 @@
-// src/data/buttonData.ts
+//ButtonMap.ts
 export const StatebarButtons = [
   { id: 1, label: "Design", iconName: "Create" },
   { id: 2, label: "Edit", iconName: "Pencil Drawing" },

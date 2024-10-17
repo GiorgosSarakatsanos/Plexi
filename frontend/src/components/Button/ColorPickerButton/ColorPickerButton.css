@@ -1,4 +1,4 @@
-@import url('../../../index.css');
+@import url('../../../styles/App.css');
 
 .color-picker-container {
     display: flex;
@@ -10,9 +10,9 @@
 }
 
 .color-preview {
-    width: var(--input-height);
+    width: 22px;
+    height: 22px;
     aspect-ratio: 1 / 1;
-    /* Ensure it's always a square */
     border: var(--border);
     border-radius: var(--border-radius);
     cursor: pointer;
@@ -27,7 +27,6 @@
     width: 100%;
     height: 100%;
     opacity: 0;
-    /* Invisible but clickable */
     cursor: pointer;
 }
 
@@ -37,36 +36,20 @@
     border-radius: var(--border-radius);
     display: flex;
     align-items: center;
-    flex-grow: 1;
+
 }
 
-.hex-input {
+input {
+    height: 22px;
     width: 6ch;
-    /* Fits exactly 5 characters (5 digits/letters) */
     border: none;
     background-color: transparent;
     font-size: var(--s-text);
     font-weight: var(--font-weight);
-    text-align: right;
+    text-align: center;
 }
 
-.hex-input:focus {
+input:focus {
     outline: none;
     border: none;
-}
-
-.tooltip {
-    position: absolute;
-    top: -30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #000;
-    color: #fff;
-    padding: var(--s-gap);
-    border-radius: var(--border-radius);
-    font-size: var(--s-text);
-    font-weight: var(--font-weight);
-    white-space: nowrap;
-    opacity: 0.8;
-    z-index: 100;
 }

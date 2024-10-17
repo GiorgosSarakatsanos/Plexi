@@ -27,7 +27,7 @@ export const shapeDataMap = {
   text: {
     create: (text = "Your text") =>
       new fabric.IText(text, {
-        fontSize: 24,
+        fontSize: 100,
         fill: "black",
       }),
     extend: false, // Text is static and doesn't need extension logic

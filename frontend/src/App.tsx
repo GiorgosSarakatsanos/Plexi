@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import Toolbar from "./components/Button/Toolbar/Toolbar";
 import Statebar from "./components/Button/Statebar/Statebar";
 import Canvas from "./components/Canvas/Canvas";
-import BackgroundColorPicker from "./components/Canvas/CanvasBackground";
+import ColorPickerButton from "./components/Button/ColorPickerButton/ColorPickerButton"; // Directly import ColorPickerButton
 import SizeSelector from "./components/Input/Size/SizeSelector";
 import { useCanvasSize } from "./components/Canvas/useCanvasSize";
-import { useBackgroundColor } from "./hooks/useBackgroundColor";
+import { useColor } from "./hooks/useColor"; // Import the new hook
 import { shapeDataMap } from "./components/Shapes/ShapeDataMap"; // Import shapeDataMap
 
 import "./styles/App.css";
@@ -13,9 +13,8 @@ import "./index.css";
 
 const App: React.FC = () => {
   const { canvasSize, onSizeSelect } = useCanvasSize();
-  const { backgroundColor, handleColorChange } = useBackgroundColor();
+  const { color: backgroundColor, handleColorChange } = useColor(); // Use the new hook
 
-  // Correct type definition here to match only string keys from shapeDataMap or null
   const [selectedShape, setSelectedShape] = useState<
     keyof typeof shapeDataMap | null
   >(null);
@@ -25,10 +24,9 @@ const App: React.FC = () => {
       <div className="toolbar-container">
         <div className="canvas-setup">
           <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-          <BackgroundColorPicker onChangeColor={handleColorChange} />
+          <ColorPickerButton onChangeColor={handleColorChange} />{""}
         </div>
         <div className="toolbar-wrapper">
-          {/* Set the selected shape type when a button is clicked */}
           <Toolbar setSelectedShape={setSelectedShape} />
         </div>
         <div className="statebar">
@@ -39,7 +37,7 @@ const App: React.FC = () => {
         <Canvas
           width={canvasSize.width}
           height={canvasSize.height}
-          backgroundColor={backgroundColor}
+          backgroundColor={backgroundColor} // Apply background color from the hook
           selectedShape={selectedShape}
           setSelectedShape={setSelectedShape}
         />

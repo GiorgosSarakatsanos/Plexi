@@ -1,56 +1,47 @@
 import React, { useState } from "react";
-import "../../styles/Button.css";
+import "../Button.css";
+import "./ColorPickerButton.css";
 
 interface ColorPickerButtonProps {
-  onChangeColor: (newColor: string) => void; // Accept onChangeColor as a prop
+  onChangeColor: (newColor: string) => void;
 }
 
 const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   onChangeColor,
 }) => {
-  const [selectedColor, setSelectedColor] = useState<string>("ffffff"); // Default color (without hashtag)
+  const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
 
-  // Handle color change from the color picker
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newColor = e.target.value.replace("#", "").toLowerCase();
-    setSelectedColor(newColor); // Update internal state
-    onChangeColor(`#${newColor}`); // Notify parent component
-  };
-
-  // Handle color change from the text input (hex code)
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const hexValue = e.target.value.toLowerCase(); // Convert input to lowercase
-    // Validate the input for valid hex code (excluding the hashtag)
-    if (/^[0-9a-f]{0,6}$/i.test(hexValue)) {
-      setSelectedColor(hexValue);
-    }
+    const newColor = e.target.value;
+    setSelectedColor(newColor); // Update state with selected color
+    onChangeColor(newColor); // Pass the color to parent
   };
 
   return (
     <div className="color-picker-container">
-      {/* The clickable color preview rectangle */}
-      <div className="color-preview">
-        <label htmlFor="color-input">Pick a color:</label>
+      {/* Color preview box */}
+      <div
+        className="color-preview"
+        style={{ backgroundColor: selectedColor }} // Set background color
+      >
         <input
           type="color"
-          id="color-input"
-          value={`#${selectedColor}`} // Add the hashtag when displaying the color picker
+          value={selectedColor} // Sync with state
           onChange={handleColorChange}
-          className="color-input"
         />
       </div>
 
-      {/* Input field for HEX color */}
+      {/* HEX input field */}
       <div className="hex-input-container">
-        <label htmlFor="hex-input">HEX code:</label>
         <input
           type="text"
-          id="hex-input"
-          value={selectedColor}
-          onChange={handleInputChange}
-          className="hex-input"
-          maxLength={6} // Limit to 6 hex characters (no hashtag)
-          title="Enter HEX color code"
+          value={selectedColor.replace("#", "")} // Remove hashtag
+          maxLength={6}
+          onChange={(e) => {
+            const hexValue = `#${e.target.value}`;
+            setSelectedColor(hexValue);
+            onChangeColor(hexValue);
+          }}
         />
       </div>
     </div>

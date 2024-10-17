@@ -56,6 +56,11 @@
     transition: box-shadow 0.5s ease;
 }
 
+.button-panel {
+    display: flex;
+    gap: var(--s-gap);
+}
+
 /* Dropdown Menu */
 .dropdown {
     display: none;

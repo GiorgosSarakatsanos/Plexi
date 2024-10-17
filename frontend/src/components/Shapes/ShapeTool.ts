@@ -11,7 +11,7 @@ export const useShapeTool = (canvas: fabric.Canvas | undefined) => {
       return;
     }
 
-    let shape: fabric.Object | null = null; // Initialize shape variable
+    let shape: fabric.Object | null = null;
     let startX = 0;
     let startY = 0;
 
@@ -22,30 +22,29 @@ export const useShapeTool = (canvas: fabric.Canvas | undefined) => {
       startX = pointer.x;
       startY = pointer.y;
 
+      // Handle text creation using data from ShapeDataMap
       if (shapeType === "text") {
-        // Add text directly at the clicked location
-        const text = new fabric.IText("Your text", {
+        shape = shapeData.create(); // Use the text creation logic from ShapeDataMap
+        shape.set({
           left: startX,
           top: startY,
-          fontSize: 24,
-          fill: "black",
         });
-        canvas.add(text);
-        canvas.setActiveObject(text);
+        canvas.add(shape);
+        canvas.setActiveObject(shape);
         canvas.renderAll();
 
         // Disable further text addition by removing the mouse:down listener
         canvas.off("mouse:down", startShape);
-        return; // No need for further shape extension or finalization for text
+        return;
       }
 
-      // Disable selection box for all shapes
+      // Disable selection box for other shapes
       canvas.selection = false;
       canvas.forEachObject((obj) => {
         obj.selectable = false;
       });
 
-      // Create the shape if it's not text
+      // Create other shapes (e.g., Line, Rectangle, Ellipse, Triangle)
       shape = shapeData.create();
 
       if (shape instanceof fabric.Line) {
@@ -112,20 +111,19 @@ export const useShapeTool = (canvas: fabric.Canvas | undefined) => {
       shape = null; // Reset the shape for future drawings
     };
 
-    // For non-text shapes, extend shape on mouse move
+    // Event listeners for non-text shapes
+    canvas.on("mouse:down", startShape);
     if (shapeType !== "text") {
-      canvas.on("mouse:down", startShape);
       canvas.on("mouse:move", extendShape);
-      canvas.on("mouse:up", () => {
-        finishShape();
-        canvas.off("mouse:down", startShape);
-        canvas.off("mouse:move", extendShape);
-        canvas.off("mouse:up", finishShape);
-      });
-    } else {
-      // For text, only handle the mouse down event, and disable it after one click
-      canvas.on("mouse:down", startShape);
     }
+    canvas.on("mouse:up", () => {
+      finishShape();
+      canvas.off("mouse:down", startShape);
+      if (shapeType !== "text") {
+        canvas.off("mouse:move", extendShape);
+      }
+      canvas.off("mouse:up", finishShape);
+    });
   };
 
   return { addShape };

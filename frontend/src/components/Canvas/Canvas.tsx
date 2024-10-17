@@ -3,6 +3,8 @@ import * as fabric from "fabric";
 import { useAddShape } from "../Shapes/useAddShape";
 import { shapeDataMap } from "../Shapes/ShapeDataMap"; // Import shapeDataMap
 
+import "./canvas.css";
+
 interface CanvasProps {
   width: number;
   height: number;
