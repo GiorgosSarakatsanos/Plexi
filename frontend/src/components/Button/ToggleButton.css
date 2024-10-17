@@ -8,6 +8,9 @@
     position: relative;
     cursor: grabbing;
     transition: var(--transition-duration);
+    /* Add border here */
+    border: 1px solid var(--accent-color);
+    /* Adjust width, style, and color as needed */
 }
 
 /* The circle inside the switch */

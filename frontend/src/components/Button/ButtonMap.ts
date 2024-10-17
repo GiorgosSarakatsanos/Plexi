@@ -42,7 +42,7 @@ export const ToolbarButtons = [
   {
     id: 5,
     label: "Triangle",
-    iconName: "Picture",
+    iconName: "Triangle",
     dropdownItems: [],
     shapeType: "triangle",
   },

@@ -1,7 +1,8 @@
 import React, { useRef, useEffect } from "react";
 import * as fabric from "fabric";
 import { useAddShape } from "../Shapes/useAddShape";
-import { shapeDataMap } from "../Shapes/ShapeDataMap"; // Import shapeDataMap
+import { shapeDataMap } from "../Shapes/ShapeDataMap";
+import MarginLines from "./MarginLines"; // Import the MarginLines component
 
 import "./canvas.css";
 
@@ -9,10 +10,11 @@ interface CanvasProps {
   width: number;
   height: number;
   backgroundColor: string;
-  selectedShape: keyof typeof shapeDataMap | null; // Selected shape type
+  selectedShape: keyof typeof shapeDataMap | null;
   setSelectedShape: React.Dispatch<
     React.SetStateAction<keyof typeof shapeDataMap | null>
   >;
+  showMarginLines: boolean; // New prop for margin lines visibility
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -21,10 +23,10 @@ const Canvas: React.FC<CanvasProps> = ({
   backgroundColor,
   selectedShape,
   setSelectedShape,
+  showMarginLines, // Add the new prop
 }) => {
-  const canvasRef = useRef<fabric.Canvas | null>(null); // fabric.Canvas can be null initially
+  const canvasRef = useRef<fabric.Canvas | null>(null);
 
-  // Initialize the canvas and update its size and background color
   useEffect(() => {
     const canvasElement = document.getElementById(
       "fabricCanvas"
@@ -43,23 +45,29 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [width, height, backgroundColor]);
 
-  // Use the shape-adding hook outside of useEffect
   const { addShapeWithType } = useAddShape(canvasRef.current || undefined);
 
-  // Ensure addShape logic only runs when selectedShape changes and after canvas is ready
   useEffect(() => {
     if (selectedShape && canvasRef.current) {
-      addShapeWithType(selectedShape); // Add the shape dynamically
-
+      addShapeWithType(selectedShape);
       setTimeout(() => {
-        canvasRef.current!.selection = true; // Re-enable selection after adding shape
+        canvasRef.current!.selection = true;
       }, 100);
-
-      setSelectedShape(null); // Reset selected shape
+      setSelectedShape(null);
     }
   }, [selectedShape, setSelectedShape, addShapeWithType]);
 
-  return <canvas id="fabricCanvas" className="canvas" />;
+  return (
+    <div>
+      <canvas id="fabricCanvas" className="canvas" />
+      <MarginLines
+        canvas={canvasRef.current}
+        width={width}
+        height={height}
+        visible={showMarginLines} // Pass the visibility state to MarginLines
+      />
+    </div>
+  );
 };
 
 export default Canvas;

@@ -1,17 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import "./ToggleButton.css"; // Import the styles
 
-const ToggleButton: React.FC = () => {
-  const [isToggled, setIsToggled] = useState(false);
+interface ToggleButtonProps {
+  isToggled: boolean;
+  onToggle: () => void;
+}
 
-  const handleToggle = () => {
-    setIsToggled(!isToggled); // Toggle the state
-  };
-
+const ToggleButton: React.FC<ToggleButtonProps> = ({ isToggled, onToggle }) => {
   return (
     <div
       className={`toggle-switch ${isToggled ? "toggled" : ""}`}
-      onClick={handleToggle}
+      onClick={onToggle}
     >
       <div className="toggle-circle"></div>
     </div>
