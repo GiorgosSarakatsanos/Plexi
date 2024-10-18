@@ -4,6 +4,7 @@ import * as fabric from "fabric";
 import { useAddShape } from "../Shapes/useAddShape";
 import { shapeDataMap } from "../Shapes/ShapeDataMap";
 import MarginLines from "./MarginLines";
+import { marginSettings } from "./MarginSettings"; // Import margin settings
 
 interface CanvasProps {
   width: number;
@@ -14,7 +15,7 @@ interface CanvasProps {
     React.SetStateAction<keyof typeof shapeDataMap | null>
   >;
   showMarginLines: boolean;
-  margins: { top: string; right: string; bottom: string; left: string }; // New prop for margins
+  margins: { top: string; right: string; bottom: string; left: string }; // Margin values
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -24,7 +25,7 @@ const Canvas: React.FC<CanvasProps> = ({
   selectedShape,
   setSelectedShape,
   showMarginLines,
-  margins, // Accept margins
+  margins,
 }) => {
   const canvasRef = useRef<fabric.Canvas | null>(null);
 
@@ -61,17 +62,20 @@ const Canvas: React.FC<CanvasProps> = ({
   return (
     <div>
       <canvas id="fabricCanvas" className="canvas" />
-      {showMarginLines && (
-        <MarginLines
-          canvas={canvasRef.current}
-          width={width}
-          height={height}
-          topMargin={parseInt(margins.top, 10)}
-          rightMargin={parseInt(margins.right, 10)}
-          bottomMargin={parseInt(margins.bottom, 10)}
-          leftMargin={parseInt(margins.left, 10)}
-        />
-      )}
+      <MarginLines
+        canvas={canvasRef.current}
+        width={width}
+        height={height}
+        topMargin={parseInt(margins.top, 10)}
+        rightMargin={parseInt(margins.right, 10)}
+        bottomMargin={parseInt(margins.bottom, 10)}
+        leftMargin={parseInt(margins.left, 10)}
+        marginColor={marginSettings.marginColor}
+        lineStyle={marginSettings.lineStyle}
+        dashPattern={marginSettings.dashPattern}
+        opacity={marginSettings.opacity}
+        visible={showMarginLines} // Pass visibility state
+      />
     </div>
   );
 };

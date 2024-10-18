@@ -1,18 +1,17 @@
 @import url('../index.css');
 
-.margin-input-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
-.generic-margin-input {
+.four-sided-input-container {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+
 }
 
-.generic-margin-input label {
+.generic-input {
+    display: flex;
+    align-items: center;
+}
+
+.generic-input label {
     margin-right: 10px;
 }
 
@@ -21,31 +20,30 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 10px;
 }
 
 .margin-display span {
     font-size: 14px;
 }
 
-.individual-margin-inputs {
+.individual-inputs {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    align-items: center;
 }
 
 .input-group {
     display: flex;
-    flex-direction: column;
+    font-size: var(--s-text);
+    align-items: center;
 }
 
 label {
-    margin-bottom: 5px;
+    font-size: var(--s-text);
 }
 
-.custom-input {
+.custom-input input {
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    width: 100%;
 }

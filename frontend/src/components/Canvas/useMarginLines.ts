@@ -1,8 +1,8 @@
-// MarginLines.tsx
-import React, { useEffect, useRef } from "react";
+// hooks/useMarginLines.ts
+import { useEffect, useRef } from "react";
 import * as fabric from "fabric";
 
-interface MarginLinesProps {
+interface UseMarginLinesProps {
   canvas: fabric.Canvas | null;
   width: number;
   height: number;
@@ -12,12 +12,11 @@ interface MarginLinesProps {
   leftMargin: number;
   marginColor: string;
   lineStyle: "solid" | "dashed" | "dotted";
-  dashPattern: number[];
+  dashArray: [number, number];
   opacity: number;
-  visible: boolean; // Add visible prop
 }
 
-const MarginLines: React.FC<MarginLinesProps> = ({
+export const useMarginLines = ({
   canvas,
   width,
   height,
@@ -27,10 +26,9 @@ const MarginLines: React.FC<MarginLinesProps> = ({
   leftMargin,
   marginColor,
   lineStyle,
-  dashPattern,
+  dashArray,
   opacity,
-  visible, // Check for visibility
-}) => {
+}: UseMarginLinesProps) => {
   const marginLinesRef = useRef<fabric.Line[]>([]);
 
   useEffect(() => {
@@ -42,26 +40,21 @@ const MarginLines: React.FC<MarginLinesProps> = ({
     });
     marginLinesRef.current = [];
 
-    // If margin lines are not visible, exit early and do not create new lines
-    if (!visible) {
-      canvas.renderAll();
-      return;
-    }
+    const strokeDashArray =
+      lineStyle === "dashed" || lineStyle === "dotted" ? dashArray : [];
 
-    // Define strokeDashArray for line styles
-    const strokeDashArray = lineStyle === "solid" ? undefined : dashPattern;
-
-    // Create margin lines based on the provided margins and styles
+    // Create margin lines based on the provided margins
     const leftLine = new fabric.Line(
       [leftMargin, topMargin, leftMargin, height - bottomMargin],
       {
         stroke: marginColor,
-        strokeDashArray,
-        opacity,
+        strokeDashArray: strokeDashArray,
+        opacity: opacity,
         selectable: false,
         evented: false,
       }
     );
+
     const rightLine = new fabric.Line(
       [
         width - rightMargin,
@@ -71,22 +64,24 @@ const MarginLines: React.FC<MarginLinesProps> = ({
       ],
       {
         stroke: marginColor,
-        strokeDashArray,
-        opacity,
+        strokeDashArray: strokeDashArray,
+        opacity: opacity,
         selectable: false,
         evented: false,
       }
     );
+
     const topLine = new fabric.Line(
       [leftMargin, topMargin, width - rightMargin, topMargin],
       {
         stroke: marginColor,
-        strokeDashArray,
-        opacity,
+        strokeDashArray: strokeDashArray,
+        opacity: opacity,
         selectable: false,
         evented: false,
       }
     );
+
     const bottomLine = new fabric.Line(
       [
         leftMargin,
@@ -96,8 +91,8 @@ const MarginLines: React.FC<MarginLinesProps> = ({
       ],
       {
         stroke: marginColor,
-        strokeDashArray,
-        opacity,
+        strokeDashArray: strokeDashArray,
+        opacity: opacity,
         selectable: false,
         evented: false,
       }
@@ -120,13 +115,8 @@ const MarginLines: React.FC<MarginLinesProps> = ({
     bottomMargin,
     leftMargin,
     marginColor,
-    lineStyle,
-    dashPattern,
+    dashArray,
     opacity,
-    visible, // Trigger useEffect when visibility changes
+    lineStyle, // Ensure the canvas re-renders when lineStyle changes
   ]);
-
-  return null;
 };
-
-export default MarginLines;

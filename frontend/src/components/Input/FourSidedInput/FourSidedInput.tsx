@@ -1,4 +1,3 @@
-// FourSidedInput.tsx
 import React, { useRef, useState, useEffect } from "react";
 import Input from "../Input";
 import Button from "../../Button/Button";
@@ -44,7 +43,7 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
   buttonIconName,
   buttonTextWhenOpen = `Hide Individual ${label}`,
   buttonTextWhenClosed = `Set Individual ${label}`,
-  onValuesChange, // New prop for passing values back
+  onValuesChange,
 }) => {
   const { values, updateAllSides, updateIndividualSide } = useFourSidedInput({
     defaultValue,
@@ -54,7 +53,7 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
 
   const handleGenericValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    updateAllSides(value);
+    updateAllSides(value); // When typing in the general input, update all individual sides
   };
 
   const handleIndividualInputChange = (
@@ -73,6 +72,36 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
     onValuesChange(values);
   }, [values, onValuesChange]);
 
+  // Determine if all sides are the same
+  const allSidesEqual =
+    values.top === values.right &&
+    values.right === values.bottom &&
+    values.bottom === values.left;
+
+  // If all sides are equal, display the general input value
+  // Otherwise, display "Custom"
+  const combinedValue = allSidesEqual
+    ? values.top // Display top value (or any value, since they're the same)
+    : `Custom (${values.top}, ${values.right}, ${values.bottom}, ${values.left})`;
+
+  // Add event listener to close individual inputs when clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setShowIndividualInputs(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [containerRef]);
+
   return (
     <div ref={containerRef} className="four-sided-input-container">
       <div className="generic-input">
@@ -81,8 +110,8 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
         </label>
         <Input
           placeholder={`Set ${label} for all sides`}
-          value={values.top}
-          onChange={handleGenericValueChange}
+          value={combinedValue} // Display "Custom" or combined value
+          onChange={handleGenericValueChange} // Update all sides if changed
         />
       </div>
 
