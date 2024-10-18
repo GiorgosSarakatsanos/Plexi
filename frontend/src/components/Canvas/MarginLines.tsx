@@ -6,17 +6,21 @@ interface MarginLinesProps {
   canvas: fabric.Canvas | null;
   width: number;
   height: number;
-  visible: boolean;
+  topMargin: number;
+  rightMargin: number;
+  bottomMargin: number;
+  leftMargin: number;
 }
 
 const MarginLines: React.FC<MarginLinesProps> = ({
   canvas,
   width,
   height,
-  visible,
+  topMargin,
+  rightMargin,
+  bottomMargin,
+  leftMargin,
 }) => {
-  const margin = 24; // Margin in pixels
-
   const marginLinesRef = useRef<fabric.Line[]>([]);
 
   useEffect(() => {
@@ -28,51 +32,59 @@ const MarginLines: React.FC<MarginLinesProps> = ({
     });
     marginLinesRef.current = [];
 
-    if (visible) {
-      // Create margin lines 24px from the edges
-      const leftLine = new fabric.Line(
-        [margin, margin, margin, height - margin],
-        {
-          stroke: "red",
-          selectable: false,
-          evented: false,
-        }
-      );
-      const rightLine = new fabric.Line(
-        [width - margin, margin, width - margin, height - margin],
-        {
-          stroke: "red",
-          selectable: false,
-          evented: false,
-        }
-      );
-      const topLine = new fabric.Line(
-        [margin, margin, width - margin, margin],
-        {
-          stroke: "red",
-          selectable: false,
-          evented: false,
-        }
-      );
-      const bottomLine = new fabric.Line(
-        [margin, height - margin, width - margin, height - margin],
-        {
-          stroke: "red",
-          selectable: false,
-          evented: false,
-        }
-      );
+    // Create margin lines based on the provided margins
+    const leftLine = new fabric.Line(
+      [leftMargin, topMargin, leftMargin, height - bottomMargin],
+      {
+        stroke: "red",
+        selectable: false,
+        evented: false,
+      }
+    );
+    const rightLine = new fabric.Line(
+      [
+        width - rightMargin,
+        topMargin,
+        width - rightMargin,
+        height - bottomMargin,
+      ],
+      {
+        stroke: "red",
+        selectable: false,
+        evented: false,
+      }
+    );
+    const topLine = new fabric.Line(
+      [leftMargin, topMargin, width - rightMargin, topMargin],
+      {
+        stroke: "red",
+        selectable: false,
+        evented: false,
+      }
+    );
+    const bottomLine = new fabric.Line(
+      [
+        leftMargin,
+        height - bottomMargin,
+        width - rightMargin,
+        height - bottomMargin,
+      ],
+      {
+        stroke: "red",
+        selectable: false,
+        evented: false,
+      }
+    );
 
-      // Add lines to canvas
-      canvas.add(leftLine, rightLine, topLine, bottomLine);
+    // Add lines to canvas
+    canvas.add(leftLine, rightLine, topLine, bottomLine);
 
-      // Store the lines to remove them later if needed
-      marginLinesRef.current = [leftLine, rightLine, topLine, bottomLine];
-    }
+    // Store the lines so they can be removed later
+    marginLinesRef.current = [leftLine, rightLine, topLine, bottomLine];
 
-    // Render the canvas
+    // Render the canvas with new margins
     canvas.renderAll();
-  }, [canvas, width, height, visible]);
+  }, [canvas, width, height, topMargin, rightMargin, bottomMargin, leftMargin]);
 
   return null;
 };

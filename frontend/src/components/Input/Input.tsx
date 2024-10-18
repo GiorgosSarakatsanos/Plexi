@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from "react";
-import "../styles/Input.css";
+import "./Input.css";
 
 // Define the props for the Input component
 interface InputProps {
