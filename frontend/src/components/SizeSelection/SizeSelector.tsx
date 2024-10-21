@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import SizeInputComponent from "./SizeInput";
-import "../Input.css";
+import "../Input/Input.css";
 import { sizeMap } from "./SizeMap"; // Import the sizeMap
 
 interface SizeSelectorProps {

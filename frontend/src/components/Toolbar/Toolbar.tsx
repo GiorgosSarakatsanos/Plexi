@@ -1,9 +1,9 @@
 //Toolbar.tsx
 
 import React from "react";
-import Button from "../Button";
-import { ToolbarButtons } from "../ButtonMap";
-import { shapeDataMap } from "../../Shapes/ShapeDataMap";
+import Button from "../Button/Button";
+import { ToolbarButtons } from "../Button/ButtonMap";
+import { shapeDataMap } from "../Shapes/ShapeDataMap";
 
 interface ToolbarProps {
   setSelectedShape: React.Dispatch<

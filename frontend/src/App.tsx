@@ -1,16 +1,16 @@
 // App.tsx
 import React, { useState } from "react";
-import Toolbar from "./components/Button/Toolbar/Toolbar";
-import Statebar from "./components/Button/Statebar/Statebar";
+import Toolbar from "./components/Toolbar/Toolbar";
+import Statebar from "./components/Statebar/Statebar";
 import Canvas from "./components/Canvas/Canvas";
-import ColorPickerButton from "./components/Button/ColorPickerButton/ColorPickerButton";
-import ToggleButton from "./components/Button/ToggleButton";
-import SizeSelector from "./components/Input/Size/SizeSelector";
-import FourSidedInput from "./components/Input/FourSidedInput/FourSidedInput";
+import ColorPickerButton from "./components/ColorPickerButton/ColorPickerButton";
+import ToggleButton from "./components/ToggleButton/ToggleButton";
+import SizeSelector from "./components/SizeSelection/SizeSelector";
+import FourSidedInput from "./components/FourSidedInput/FourSidedInput";
 import { useCanvasSize } from "./components/Canvas/useCanvasSize";
 import { useColor } from "./hooks/useColor";
 import { shapeDataMap } from "./components/Shapes/ShapeDataMap";
-import { marginInputData } from "./components/Input/FourSidedInput/FourSidedInputData";
+import { marginInputData } from "./components/FourSidedInput/FourSidedInputData";
 
 import "./styles/App.css";
 import "./index.css";

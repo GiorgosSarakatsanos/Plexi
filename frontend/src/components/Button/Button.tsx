@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Icon from "../Icon/Icon";
 import Dropdown from "../Dropdown/Dropdown";
-import "./Button.css";
+import "./ButtonMap";
 
 interface DropdownItem {
   label: string;

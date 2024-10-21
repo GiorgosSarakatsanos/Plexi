@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { getCanvasDimensions } from "./CanvasDimensions";
-import { sizeMap } from "../Input/Size/SizeMap"; // Import sizeMap
+import { sizeMap } from "../SizeSelection/SizeMap"; // Import sizeMap
 
 export const useCanvasSize = () => {
   // Extract the default image size from sizeMap

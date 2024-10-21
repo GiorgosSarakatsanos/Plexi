@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
-import Input from "../Input";
-import Button from "../../Button/Button";
-import Icon from "../../Icon/Icon";
+import Input from "../Input/Input";
+import Button from "../Button/Button";
+import Icon from "../Icon/Icon";
 import { useFourSidedInput } from "./useFourSidedInput";
 import "./FourSidedInput.css";
 

@@ -3,8 +3,8 @@ import React, { useRef, useEffect } from "react";
 import * as fabric from "fabric";
 import { useAddShape } from "../Shapes/useAddShape";
 import { shapeDataMap } from "../Shapes/ShapeDataMap";
-import MarginLines from "./MarginLines";
-import { marginSettings } from "./MarginSettings"; // Import margin settings
+import MarginLines from "../MarginLines/MarginLines";
+import { marginSettings } from "../MarginLines/MarginSettings"; // Import margin settings
 
 interface CanvasProps {
   width: number;
