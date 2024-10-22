@@ -1,9 +1,7 @@
-// MarginLines.tsx
-import React, { useEffect, useRef } from "react";
-import * as fabric from "fabric";
+import React from "react";
+import { Line } from "react-konva";
 
 interface MarginLinesProps {
-  canvas: fabric.Canvas | null;
   width: number;
   height: number;
   topMargin: number;
@@ -18,7 +16,6 @@ interface MarginLinesProps {
 }
 
 const MarginLines: React.FC<MarginLinesProps> = ({
-  canvas,
   width,
   height,
   topMargin,
@@ -31,102 +28,64 @@ const MarginLines: React.FC<MarginLinesProps> = ({
   opacity,
   visible, // Check for visibility
 }) => {
-  const marginLinesRef = useRef<fabric.Line[]>([]);
+  // If the margin lines are not visible, return null
+  if (!visible) {
+    return null;
+  }
 
-  useEffect(() => {
-    if (!canvas) return;
+  // Define strokeDashArray for line styles
+  const strokeDashArray = lineStyle === "solid" ? [] : dashPattern;
 
-    // Remove existing margin lines if any
-    marginLinesRef.current.forEach((line) => {
-      canvas.remove(line);
-    });
-    marginLinesRef.current = [];
-
-    // If margin lines are not visible, exit early and do not create new lines
-    if (!visible) {
-      canvas.renderAll();
-      return;
-    }
-
-    // Define strokeDashArray for line styles
-    const strokeDashArray = lineStyle === "solid" ? undefined : dashPattern;
-
-    // Create margin lines based on the provided margins and styles
-    const leftLine = new fabric.Line(
-      [leftMargin, topMargin, leftMargin, height - bottomMargin],
-      {
-        stroke: marginColor,
-        strokeDashArray,
-        opacity,
-        selectable: false,
-        evented: false,
-      }
-    );
-    const rightLine = new fabric.Line(
-      [
-        width - rightMargin,
-        topMargin,
-        width - rightMargin,
-        height - bottomMargin,
-      ],
-      {
-        stroke: marginColor,
-        strokeDashArray,
-        opacity,
-        selectable: false,
-        evented: false,
-      }
-    );
-    const topLine = new fabric.Line(
-      [leftMargin, topMargin, width - rightMargin, topMargin],
-      {
-        stroke: marginColor,
-        strokeDashArray,
-        opacity,
-        selectable: false,
-        evented: false,
-      }
-    );
-    const bottomLine = new fabric.Line(
-      [
-        leftMargin,
-        height - bottomMargin,
-        width - rightMargin,
-        height - bottomMargin,
-      ],
-      {
-        stroke: marginColor,
-        strokeDashArray,
-        opacity,
-        selectable: false,
-        evented: false,
-      }
-    );
-
-    // Add lines to canvas
-    canvas.add(leftLine, rightLine, topLine, bottomLine);
-
-    // Store the lines so they can be removed later
-    marginLinesRef.current = [leftLine, rightLine, topLine, bottomLine];
-
-    // Render the canvas with new margins
-    canvas.renderAll();
-  }, [
-    canvas,
-    width,
-    height,
-    topMargin,
-    rightMargin,
-    bottomMargin,
-    leftMargin,
-    marginColor,
-    lineStyle,
-    dashPattern,
-    opacity,
-    visible, // Trigger useEffect when visibility changes
-  ]);
-
-  return null;
+  return (
+    <>
+      {/* Left Line */}
+      <Line
+        points={[leftMargin, topMargin, leftMargin, height - bottomMargin]}
+        stroke={marginColor}
+        strokeWidth={1}
+        dash={strokeDashArray}
+        opacity={opacity}
+        listening={false} // Disable events
+      />
+      {/* Right Line */}
+      <Line
+        points={[
+          width - rightMargin,
+          topMargin,
+          width - rightMargin,
+          height - bottomMargin,
+        ]}
+        stroke={marginColor}
+        strokeWidth={1}
+        dash={strokeDashArray}
+        opacity={opacity}
+        listening={false}
+      />
+      {/* Top Line */}
+      <Line
+        points={[leftMargin, topMargin, width - rightMargin, topMargin]}
+        stroke={marginColor}
+        strokeWidth={1}
+        dash={strokeDashArray}
+        opacity={opacity}
+        listening={false}
+      />
+      {/* Bottom Line */}
+      <Line
+        points={[
+          leftMargin,
+          height - bottomMargin,
+          width - rightMargin,
+          height - bottomMargin,
+        ]}
+        stroke={marginColor}
+        strokeWidth={1}
+        dash={strokeDashArray}
+        opacity={opacity}
+        listening={false}
+      />
+    </>
+  );
 };
 
 export default MarginLines;

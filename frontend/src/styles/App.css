@@ -1,59 +1,109 @@
-@import url('../index.css');
-
+html,
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+}
+
+.app-container {
+  display: grid;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar canvas";
+  grid-template-columns: 150px 1fr;
+  grid-template-rows: 50px 1fr;
   height: 100vh;
-  width: 100vw;
   overflow: hidden;
 }
 
-.canvas-container {
-  background-color: var(--secondary-color);
-  /* Container's background color */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  /* Adjust height as needed */
-  width: 100vw;
-  /* Adjust width as needed */
-}
-
-.toolbar-container,
+/* Topbar styles */
 .topbar-container {
+  grid-area: topbar;
   display: flex;
-  align-items: center;
-  padding: var(--s-gap) var(--m-gap);
-  box-shadow: var(--box-shadow-normal);
-  background-color: var(--background-color);
-  z-index: 10;
-}
-
-
-.toolbar-container {
-  position: fixed;
-  bottom: var(--l-gap);
-  left: 50%;
-  transform: translateX(-50%);
-  border-radius: var(--border-radius);
-}
-
-.topbar-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
   justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  height: 50px;
+  background-color: var(--background-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Inline canvas-setup and statebar */
+.canvas-setup {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .statebar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
 }
 
-.canvas-setup {
+/* Sidebar positioned on the left side of the screen */
+.sidebar {
+  grid-area: sidebar;
+  background-color: var(--background-color);
+  box-shadow: var(--box-shadow-normal);
+  padding: var(--s-gap);
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 150px;
+}
+
+/* Canvas and toolbar container */
+.main-content {
+  grid-area: canvas;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: var(--m-gap);
+  position: relative;
+  overflow: hidden;
+  background-color: var(--secondary-color);
+}
+
+/* Canvas container */
+.canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--secondary-color);
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Toolbar styles */
+.toolbar-container {
+  position: fixed;
+  padding: var(--s-gap);
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: var(--border-radius);
+  z-index: 20;
+  max-width: 100%;
+  background-color: var(--background-color);
+}
+
+
+@media (max-width: 768px) {
+  .app-container {
+    grid-template-columns: 100px 1fr;
+  }
+
+  .toolbar-container {
+    width: 90vw;
+  }
+
+  .sidebar {
+    width: 100px;
+  }
 }

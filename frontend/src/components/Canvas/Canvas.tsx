@@ -1,21 +1,36 @@
-// Canvas.tsx
-import React, { useRef, useEffect } from "react";
-import * as fabric from "fabric";
-import { useAddShape } from "../Shapes/useAddShape";
-import { shapeDataMap } from "../Shapes/ShapeDataMap";
+import React, { useRef, useState } from "react";
+import { Stage, Layer } from "react-konva";
+import ShapeFactory from "../Shape/ShapeFactory";
 import MarginLines from "../MarginLines/MarginLines";
-import { marginSettings } from "../MarginLines/MarginSettings"; // Import margin settings
+import { marginSettings } from "../MarginLines/MarginSettings";
+import { useKonvaMouseEvents } from "../../hooks/useKonvaMouseEvents";
+import { useLayerContext } from "../Layer/useLayerContext";
+import Konva from "konva";
+
+// Define the Shape interface
+interface Shape {
+  id: number;
+  type: string;
+  position: { x: number; y: number };
+  width?: number;
+  height?: number;
+  radiusX?: number;
+  radiusY?: number;
+  points?: number[]; // For shapes like triangle or line
+}
 
 interface CanvasProps {
   width: number;
   height: number;
   backgroundColor: string;
-  selectedShape: keyof typeof shapeDataMap | null;
-  setSelectedShape: React.Dispatch<
-    React.SetStateAction<keyof typeof shapeDataMap | null>
-  >;
+  selectedShape: string | null;
   showMarginLines: boolean;
-  margins: { top: string; right: string; bottom: string; left: string }; // Margin values
+  margins: {
+    top: string;
+    right: string;
+    bottom: string;
+    left: string;
+  };
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -23,59 +38,74 @@ const Canvas: React.FC<CanvasProps> = ({
   height,
   backgroundColor,
   selectedShape,
-  setSelectedShape,
   showMarginLines,
   margins,
 }) => {
-  const canvasRef = useRef<fabric.Canvas | null>(null);
+  const stageRef = useRef<Konva.Stage>(null); // Add reference to the stage
+  const [shapes, setShapes] = useState<Shape[]>([]); // Define shapes with proper type
+  const { addLayer } = useLayerContext(); // Use the layer context
 
-  useEffect(() => {
-    const canvasElement = document.getElementById(
-      "fabricCanvas"
-    ) as HTMLCanvasElement;
-
-    if (!canvasRef.current && canvasElement) {
-      canvasRef.current = new fabric.Canvas(canvasElement);
-    }
-
-    const canvas = canvasRef.current;
-    if (canvas) {
-      canvas.setWidth(width);
-      canvas.setHeight(height);
-      canvas.backgroundColor = backgroundColor;
-      canvas.renderAll();
-    }
-  }, [width, height, backgroundColor]);
-
-  const { addShapeWithType } = useAddShape(canvasRef.current || undefined);
-
-  useEffect(() => {
-    if (selectedShape && canvasRef.current) {
-      addShapeWithType(selectedShape);
-      setTimeout(() => {
-        canvasRef.current!.selection = true;
-      }, 100);
-      setSelectedShape(null);
-    }
-  }, [selectedShape, setSelectedShape, addShapeWithType]);
+  const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
+    useKonvaMouseEvents(
+      selectedShape,
+      (newShape: Shape) => {
+        setShapes((prevShapes) => [...prevShapes, newShape]);
+        addLayer({
+          id: newShape.id,
+          name: `Layer ${newShape.type} ${newShape.id}`, // Create a name for the shape
+          type: newShape.type,
+        });
+      },
+      stageRef
+    ); // Pass stageRef to useKonvaMouseEvents
 
   return (
     <div>
-      <canvas id="fabricCanvas" className="canvas" />
-      <MarginLines
-        canvas={canvasRef.current}
+      <Stage
         width={width}
         height={height}
-        topMargin={parseInt(margins.top, 10)}
-        rightMargin={parseInt(margins.right, 10)}
-        bottomMargin={parseInt(margins.bottom, 10)}
-        leftMargin={parseInt(margins.left, 10)}
-        marginColor={marginSettings.marginColor}
-        lineStyle={marginSettings.lineStyle}
-        dashPattern={marginSettings.dashPattern}
-        opacity={marginSettings.opacity}
-        visible={showMarginLines} // Pass visibility state
-      />
+        style={{ backgroundColor }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        ref={stageRef} // Assign the reference
+      >
+        <Layer>
+          {shapes.map((shape) => (
+            <ShapeFactory key={shape.id} shapeType={shape.type} {...shape} />
+          ))}
+
+          {currentShape && (
+            <ShapeFactory
+              shapeType={currentShape.type}
+              position={currentShape.position}
+              width={currentShape.width}
+              height={currentShape.height}
+              radiusX={currentShape.radiusX}
+              radiusY={currentShape.radiusY}
+              points={currentShape.points} // Ensure points are passed for live rendering
+            />
+          )}
+        </Layer>
+
+        {showMarginLines && (
+          <Layer>
+            <MarginLines
+              width={width}
+              height={height}
+              topMargin={parseInt(margins.top, 10)}
+              rightMargin={parseInt(margins.right, 10)}
+              bottomMargin={parseInt(margins.bottom, 10)}
+              leftMargin={parseInt(margins.left, 10)}
+              marginColor={marginSettings.marginColor}
+              lineStyle={marginSettings.lineStyle}
+              dashPattern={marginSettings.dashPattern}
+              opacity={marginSettings.opacity}
+              visible={showMarginLines}
+            />
+          </Layer>
+        )}
+      </Stage>
     </div>
   );
 };

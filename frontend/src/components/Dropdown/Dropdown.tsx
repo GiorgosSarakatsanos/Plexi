@@ -11,7 +11,7 @@ interface DropdownProps {
   items: DropdownItem[];
   visible: boolean;
   onItemClick: (item: DropdownItem) => void;
-  activeItem: string; // Pass the active item label to highlight
+  activeItem: string;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -20,22 +20,33 @@ const Dropdown: React.FC<DropdownProps> = ({
   onItemClick,
   activeItem,
 }) => {
-  if (!visible) return null;
+  const collapsedItem =
+    items.find((item) => item.label === activeItem) || items[0];
 
   return (
-    <div className="dropdown">
-      {items.map((item, index) => (
-        <div
-          key={index}
-          className={`dropdown-item ${
-            item.label === activeItem ? "active" : ""
-          }`} // Highlight active item
-          onClick={() => onItemClick(item)} // Handle item selection
-        >
-          <Icon name={item.iconName} />
-          <span>{item.label}</span>
+    <div className="dropdown-container">
+      {/* Display the collapsed item (active or first) */}
+      <div className="collapsed-item">
+        <Icon name={collapsedItem.iconName} />
+      </div>
+
+      {/* Display dropdown when hovered */}
+      {visible && (
+        <div className="dropdown">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className={`dropdown-item ${
+                item.label === activeItem ? "active" : ""
+              }`}
+              onClick={() => onItemClick(item)}
+            >
+              <Icon name={item.iconName} />
+              <span>{item.label}</span>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };

@@ -1,0 +1,28 @@
+.layer-panel {
+    padding: 10px;
+    font-size: x-small;
+}
+
+.layer-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: x-small;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+
+
+.layer-item button {
+    background-color: transparent;
+    color: black;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.layer-item button:hover {
+    background-color: black;
+    color: white;
+}

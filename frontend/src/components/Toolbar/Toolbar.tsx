@@ -1,21 +1,18 @@
-//Toolbar.tsx
-
-import React from "react";
+import React, { useState } from "react";
 import Button from "../Button/Button";
 import { ToolbarButtons } from "../Button/ButtonMap";
-import { shapeDataMap } from "../Shapes/ShapeDataMap";
 
 interface ToolbarProps {
-  setSelectedShape: React.Dispatch<
-    React.SetStateAction<keyof typeof shapeDataMap | null>
-  >;
+  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
-  const handleShapeSelection = (shapeType: string | undefined) => {
-    // Ensure shapeType is a valid string and exists in shapeDataMap
-    if (shapeType && shapeType in shapeDataMap) {
-      setSelectedShape(shapeType as keyof typeof shapeDataMap);
+  const [activeButtonId, setActiveButtonId] = useState<number | null>(null);
+
+  const handleShapeSelection = (shapeType: string | undefined, id: number) => {
+    if (shapeType) {
+      setSelectedShape(shapeType);
+      setActiveButtonId(id); // Set the active button when clicked
     }
   };
 
@@ -25,8 +22,9 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
         <div key={button.id}>
           <Button
             label={button.label}
-            onClick={() => handleShapeSelection(button.shapeType)} // Ensure shapeType is passed correctly
-            iconName={button.iconName} // Pass iconName prop
+            onClick={() => handleShapeSelection(button.shapeType, button.id)}
+            iconName={button.iconName}
+            isActive={activeButtonId === button.id} // Check if button is active
           />
           {button.dropdownItems && button.dropdownItems.length > 0 && (
             <div className="dropdown">
@@ -34,8 +32,11 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
                 <Button
                   key={dropdownItem.label}
                   label={dropdownItem.label}
-                  onClick={() => handleShapeSelection(dropdownItem.shapeType)}
-                  iconName={dropdownItem.iconName} // Pass iconName for dropdown
+                  onClick={() =>
+                    handleShapeSelection(dropdownItem.shapeType, button.id)
+                  }
+                  iconName={dropdownItem.iconName}
+                  isActive={activeButtonId === button.id} // Check if button is active
                 />
               ))}
             </div>

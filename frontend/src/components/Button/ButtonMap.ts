@@ -46,4 +46,11 @@ export const ToolbarButtons = [
     dropdownItems: [],
     shapeType: "triangle",
   },
+  {
+    id: 6,
+    label: "Select",
+    iconName: "Cursor",
+    dropdownItems: [],
+    shapeType: "select",
+  },
 ];
