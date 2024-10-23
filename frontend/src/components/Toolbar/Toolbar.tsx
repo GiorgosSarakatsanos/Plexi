@@ -11,6 +11,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
 
   const handleShapeSelection = (shapeType: string | undefined, id: number) => {
     if (shapeType) {
+      console.log("Selected shape:", shapeType); // Add this for debugging
       setSelectedShape(shapeType);
       setActiveButtonId(id); // Set the active button when clicked
     }

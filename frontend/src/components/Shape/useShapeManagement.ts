@@ -12,10 +12,13 @@ export const useShapeManagement = () => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [selectedShapeId, setSelectedShapeId] = useState<number | null>(null);
 
-  // Function to add a new shape with unique ID
-  const addShape = (newShape: Shape, addLayer: (layer: Layer) => void) => {
+  // Function to add a new shape with a unique ID
+  const addShape = (
+    newShape: Omit<Shape, "id">,
+    addLayer: (layer: Layer) => void
+  ) => {
     const uniqueId = shapes.length + 1;
-    const shapeWithId = { ...newShape, id: uniqueId };
+    const shapeWithId: Shape = { ...newShape, id: uniqueId }; // Assign unique ID here
 
     setShapes((prevShapes) => [...prevShapes, shapeWithId]);
 

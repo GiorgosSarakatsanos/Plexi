@@ -37,27 +37,41 @@ export const shapeMap: Record<
     createShape: (startPos, endPos): Partial<Shape> => ({
       radiusX: Math.abs(endPos.x - startPos.x) / 2,
       radiusY: Math.abs(endPos.y - startPos.y) / 2,
+      position: {
+        x: (startPos.x + endPos.x) / 2, // Calculate center point
+        y: (startPos.y + endPos.y) / 2,
+      },
     }),
   },
   line: {
     type: "line",
     defaultProps: baseShapeProps,
-    createShape: (startPos, endPos): Partial<Shape> => ({
-      points: [startPos.x, startPos.y, endPos.x, endPos.y],
-    }),
+    createShape: (startPos, endPos): Partial<Shape> => {
+      // Adjusted points for line to correct positioning
+      return {
+        points: [
+          startPos.x,
+          startPos.y, // Start point
+          endPos.x,
+          endPos.y, // End point
+        ],
+      };
+    },
   },
   triangle: {
-    type: "triangle",
-    defaultProps: baseShapeProps,
-    createShape: (startPos, endPos): Partial<Shape> => ({
+  type: "triangle",
+  defaultProps: baseShapeProps,
+  createShape: (startPos, endPos): Partial<Shape> => {
+    const midX = (startPos.x + endPos.x) / 2;
+    return {
+      // Adjusted points for triangle to center the shape
       points: [
-        startPos.x,
-        endPos.y, // Bottom left
-        endPos.x,
-        endPos.y, // Bottom right
-        (startPos.x + endPos.x) / 2,
-        startPos.y, // Top middle
+        midX, startPos.y,  // Top middle
+        endPos.x, endPos.y, // Bottom right
+        startPos.x, endPos.y, // Bottom left
+        midX, startPos.y  // Close the triangle (back to top middle)
       ],
-    }),
+    };
   },
+},
 };
