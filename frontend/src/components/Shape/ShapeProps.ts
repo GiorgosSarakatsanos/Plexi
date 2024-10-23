@@ -1,8 +1,11 @@
-import { RectConfig } from "konva/lib/shapes/Rect";
-import { EllipseConfig } from "konva/lib/shapes/Ellipse";
-
-export interface ShapeProps {
+// ShapeProps.ts
+export interface Shape {
+  id: number;
   type: string;
-  defaultProps: RectConfig | EllipseConfig; // Extend this for other shapes as needed
+  position: { x: number; y: number };
+  width?: number;
+  height?: number;
+  radiusX?: number;
+  radiusY?: number;
+  points?: number[];
 }
-

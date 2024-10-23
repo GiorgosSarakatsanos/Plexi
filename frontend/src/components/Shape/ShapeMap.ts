@@ -1,82 +1,55 @@
 import { RectConfig } from "konva/lib/shapes/Rect";
 import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { LineConfig } from "konva/lib/shapes/Line";
+import { Shape } from "./ShapeProps"; // Import the shared Shape interface
 
-// Define shape-specific configurations
-interface RectShapeConfig {
-  width: number;
-  height: number;
-}
+// Base shape configuration for common props
+const baseShapeProps = {
+  fill: "transparent",
+  stroke: "blue", // Merged stroke color
+  strokeWidth: 2, // Merged stroke width
+  draggable: false,
+};
 
-interface EllipseShapeConfig {
-  radiusX: number;
-  radiusY: number;
-}
-
-interface LineShapeConfig {
-  points: number[];
-}
-
-// Create a unified shape map for all types of shapes
+// Unified shape map for all types of shapes
 export const shapeMap: Record<
   string,
   {
     type: string;
-    defaultProps: Omit<
-      RectConfig | EllipseConfig | LineConfig,
-      "width" | "height" | "radiusX" | "radiusY" | "points"
-    >;
+    defaultProps: Partial<RectConfig | EllipseConfig | LineConfig>;
     createShape: (
       startPos: { x: number; y: number },
       endPos: { x: number; y: number }
-    ) => RectShapeConfig | EllipseShapeConfig | LineShapeConfig;
+    ) => Partial<Shape>;
   }
 > = {
   rect: {
     type: "rect",
-    defaultProps: {
-      fill: "transparent",
-      stroke: "blue",
-      strokeWidth: 2,
-      draggable: false,
-    } as Omit<RectConfig, "width" | "height">,
-    createShape: (startPos, endPos): RectShapeConfig => ({
+    defaultProps: baseShapeProps,
+    createShape: (startPos, endPos): Partial<Shape> => ({
       width: endPos.x - startPos.x,
       height: endPos.y - startPos.y,
     }),
   },
   ellipse: {
     type: "ellipse",
-    defaultProps: {
-      fill: "transparent",
-      stroke: "blue",
-      strokeWidth: 2,
-      draggable: false,
-    } as Omit<EllipseConfig, "radiusX" | "radiusY">,
-    createShape: (startPos, endPos): EllipseShapeConfig => ({
+    defaultProps: baseShapeProps,
+    createShape: (startPos, endPos): Partial<Shape> => ({
       radiusX: Math.abs(endPos.x - startPos.x) / 2,
       radiusY: Math.abs(endPos.y - startPos.y) / 2,
     }),
   },
   line: {
     type: "line",
-    defaultProps: {
-      stroke: "red",
-      strokeWidth: 2,
-      draggable: false,
-    } as Omit<LineConfig, "points">,
-    createShape: (startPos, endPos): LineShapeConfig => ({
+    defaultProps: baseShapeProps,
+    createShape: (startPos, endPos): Partial<Shape> => ({
       points: [startPos.x, startPos.y, endPos.x, endPos.y],
     }),
   },
   triangle: {
     type: "triangle",
-    defaultProps: {
-      stroke: "green",
-      strokeWidth: 2,
-      draggable: false,
-    } as Omit<LineConfig, "points">,
-    createShape: (startPos, endPos): LineShapeConfig => ({
+    defaultProps: baseShapeProps,
+    createShape: (startPos, endPos): Partial<Shape> => ({
       points: [
         startPos.x,
         endPos.y, // Bottom left

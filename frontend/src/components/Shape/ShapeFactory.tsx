@@ -3,31 +3,24 @@ import { Rect, Ellipse, Line } from "react-konva";
 import { shapeMap } from "./ShapeMap";
 import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { LineConfig } from "konva/lib/shapes/Line";
+import { Shape } from "./ShapeProps"; // Import the shared Shape interface
 
-interface ShapeFactoryProps {
-  shapeType: string;
-  position: { x: number; y: number };
-  id: number; // Add id to props
-  width?: number;
-  height?: number;
-  radiusX?: number;
-  radiusY?: number;
-  points?: number[];
+interface ShapeFactoryProps extends Shape {
+  shapeType: string; // Add shapeType to the props
   isDraggable?: boolean; // Make shapes draggable
-  isSelected?: boolean; // Add prop for selection
+  isSelected?: boolean; // Add prop for selection (if needed for other logic)
 }
 
 const ShapeFactory: React.FC<ShapeFactoryProps> = ({
-  shapeType,
+  shapeType, // Use shapeType here
   position,
-  id, // Use id passed via props
+  id,
   width,
   height,
   radiusX,
   radiusY,
   points,
   isDraggable = false,
-  isSelected = false, // Default not selected
 }) => {
   const shapeProps = shapeMap[shapeType];
 
@@ -37,60 +30,35 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
 
   const { type, defaultProps } = shapeProps;
 
-  const boundingBox = isSelected ? (
-    <Rect
-      x={position.x - 5} // Adjust for padding
-      y={position.y - 5}
-      width={(width || 100) + 10}
-      height={(height || 50) + 10}
-      stroke="blue"
-      strokeWidth={2}
-      dash={[4, 4]} // Dashed line for bounding box
-    />
-  ) : null;
+  // Centralized shape rendering logic
+  const shapeCommonProps = {
+    id: `shape-${id}`, // Ensure proper id is set for selection
+    x: position.x,
+    y: position.y,
+    draggable: isDraggable,
+    ...defaultProps, // Spread default props if available
+  };
 
   switch (type) {
     case "rect":
       return (
-        <>
-          {boundingBox}
-          <Rect
-            id={`shape-${id}`} // Ensure proper id is set for selection
-            x={position.x}
-            y={position.y}
-            width={width || 100}
-            height={height || 50}
-            draggable={isDraggable}
-            {...(defaultProps || {})} // Pass default props if available
-          />
-        </>
+        <Rect
+          {...shapeCommonProps}
+          width={width || 100}
+          height={height || 50}
+        />
       );
     case "ellipse":
       return (
-        <>
-          {boundingBox}
-          <Ellipse
-            id={`shape-${id}`} // Ensure proper id is set for selection
-            {...(defaultProps as EllipseConfig)}
-            x={position.x}
-            y={position.y}
-            radiusX={radiusX || 50}
-            radiusY={radiusY || 25}
-            draggable={isDraggable}
-          />
-        </>
+        <Ellipse
+          {...(shapeCommonProps as EllipseConfig)}
+          radiusX={radiusX || 50}
+          radiusY={radiusY || 25}
+        />
       );
     case "line":
       return (
-        <>
-          {boundingBox}
-          <Line
-            id={`shape-${id}`} // Ensure proper id is set for selection
-            {...(defaultProps as LineConfig)}
-            points={points || []}
-            draggable={isDraggable}
-          />
-        </>
+        <Line {...(shapeCommonProps as LineConfig)} points={points || []} />
       );
     default:
       return null;

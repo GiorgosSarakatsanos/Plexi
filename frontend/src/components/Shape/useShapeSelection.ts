@@ -1,16 +1,6 @@
 import { useRef, useEffect } from "react";
 import Konva from "konva";
-
-interface Shape {
-  id: number;
-  type: string;
-  position: { x: number; y: number };
-  width?: number;
-  height?: number;
-  radiusX?: number;
-  radiusY?: number;
-  points?: number[];
-}
+import { Shape } from "./ShapeProps"; // Import from the shared file
 
 export const useShapeSelection = (
   shapes: Shape[],
@@ -21,12 +11,10 @@ export const useShapeSelection = (
   useEffect(() => {
     const transformer = transformerRef.current;
     if (transformer) {
-      // Find the selected shape by id
       const selectedNode = shapes.find((shape) => shape.id === selectedShapeId);
       if (selectedNode) {
         const stage = transformer.getStage();
         if (stage) {
-          // Use the actual shape id to find the node on the stage
           const shapeNode = stage.findOne(`#shape-${selectedNode.id}`);
           if (shapeNode) {
             transformer.nodes([shapeNode]); // Attach Transformer to the shape

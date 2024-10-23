@@ -6,20 +6,9 @@ import { marginSettings } from "../MarginLines/MarginSettings";
 import { useKonvaMouseEvents } from "../../hooks/useKonvaMouseEvents";
 import { useLayerContext } from "../Layer/useLayerContext";
 import { useShapeSelection } from "../../components/Shape/useShapeSelection";
-import { useShapeManagement } from "../../hooks/useShapeManagement"; // Import the custom hook
+import { useShapeManagement } from "../Shape/useShapeManagement";
+import { Shape } from "../Shape/ShapeProps";
 import Konva from "konva";
-
-// Define the Shape interface
-interface Shape {
-  id: number;
-  type: string;
-  position: { x: number; y: number };
-  width?: number;
-  height?: number;
-  radiusX?: number;
-  radiusY?: number;
-  points?: number[];
-}
 
 interface CanvasProps {
   width: number;

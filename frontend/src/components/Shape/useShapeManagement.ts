@@ -1,16 +1,5 @@
 import { useState } from "react";
-
-// Define the Shape interface
-interface Shape {
-  id: number;
-  type: string;
-  position: { x: number; y: number };
-  width?: number;
-  height?: number;
-  radiusX?: number;
-  radiusY?: number;
-  points?: number[];
-}
+import { Shape } from "./ShapeProps"; // Import from the shared file
 
 // Define the Layer interface
 interface Layer {
