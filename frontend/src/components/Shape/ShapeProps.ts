@@ -5,3 +5,4 @@ export interface ShapeProps {
   type: string;
   defaultProps: RectConfig | EllipseConfig; // Extend this for other shapes as needed
 }
+

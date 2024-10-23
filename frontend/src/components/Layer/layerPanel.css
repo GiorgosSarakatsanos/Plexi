@@ -12,8 +12,6 @@
     cursor: pointer;
 }
 
-
-
 .layer-item button {
     background-color: transparent;
     color: black;
@@ -25,4 +23,8 @@
 .layer-item button:hover {
     background-color: black;
     color: white;
+}
+
+.layer-item.active {
+    font-weight: bold;
 }

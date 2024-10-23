@@ -1,10 +1,12 @@
-import React, { useRef, useState } from "react";
-import { Stage, Layer } from "react-konva";
+import React, { useRef, useEffect } from "react";
+import { Stage, Layer, Transformer } from "react-konva";
 import ShapeFactory from "../Shape/ShapeFactory";
 import MarginLines from "../MarginLines/MarginLines";
 import { marginSettings } from "../MarginLines/MarginSettings";
 import { useKonvaMouseEvents } from "../../hooks/useKonvaMouseEvents";
 import { useLayerContext } from "../Layer/useLayerContext";
+import { useShapeSelection } from "../../components/Shape/useShapeSelection";
+import { useShapeManagement } from "../../hooks/useShapeManagement"; // Import the custom hook
 import Konva from "konva";
 
 // Define the Shape interface
@@ -16,7 +18,7 @@ interface Shape {
   height?: number;
   radiusX?: number;
   radiusY?: number;
-  points?: number[]; // For shapes like triangle or line
+  points?: number[];
 }
 
 interface CanvasProps {
@@ -41,23 +43,48 @@ const Canvas: React.FC<CanvasProps> = ({
   showMarginLines,
   margins,
 }) => {
-  const stageRef = useRef<Konva.Stage>(null); // Add reference to the stage
-  const [shapes, setShapes] = useState<Shape[]>([]); // Define shapes with proper type
-  const { addLayer } = useLayerContext(); // Use the layer context
+  const stageRef = useRef<Konva.Stage>(null);
+  const { addLayer } = useLayerContext();
 
-  const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
+  // Use the custom shape management hook
+  const { shapes, selectedShapeId, addShape, selectShapeById } =
+    useShapeManagement();
+
+  // Initialize shape selection after shapes and selectedShapeId are available
+  const transformerRef = useShapeSelection(shapes, selectedShapeId); // Transformer for the selected shape
+
+  // Simplified mouse event handling, shape creation is managed by addShape in the hook
+  const { handleMouseDown, handleMouseMove, handleMouseUp } =
     useKonvaMouseEvents(
       selectedShape,
       (newShape: Shape) => {
-        setShapes((prevShapes) => [...prevShapes, newShape]);
-        addLayer({
-          id: newShape.id,
-          name: `Layer ${newShape.type} ${newShape.id}`, // Create a name for the shape
-          type: newShape.type,
-        });
+        addShape(newShape, addLayer); // Use addShape from the hook
       },
       stageRef
-    ); // Pass stageRef to useKonvaMouseEvents
+    );
+
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    const selectedNode = stageRef.current?.findOne(`#shape-${selectedShapeId}`);
+    if (selectedNode && transformer) {
+      transformer.nodes([selectedNode]);
+      transformer.getLayer()?.batchDraw();
+    } else if (transformer) {
+      transformer.nodes([]);
+    }
+  }, [selectedShapeId, shapes, transformerRef]);
+
+  const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const clickedOnShapeId = e.target?.attrs?.id;
+
+    if (clickedOnShapeId) {
+      selectShapeById(clickedOnShapeId); // Use selectShapeById from the hook
+    } else {
+      selectShapeById(null); // Deselect if clicking outside
+    }
+
+    handleMouseDown(e); // Continue with existing logic
+  };
 
   return (
     <div>
@@ -65,27 +92,24 @@ const Canvas: React.FC<CanvasProps> = ({
         width={width}
         height={height}
         style={{ backgroundColor }}
-        onMouseDown={handleMouseDown}
+        onMouseDown={handleStageMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        ref={stageRef} // Assign the reference
+        ref={stageRef}
       >
         <Layer>
           {shapes.map((shape) => (
-            <ShapeFactory key={shape.id} shapeType={shape.type} {...shape} />
+            <ShapeFactory
+              key={shape.id}
+              shapeType={shape.type}
+              isSelected={shape.id === selectedShapeId} // Pass isSelected prop
+              {...shape}
+              id={shape.id} // Ensure the shape has an id for selection
+            />
           ))}
 
-          {currentShape && (
-            <ShapeFactory
-              shapeType={currentShape.type}
-              position={currentShape.position}
-              width={currentShape.width}
-              height={currentShape.height}
-              radiusX={currentShape.radiusX}
-              radiusY={currentShape.radiusY}
-              points={currentShape.points} // Ensure points are passed for live rendering
-            />
-          )}
+          {/* Transformer component for the selected shape */}
+          <Transformer ref={transformerRef} />
         </Layer>
 
         {showMarginLines && (
