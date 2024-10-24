@@ -3,10 +3,22 @@ import { Rect, Ellipse, Line } from "react-konva";
 import { shapeMap } from "./ShapeMap";
 import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { LineConfig } from "konva/lib/shapes/Line";
-import { Shape } from "./ShapeProps"; // Import the shared Shape interface
 
-interface ShapeFactoryProps extends Shape {
-  shapeType: string; // Add shapeType to the props
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface ShapeFactoryProps {
+  id: number;
+  shapeType: string; // Specify the shape type
+  position: Position;
+  width?: number;
+  height?: number;
+  radiusX?: number;
+  radiusY?: number;
+  points?: number[];
+  layer: number; // Include layer as a required prop
   isDraggable?: boolean; // Make shapes draggable
   isSelected?: boolean;
 }
@@ -20,8 +32,19 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
   radiusX,
   radiusY,
   points,
+  layer, // Include the layer prop
   isDraggable = false, // Default is not draggable unless select tool is active
 }) => {
+  console.log("ShapeFactory received:", {
+    shapeType,
+    position,
+    width,
+    height,
+    radiusX,
+    radiusY,
+    points,
+  });
+
   const shapeProps = shapeMap[shapeType];
 
   if (!shapeProps) {
@@ -34,47 +57,51 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
     id: `shape-${id}`, // Ensure proper id is set for selection
     draggable: isDraggable,
     ...defaultProps, // Spread default props if available
+    layer, // Assign the layer to the shape's props
   };
 
-  // Exclude position and other props for line and triangle shapes
   switch (type) {
     case "rect":
-      return (
+      return width && height ? (
         <Rect
           {...shapeCommonProps}
           x={position.x}
           y={position.y}
-          width={width || 100}
-          height={height || 50}
+          width={width}
+          height={height}
         />
-      );
+      ) : null;
+
     case "ellipse":
-      return (
+      return radiusX && radiusY ? (
         <Ellipse
           {...(shapeCommonProps as EllipseConfig)}
           x={position.x}
           y={position.y}
-          radiusX={radiusX || 50}
-          radiusY={radiusY || 25}
+          radiusX={radiusX}
+          radiusY={radiusY}
         />
-      );
+      ) : null;
+
     case "line":
-      return (
+      return points && points.length ? (
         <Line
-          {...(shapeCommonProps as LineConfig)} // Keep id but exclude position-related props
-          points={points || []}
-          draggable={isDraggable} // Add draggable prop
+          {...(shapeCommonProps as LineConfig)}
+          points={points}
+          draggable={isDraggable}
         />
-      );
+      ) : null;
+
     case "triangle":
-      return (
+      return points && points.length ? (
         <Line
-          {...(shapeCommonProps as LineConfig)} // Keep id but exclude position-related props
-          points={points || []}
-          draggable={isDraggable} // Add draggable prop
+          {...(shapeCommonProps as LineConfig)}
+          points={points}
+          draggable={isDraggable}
           closed
         />
-      );
+      ) : null;
+
     default:
       return null;
   }

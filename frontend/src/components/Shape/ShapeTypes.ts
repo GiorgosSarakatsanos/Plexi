@@ -1,4 +1,9 @@
-// ShapeProps.ts
+export interface Position {
+  x: number;
+  y: number;
+}
+
+// ShapeTypes.ts
 export interface Shape {
   id: number;
   type: string;
@@ -8,4 +13,5 @@ export interface Shape {
   radiusX?: number;
   radiusY?: number;
   points?: number[];
+  layer: number; // Ensure that the layer property is present
 }

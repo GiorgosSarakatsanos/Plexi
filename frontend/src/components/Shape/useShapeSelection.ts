@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import Konva from "konva";
-import { Shape } from "./ShapeProps"; // Import from the shared file
+import { Shape } from "./ShapeTypes"; // Import from the shared file
 
 export const useShapeSelection = (
   shapes: Shape[],

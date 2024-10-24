@@ -1,7 +1,7 @@
 import { RectConfig } from "konva/lib/shapes/Rect";
 import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { LineConfig } from "konva/lib/shapes/Line";
-import { Shape } from "./ShapeProps"; // Import the shared Shape interface
+import { Shape } from "./ShapeTypes"; // Import the shared Shape interface
 
 // Base shape configuration for common props
 const baseShapeProps = {
@@ -59,19 +59,23 @@ export const shapeMap: Record<
     },
   },
   triangle: {
-  type: "triangle",
-  defaultProps: baseShapeProps,
-  createShape: (startPos, endPos): Partial<Shape> => {
-    const midX = (startPos.x + endPos.x) / 2;
-    return {
-      // Adjusted points for triangle to center the shape
-      points: [
-        midX, startPos.y,  // Top middle
-        endPos.x, endPos.y, // Bottom right
-        startPos.x, endPos.y, // Bottom left
-        midX, startPos.y  // Close the triangle (back to top middle)
-      ],
-    };
+    type: "triangle",
+    defaultProps: baseShapeProps,
+    createShape: (startPos, endPos): Partial<Shape> => {
+      const midX = (startPos.x + endPos.x) / 2;
+      return {
+        // Adjusted points for triangle to center the shape
+        points: [
+          midX,
+          startPos.y, // Top middle
+          endPos.x,
+          endPos.y, // Bottom right
+          startPos.x,
+          endPos.y, // Bottom left
+          midX,
+          startPos.y, // Close the triangle (back to top middle)
+        ],
+      };
+    },
   },
-},
 };

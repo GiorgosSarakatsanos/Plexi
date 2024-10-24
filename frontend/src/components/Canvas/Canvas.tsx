@@ -4,9 +4,7 @@ import ShapeFactory from "../Shape/ShapeFactory";
 import MarginLines from "../MarginLines/MarginLines";
 import { marginSettings } from "../MarginLines/MarginSettings";
 import { useKonvaMouseEvents } from "../Shape/useKonvaMouseEvents";
-import { useLayerContext } from "../Layer/useLayerContext";
 import { useShapeManagement } from "../Shape/useShapeManagement";
-import { Shape } from "../Shape/ShapeProps";
 import Konva from "konva";
 
 interface CanvasProps {
@@ -34,32 +32,21 @@ const Canvas: React.FC<CanvasProps> = ({
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
 
-  const { addLayer } = useLayerContext();
   const { shapes, selectedShapeId, addShape, selectShapeById } =
     useShapeManagement();
 
-  // Handle drawing and selection
-  const {
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    currentShape, // Track current shape being drawn
-  } = useKonvaMouseEvents(selectedShape, (newShape: Shape) => {
-    addShape(newShape, addLayer);
-  });
+  const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
+    useKonvaMouseEvents(selectedShape, addShape, selectShapeById);
 
-  // Re-attach transformer when a shape is selected or re-selected
   useEffect(() => {
     const transformer = transformerRef.current;
-
-    // Find the selected shape on the stage
     const selectedNode = stageRef.current?.findOne(`#shape-${selectedShapeId}`);
 
     if (selectedNode && transformer) {
       transformer.nodes([selectedNode]);
-      transformer.getLayer()?.batchDraw(); // Redraw the layer to show the Transformer
+      transformer.getLayer()?.batchDraw();
     } else if (transformer) {
-      transformer.nodes([]); // Clear transformer if no node is selected
+      transformer.nodes([]);
     }
   }, [selectedShapeId, shapes]);
 
@@ -67,15 +54,13 @@ const Canvas: React.FC<CanvasProps> = ({
     const clickedOnShapeId = e.target?.attrs?.id;
 
     if (selectedShape === "select") {
-      // If the select tool is active, select the shape
       if (clickedOnShapeId) {
-        selectShapeById(parseInt(clickedOnShapeId.replace("shape-", ""))); // Ensure ID is passed correctly
+        selectShapeById(parseInt(clickedOnShapeId.replace("shape-", "")));
       } else {
-        selectShapeById(null); // Deselect all shapes if clicking on empty space
+        selectShapeById(null); // Deselect if clicking on an empty area
       }
     } else {
-      // If not select tool, handle drawing
-      handleMouseDown(e);
+      handleMouseDown(e); // Handle drawing the shape
     }
   };
 
@@ -91,18 +76,18 @@ const Canvas: React.FC<CanvasProps> = ({
         ref={stageRef}
       >
         <Layer>
-          {/* Render the shapes */}
+          {/* Render the finalized shapes */}
           {shapes.map((shape) => (
             <ShapeFactory
               key={shape.id}
               shapeType={shape.type}
-              isSelected={shape.id === selectedShapeId} // Mark as selected
+              isSelected={shape.id === selectedShapeId}
               {...shape}
-              id={shape.id} // Pass the shape's ID for selection
+              id={shape.id}
             />
           ))}
 
-          {/* Render the current shape being drawn */}
+          {/* Render the live shape while drawing */}
           {currentShape && (
             <ShapeFactory
               key={"temp-shape"}
@@ -112,11 +97,9 @@ const Canvas: React.FC<CanvasProps> = ({
             />
           )}
 
-          {/* Attach Transformer to selected shape */}
           <Transformer ref={transformerRef} />
         </Layer>
 
-        {/* Optional: Margin lines */}
         {showMarginLines && (
           <Layer>
             <MarginLines
