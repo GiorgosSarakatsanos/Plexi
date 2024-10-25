@@ -3,7 +3,7 @@ import { Stage, Layer, Transformer } from "react-konva";
 import ShapeRenderer from "../Shape/ShapeRenderer";
 import MarginLines from "../MarginLines/MarginLines";
 import { marginSettings } from "../MarginLines/MarginSettings";
-import { useKonvaMouseEvents } from "../Shape/useKonvaMouseEvents";
+import useKonvaMouseEvents from "../Shape/useKonvaMouseEvents";
 import { useShapeManagement } from "../Shape/useShapeManagement";
 import Konva from "konva";
 
@@ -32,11 +32,15 @@ const Canvas: React.FC<CanvasProps> = ({
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
 
+  // Shape management hook
   const { shapes, selectedShapeId, addShape, selectShapeById } =
     useShapeManagement();
-  const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
-    useKonvaMouseEvents(selectedShape, addShape, selectShapeById);
 
+  // Konva mouse events hook
+  const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
+    useKonvaMouseEvents(selectedShape, addShape, selectShapeById, stageRef);
+
+  // Sync transformer with selected shape
   useEffect(() => {
     const transformer = transformerRef.current;
     const selectedNode = stageRef.current?.findOne(`#shape-${selectedShapeId}`);
@@ -49,33 +53,19 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [selectedShapeId, shapes]);
 
-  const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    const clickedOnShapeId = e.target?.attrs?.id;
-
-    if (selectedShape === "select") {
-      if (clickedOnShapeId) {
-        const shapeId = parseInt(clickedOnShapeId.replace("shape-", ""), 10);
-        selectShapeById(shapeId);
-      } else {
-        selectShapeById(null);
-      }
-    } else {
-      handleMouseDown(e);
-    }
-  };
-
   return (
     <div>
       <Stage
         width={width}
         height={height}
         style={{ backgroundColor }}
-        onMouseDown={handleStageMouseDown}
+        onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         ref={stageRef}
       >
         <Layer>
+          {/* Render shapes and apply transformer for selected shapes */}
           <ShapeRenderer
             shapes={shapes}
             currentShape={currentShape}
@@ -84,6 +74,7 @@ const Canvas: React.FC<CanvasProps> = ({
           <Transformer ref={transformerRef} />
         </Layer>
 
+        {/* Render margin lines if enabled */}
         {showMarginLines && (
           <Layer>
             <MarginLines

@@ -1,5 +1,7 @@
+// ShapeFactory.tsx
 import React from "react";
 import { Rect, Ellipse, Line } from "react-konva";
+import { shapeMap } from "./ShapeMap";
 import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { LineConfig } from "konva/lib/shapes/Line";
 
@@ -17,7 +19,7 @@ interface ShapeFactoryProps {
   radiusX?: number;
   radiusY?: number;
   points?: number[];
-  layer: number; // Add this line if `layer` is required in ShapeFactory
+  layer: number;
   isDraggable?: boolean;
   isSelected?: boolean;
 }
@@ -31,26 +33,34 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
   radiusX,
   radiusY,
   points,
+  layer,
   isDraggable = false,
 }) => {
+
+  const shapeProps = shapeMap[shapeType];
+
+  if (!shapeProps) {
+    return null;
+  }
+
+  const { type, defaultProps } = shapeProps;
+
   const shapeCommonProps = {
-    id: `shape-${id}`,
+    id: `shape-${id}`, // Use the consistent ID passed here
     draggable: isDraggable,
-    x: position.x,
-    y: position.y,
-    stroke: "blue", // Set common stroke color
-    strokeWidth: 2,
+    ...defaultProps,
+    layer,
   };
 
-  // Render different shapes based on their type
-  switch (shapeType) {
+  switch (type) {
     case "rect":
       return width && height ? (
         <Rect
           {...shapeCommonProps}
+          x={position.x}
+          y={position.y}
           width={width}
           height={height}
-          fill="transparent"
         />
       ) : null;
 
@@ -58,20 +68,30 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
       return radiusX && radiusY ? (
         <Ellipse
           {...(shapeCommonProps as EllipseConfig)}
+          x={position.x}
+          y={position.y}
           radiusX={radiusX}
           radiusY={radiusY}
-          fill="transparent"
         />
       ) : null;
 
     case "line":
-      return points && points.length >= 4 ? (
-        <Line {...(shapeCommonProps as LineConfig)} points={points} />
+      return points && points.length ? (
+        <Line
+          {...(shapeCommonProps as LineConfig)}
+          points={points}
+          draggable={isDraggable}
+        />
       ) : null;
 
     case "triangle":
-      return points && points.length >= 6 ? (
-        <Line {...(shapeCommonProps as LineConfig)} points={points} closed />
+      return points && points.length ? (
+        <Line
+          {...(shapeCommonProps as LineConfig)}
+          points={points}
+          draggable={isDraggable}
+          closed
+        />
       ) : null;
 
     default:

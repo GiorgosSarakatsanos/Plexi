@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { KonvaEventObject } from "konva/lib/Node";
+import Konva from "konva";
 import { Shape } from "./ShapeTypes";
 import { generateId } from "../../utils/idGenerator";
 
-export const useKonvaMouseEvents = (
+const useKonvaMouseEvents = (
   selectedShape: string | null,
   addShape: (shape: Omit<Shape, "id">) => Shape,
-  selectShapeById: (id: number | null) => void
+  selectShapeById: (id: number | null) => void,
+  stageRef: React.RefObject<Konva.Stage>
 ) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(
@@ -14,12 +15,13 @@ export const useKonvaMouseEvents = (
   );
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
 
-  const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
-    const stage = e.target.getStage();
-    const pointerPosition = stage?.getPointerPosition();
+  const handleMouseDown = () => {
+    const pointerPosition = stageRef.current?.getPointerPosition();
 
     if (selectedShape === "select") {
-      const clickedOnShapeId = e.target?.attrs?.id;
+      const clickedOnShapeId = stageRef.current?.getIntersection(
+        stageRef.current?.getPointerPosition() ?? { x: 0, y: 0 }
+      )?.attrs?.id;
       if (clickedOnShapeId) {
         selectShapeById(parseInt(clickedOnShapeId.replace("shape-", ""), 10));
       } else {
@@ -34,21 +36,20 @@ export const useKonvaMouseEvents = (
         type: selectedShape,
         position: { x: pointerPosition.x, y: pointerPosition.y },
         layer: 1,
+        points: [],
       };
       setCurrentShape(newShape);
     }
   };
 
-  const handleMouseMove = (e: KonvaEventObject<MouseEvent>) => {
+  const handleMouseMove = () => {
     if (!isDrawing || !startPos || !currentShape) return;
 
-    const stage = e.target.getStage();
-    const pointerPosition = stage?.getPointerPosition();
+    const pointerPosition = stageRef.current?.getPointerPosition();
     if (!pointerPosition) return;
 
     const updatedShape = { ...currentShape };
 
-    // Adjust properties based on selected shape type
     switch (currentShape.type) {
       case "rect":
         updatedShape.width = pointerPosition.x - startPos.x;
@@ -70,6 +71,12 @@ export const useKonvaMouseEvents = (
           pointerPosition.x,
           pointerPosition.y,
         ];
+        if (currentShape.type === "triangle") {
+          updatedShape.points.push(
+            startPos.x * 2 - pointerPosition.x,
+            pointerPosition.y
+          );
+        }
         break;
       default:
         break;
@@ -80,6 +87,7 @@ export const useKonvaMouseEvents = (
 
   const handleMouseUp = () => {
     if (isDrawing && currentShape) {
+      // Finalize and add the shape
       const finalizedShape = addShape({
         type: currentShape.type,
         position: currentShape.position,
@@ -91,7 +99,10 @@ export const useKonvaMouseEvents = (
         layer: currentShape.layer,
       });
 
+      // Set the newly created shape as selected
       selectShapeById(finalizedShape.id);
+
+      // Reset drawing state
       setIsDrawing(false);
       setStartPos(null);
       setCurrentShape(null);
@@ -105,3 +116,5 @@ export const useKonvaMouseEvents = (
     currentShape,
   };
 };
+
+export default useKonvaMouseEvents;
