@@ -1,4 +1,3 @@
-// useShapeManagement.ts
 import { useState } from "react";
 import { Shape } from "./ShapeTypes"; // Import the Shape type
 
@@ -6,8 +5,11 @@ export const useShapeManagement = () => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [selectedShapeId, setSelectedShapeId] = useState<number | null>(null);
 
-  const addShape = (newShape: Shape) => {
-    setShapes((prevShapes) => [...prevShapes, newShape]);
+  // Update addShape to return the created shape
+  const addShape = (newShape: Omit<Shape, "id">): Shape => {
+    const shapeWithId: Shape = { ...newShape, id: Date.now() }; // Assign a unique ID here
+    setShapes((prevShapes) => [...prevShapes, shapeWithId]);
+    return shapeWithId; // Return the created shape
   };
 
   const selectShapeById = (id: number | null) => {
@@ -18,6 +20,6 @@ export const useShapeManagement = () => {
     shapes,
     selectedShapeId,
     addShape,
-    selectShapeById, // Ensure this is exported
+    selectShapeById,
   };
 };

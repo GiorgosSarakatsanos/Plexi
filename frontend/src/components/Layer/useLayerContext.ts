@@ -1,7 +1,7 @@
+// useLayerContext.ts
 import { useContext } from "react";
-import { LayerContext } from "./LayerContext";
+import { LayerContext } from "./LayerProvider";
 
-// Custom hook to use the LayerContext
 export const useLayerContext = () => {
   const context = useContext(LayerContext);
   if (!context) {

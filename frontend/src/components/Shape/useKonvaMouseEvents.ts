@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { KonvaEventObject } from "konva/lib/Node";
-import { shapeMap } from "./ShapeMap";
 import { Shape } from "./ShapeTypes";
+import { generateId } from "../../utils/idGenerator";
 
 export const useKonvaMouseEvents = (
   selectedShape: string | null,
-  addShape: (shape: Shape) => void,
+  addShape: (shape: Omit<Shape, "id">) => Shape,
   selectShapeById: (id: number | null) => void
 ) => {
   const [isDrawing, setIsDrawing] = useState(false);
@@ -19,27 +19,23 @@ export const useKonvaMouseEvents = (
     const pointerPosition = stage?.getPointerPosition();
 
     if (selectedShape === "select") {
-      // Handle selection
       const clickedOnShapeId = e.target?.attrs?.id;
       if (clickedOnShapeId) {
-        selectShapeById(parseInt(clickedOnShapeId.replace("shape-", "")));
+        selectShapeById(parseInt(clickedOnShapeId.replace("shape-", ""), 10));
       } else {
         selectShapeById(null);
       }
-    } else {
-      // Start drawing shape
-      if (selectedShape && pointerPosition) {
-        setIsDrawing(true);
-        setStartPos(pointerPosition);
+    } else if (selectedShape && pointerPosition) {
+      setIsDrawing(true);
+      setStartPos(pointerPosition);
 
-        const newShape: Shape = {
-          id: Date.now(), // Generate a unique ID based on timestamp
-          type: selectedShape,
-          position: { x: pointerPosition.x, y: pointerPosition.y },
-          layer: 1, // Example layer (you can change this logic)
-        };
-        setCurrentShape(newShape);
-      }
+      const newShape: Shape = {
+        id: generateId(),
+        type: selectedShape,
+        position: { x: pointerPosition.x, y: pointerPosition.y },
+        layer: 1,
+      };
+      setCurrentShape(newShape);
     }
   };
 
@@ -50,25 +46,55 @@ export const useKonvaMouseEvents = (
     const pointerPosition = stage?.getPointerPosition();
     if (!pointerPosition) return;
 
-    const shapeProps = shapeMap[currentShape.type];
-    if (!shapeProps) return;
+    const updatedShape = { ...currentShape };
 
-    const shapeData = shapeProps.createShape(startPos, pointerPosition);
-    const updatedShape = { ...currentShape, ...shapeData };
+    // Adjust properties based on selected shape type
+    switch (currentShape.type) {
+      case "rect":
+        updatedShape.width = pointerPosition.x - startPos.x;
+        updatedShape.height = pointerPosition.y - startPos.y;
+        break;
+      case "ellipse":
+        updatedShape.radiusX = Math.abs(pointerPosition.x - startPos.x) / 2;
+        updatedShape.radiusY = Math.abs(pointerPosition.y - startPos.y) / 2;
+        updatedShape.position = {
+          x: (pointerPosition.x + startPos.x) / 2,
+          y: (pointerPosition.y + startPos.y) / 2,
+        };
+        break;
+      case "line":
+      case "triangle":
+        updatedShape.points = [
+          startPos.x,
+          startPos.y,
+          pointerPosition.x,
+          pointerPosition.y,
+        ];
+        break;
+      default:
+        break;
+    }
 
     setCurrentShape(updatedShape);
   };
 
   const handleMouseUp = () => {
     if (isDrawing && currentShape) {
-      addShape(currentShape); // Add the finalized shape
+      const finalizedShape = addShape({
+        type: currentShape.type,
+        position: currentShape.position,
+        width: currentShape.width,
+        height: currentShape.height,
+        radiusX: currentShape.radiusX,
+        radiusY: currentShape.radiusY,
+        points: currentShape.points,
+        layer: currentShape.layer,
+      });
+
+      selectShapeById(finalizedShape.id);
       setIsDrawing(false);
-
-      // Automatically select the newly drawn shape
-      selectShapeById(currentShape.id);
-
-      setCurrentShape(null); // Clear currentShape to prevent it from rendering
-      setStartPos(null); // Reset the start position
+      setStartPos(null);
+      setCurrentShape(null);
     }
   };
 

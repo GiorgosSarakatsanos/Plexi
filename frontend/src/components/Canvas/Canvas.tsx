@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { Stage, Layer, Transformer } from "react-konva";
-import ShapeFactory from "../Shape/ShapeFactory";
+import ShapeRenderer from "../Shape/ShapeRenderer";
 import MarginLines from "../MarginLines/MarginLines";
 import { marginSettings } from "../MarginLines/MarginSettings";
 import { useKonvaMouseEvents } from "../Shape/useKonvaMouseEvents";
@@ -34,7 +34,6 @@ const Canvas: React.FC<CanvasProps> = ({
 
   const { shapes, selectedShapeId, addShape, selectShapeById } =
     useShapeManagement();
-
   const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
     useKonvaMouseEvents(selectedShape, addShape, selectShapeById);
 
@@ -55,12 +54,13 @@ const Canvas: React.FC<CanvasProps> = ({
 
     if (selectedShape === "select") {
       if (clickedOnShapeId) {
-        selectShapeById(parseInt(clickedOnShapeId.replace("shape-", "")));
+        const shapeId = parseInt(clickedOnShapeId.replace("shape-", ""), 10);
+        selectShapeById(shapeId);
       } else {
-        selectShapeById(null); // Deselect if clicking on an empty area
+        selectShapeById(null);
       }
     } else {
-      handleMouseDown(e); // Handle drawing the shape
+      handleMouseDown(e);
     }
   };
 
@@ -76,27 +76,11 @@ const Canvas: React.FC<CanvasProps> = ({
         ref={stageRef}
       >
         <Layer>
-          {/* Render the finalized shapes */}
-          {shapes.map((shape) => (
-            <ShapeFactory
-              key={shape.id}
-              shapeType={shape.type}
-              isSelected={shape.id === selectedShapeId}
-              {...shape}
-              id={shape.id}
-            />
-          ))}
-
-          {/* Render the live shape while drawing */}
-          {currentShape && (
-            <ShapeFactory
-              key={"temp-shape"}
-              shapeType={currentShape.type}
-              {...currentShape}
-              id={currentShape.id}
-            />
-          )}
-
+          <ShapeRenderer
+            shapes={shapes}
+            currentShape={currentShape}
+            selectedShapeId={selectedShapeId}
+          />
           <Transformer ref={transformerRef} />
         </Layer>
 

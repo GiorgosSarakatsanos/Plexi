@@ -1,6 +1,5 @@
 import React from "react";
 import { Rect, Ellipse, Line } from "react-konva";
-import { shapeMap } from "./ShapeMap";
 import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { LineConfig } from "konva/lib/shapes/Line";
 
@@ -11,64 +10,47 @@ interface Position {
 
 interface ShapeFactoryProps {
   id: number;
-  shapeType: string; // Specify the shape type
+  shapeType: string;
   position: Position;
   width?: number;
   height?: number;
   radiusX?: number;
   radiusY?: number;
   points?: number[];
-  layer: number; // Include layer as a required prop
-  isDraggable?: boolean; // Make shapes draggable
+  layer: number; // Add this line if `layer` is required in ShapeFactory
+  isDraggable?: boolean;
   isSelected?: boolean;
 }
 
 const ShapeFactory: React.FC<ShapeFactoryProps> = ({
+  id,
   shapeType,
   position,
-  id,
   width,
   height,
   radiusX,
   radiusY,
   points,
-  layer, // Include the layer prop
-  isDraggable = false, // Default is not draggable unless select tool is active
+  isDraggable = false,
 }) => {
-  console.log("ShapeFactory received:", {
-    shapeType,
-    position,
-    width,
-    height,
-    radiusX,
-    radiusY,
-    points,
-  });
-
-  const shapeProps = shapeMap[shapeType];
-
-  if (!shapeProps) {
-    return null;
-  }
-
-  const { type, defaultProps } = shapeProps;
-
   const shapeCommonProps = {
-    id: `shape-${id}`, // Ensure proper id is set for selection
+    id: `shape-${id}`,
     draggable: isDraggable,
-    ...defaultProps, // Spread default props if available
-    layer, // Assign the layer to the shape's props
+    x: position.x,
+    y: position.y,
+    stroke: "blue", // Set common stroke color
+    strokeWidth: 2,
   };
 
-  switch (type) {
+  // Render different shapes based on their type
+  switch (shapeType) {
     case "rect":
       return width && height ? (
         <Rect
           {...shapeCommonProps}
-          x={position.x}
-          y={position.y}
           width={width}
           height={height}
+          fill="transparent"
         />
       ) : null;
 
@@ -76,30 +58,20 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
       return radiusX && radiusY ? (
         <Ellipse
           {...(shapeCommonProps as EllipseConfig)}
-          x={position.x}
-          y={position.y}
           radiusX={radiusX}
           radiusY={radiusY}
+          fill="transparent"
         />
       ) : null;
 
     case "line":
-      return points && points.length ? (
-        <Line
-          {...(shapeCommonProps as LineConfig)}
-          points={points}
-          draggable={isDraggable}
-        />
+      return points && points.length >= 4 ? (
+        <Line {...(shapeCommonProps as LineConfig)} points={points} />
       ) : null;
 
     case "triangle":
-      return points && points.length ? (
-        <Line
-          {...(shapeCommonProps as LineConfig)}
-          points={points}
-          draggable={isDraggable}
-          closed
-        />
+      return points && points.length >= 6 ? (
+        <Line {...(shapeCommonProps as LineConfig)} points={points} closed />
       ) : null;
 
     default:

@@ -1,37 +1,25 @@
-import React, { useContext } from "react";
+import React from "react";
+import { useLayerContext } from "./useLayerContext";
 import LayerItem from "./LayerItem";
-import { LayerContext } from "./LayerContext";
-
-import "./layerPanel.css";
+import { Shape } from "../Shape/ShapeTypes";
+import "./LayerPanel.css";
 
 const LayerPanel: React.FC = () => {
-  const layerContext = useContext(LayerContext);
-
-  // Ensure layerContext exists
-  if (!layerContext) {
-    return <div>Error: Layer context not found</div>;
-  }
-
-  const { layers, removeLayer, selectedLayer, setSelectedLayer } = layerContext;
-
-  const handleSelect = (id: number) => {
-    const layer = layers.find((layer) => layer.id === id);
-    if (layer) {
-      console.log("Selecting layer: ", layer); // Debugging
-      setSelectedLayer(layer); // Update selected layer
-    }
-  };
+  const { shapes, selectedShapeId, selectShapeById } = useLayerContext();
+  console.log("Rendering LayerPanel: selectedShapeId =", selectedShapeId); // Log the selected shape ID
 
   return (
     <div className="layer-panel">
-      {layers.map((layer) => (
+      <h3>Layers</h3>
+      {shapes.map((shape: Shape) => (
         <LayerItem
-          key={layer.id}
-          id={layer.id}
-          name={layer.name}
-          onRemove={removeLayer}
-          onSelect={handleSelect}
-          isSelected={selectedLayer?.id === layer.id}
+          key={shape.id}
+          shape={shape}
+          isSelected={shape.id === selectedShapeId}
+          onClick={() => {
+            console.log("Layer item clicked: shape ID =", shape.id); // Log layer item click
+            selectShapeById(shape.id);
+          }}
         />
       ))}
     </div>

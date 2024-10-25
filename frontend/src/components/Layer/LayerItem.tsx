@@ -1,34 +1,26 @@
 import React from "react";
+import { Shape } from "../Shape/ShapeTypes";
+import "./LayerPanel.css";
 
 interface LayerItemProps {
-  name: string;
-  id: number;
-  onRemove: (id: number) => void;
-  onSelect: (id: number) => void;
+  shape: Shape;
   isSelected: boolean;
+  onClick: () => void;
 }
 
 const LayerItem: React.FC<LayerItemProps> = ({
-  name,
-  id,
-  onRemove,
-  onSelect,
+  shape,
   isSelected,
+  onClick,
 }) => {
+  console.log(`LayerItem: ${shape.id} isSelected =`, isSelected); // Log selection state for each LayerItem
+
   return (
     <div
-      className={`layer-item ${isSelected ? "active" : ""}`} // Add 'active' class if selected
-      onClick={() => onSelect(id)} // Call onSelect when clicked
+      className={`layer-item ${isSelected ? "selected" : ""}`}
+      onClick={onClick}
     >
-      <span>{name}</span>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(id);
-        }}
-      >
-        x
-      </button>
+      <span>{shape.type}</span> {/* Display the shape type or name */}
     </div>
   );
 };
