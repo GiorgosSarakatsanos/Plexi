@@ -6,7 +6,7 @@ import { generateId } from "../../utils/idGenerator";
 const useKonvaMouseEvents = (
   selectedShape: string | null,
   addShape: (shape: Omit<Shape, "id">) => Shape,
-  selectShapeById: (id: number | null) => void,
+  selectShapeById: (id: string | null) => void,
   stageRef: React.RefObject<Konva.Stage>
 ) => {
   const [isDrawing, setIsDrawing] = useState(false);
@@ -20,10 +20,13 @@ const useKonvaMouseEvents = (
 
     if (selectedShape === "select") {
       const clickedOnShapeId = stageRef.current?.getIntersection(
-        stageRef.current?.getPointerPosition() ?? { x: 0, y: 0 }
+        pointerPosition ?? { x: 0, y: 0 }
       )?.attrs?.id;
+
       if (clickedOnShapeId) {
-        selectShapeById(parseInt(clickedOnShapeId.replace("shape-", ""), 10));
+        // Remove "shape-" prefix if used in IDs
+        const shapeId = clickedOnShapeId.replace("shape-", "");
+        selectShapeById(shapeId);
       } else {
         selectShapeById(null);
       }
@@ -32,7 +35,7 @@ const useKonvaMouseEvents = (
       setStartPos(pointerPosition);
 
       const newShape: Shape = {
-        id: generateId(),
+        id: generateId(), // Ensure this ID matches the ID format used elsewhere
         type: selectedShape,
         position: { x: pointerPosition.x, y: pointerPosition.y },
         layer: 1,
@@ -99,7 +102,7 @@ const useKonvaMouseEvents = (
         layer: currentShape.layer,
       });
 
-      // Set the newly created shape as selected
+      // Set the newly created shape as selected with string ID
       selectShapeById(finalizedShape.id);
 
       // Reset drawing state

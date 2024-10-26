@@ -10,7 +10,7 @@ import { useCanvasSize } from "./components/Canvas/useCanvasSize";
 import { useColor } from "./hooks/useColor";
 import { marginInputData } from "./components/FourSidedInput/FourSidedInputData";
 import LayerPanel from "./components/Layer/LayerPanel";
-import { LayerProvider } from "./components/Layer/LayerProvider";
+import { LayerProvider } from "./components/Layer/LayerContext"; // Ensure correct path
 
 import "./styles/App.css";
 import "./index.css";

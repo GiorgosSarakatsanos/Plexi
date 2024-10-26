@@ -1,26 +1,28 @@
+// LayerPanel.tsx
 import React from "react";
 import { useLayerContext } from "./useLayerContext";
-import LayerItem from "./LayerItem";
-import { Shape } from "../Shape/ShapeTypes";
-import "./LayerPanel.css";
 
 const LayerPanel: React.FC = () => {
-  const { shapes, selectedShapeId, selectShapeById } = useLayerContext();
-  console.log("Rendering LayerPanel: selectedShapeId =", selectedShapeId); // Log the selected shape ID
+  const { layers, selectedLayerId, selectLayer } = useLayerContext();
 
   return (
-    <div className="layer-panel">
-      <h3>Layers</h3>
-      {shapes.map((shape: Shape) => (
-        <LayerItem
-          key={shape.id}
-          shape={shape}
-          isSelected={shape.id === selectedShapeId}
+    <div>
+      {layers.map((layer) => (
+        <div
+          key={layer.id}
           onClick={() => {
-            console.log("Layer item clicked: shape ID =", shape.id); // Log layer item click
-            selectShapeById(shape.id);
+            selectLayer(layer.id); // Selects layer
+            console.log(`Layer selected with ID: ${layer.id}`); // Log layer selection
           }}
-        />
+          style={{
+            backgroundColor:
+              layer.id === selectedLayerId ? "lightblue" : "white",
+            padding: "8px",
+            cursor: "pointer",
+          }}
+        >
+          {layer.name}
+        </div>
       ))}
     </div>
   );

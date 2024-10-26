@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useContext } from "react";
 import { Stage, Layer, Transformer } from "react-konva";
 import ShapeRenderer from "../Shape/ShapeRenderer";
 import MarginLines from "../MarginLines/MarginLines";
@@ -6,6 +6,7 @@ import { marginSettings } from "../MarginLines/MarginSettings";
 import useKonvaMouseEvents from "../Shape/useKonvaMouseEvents";
 import { useShapeManagement } from "../Shape/useShapeManagement";
 import Konva from "konva";
+import { LayerContext } from "../Layer/LayerContext";
 
 interface CanvasProps {
   width: number;
@@ -36,6 +37,13 @@ const Canvas: React.FC<CanvasProps> = ({
   const { shapes, selectedShapeId, addShape, selectShapeById } =
     useShapeManagement();
 
+  // Access LayerContext and add a type guard
+  const layerContext = useContext(LayerContext);
+  if (!layerContext) {
+    throw new Error("Canvas must be wrapped in a LayerProvider");
+  }
+  const { selectedLayerId } = layerContext;
+
   // Konva mouse events hook
   const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
     useKonvaMouseEvents(selectedShape, addShape, selectShapeById, stageRef);
@@ -53,47 +61,51 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [selectedShapeId, shapes]);
 
-  return (
-    <div>
-      <Stage
-        width={width}
-        height={height}
-        style={{ backgroundColor }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        ref={stageRef}
-      >
-        <Layer>
-          {/* Render shapes and apply transformer for selected shapes */}
-          <ShapeRenderer
-            shapes={shapes}
-            currentShape={currentShape}
-            selectedShapeId={selectedShapeId}
-          />
-          <Transformer ref={transformerRef} />
-        </Layer>
+  // Sync selectedLayerId with selectedShapeId
+  useEffect(() => {
+    if (selectedLayerId) {
+      selectShapeById(selectedLayerId); // Select shape on canvas
+    }
+  }, [selectedLayerId, selectShapeById]);
 
-        {/* Render margin lines if enabled */}
-        {showMarginLines && (
-          <Layer>
-            <MarginLines
-              width={width}
-              height={height}
-              topMargin={parseInt(margins.top, 10)}
-              rightMargin={parseInt(margins.right, 10)}
-              bottomMargin={parseInt(margins.bottom, 10)}
-              leftMargin={parseInt(margins.left, 10)}
-              marginColor={marginSettings.marginColor}
-              lineStyle={marginSettings.lineStyle}
-              dashPattern={marginSettings.dashPattern}
-              opacity={marginSettings.opacity}
-              visible={showMarginLines}
-            />
-          </Layer>
-        )}
-      </Stage>
-    </div>
+  return (
+    <Stage
+      width={width}
+      height={height}
+      style={{ backgroundColor }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      ref={stageRef}
+    >
+      <Layer>
+        <ShapeRenderer
+          shapes={shapes}
+          currentShape={currentShape}
+          selectedShapeId={selectedShapeId} // Pass selectedShapeId as a prop
+        />
+        <Transformer ref={transformerRef} />
+      </Layer>
+
+      {/* Render margin lines if enabled */}
+      {showMarginLines && (
+        <Layer>
+          <MarginLines
+            width={width}
+            height={height}
+            topMargin={parseInt(margins.top, 10)}
+            rightMargin={parseInt(margins.right, 10)}
+            bottomMargin={parseInt(margins.bottom, 10)}
+            leftMargin={parseInt(margins.left, 10)}
+            marginColor={marginSettings.marginColor}
+            lineStyle={marginSettings.lineStyle}
+            dashPattern={marginSettings.dashPattern}
+            opacity={marginSettings.opacity}
+            visible={showMarginLines}
+          />
+        </Layer>
+      )}
+    </Stage>
   );
 };
 

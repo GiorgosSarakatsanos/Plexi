@@ -11,7 +11,7 @@ interface Position {
 }
 
 interface ShapeFactoryProps {
-  id: number;
+  id: string;
   shapeType: string;
   position: Position;
   width?: number;
@@ -22,6 +22,7 @@ interface ShapeFactoryProps {
   layer: number;
   isDraggable?: boolean;
   isSelected?: boolean;
+  onClick?: () => void; // Add onClick as an optional prop
 }
 
 const ShapeFactory: React.FC<ShapeFactoryProps> = ({
@@ -35,8 +36,8 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
   points,
   layer,
   isDraggable = false,
+  onClick, // Destructure onClick to use it in Konva shapes
 }) => {
-
   const shapeProps = shapeMap[shapeType];
 
   if (!shapeProps) {
@@ -48,6 +49,7 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
   const shapeCommonProps = {
     id: `shape-${id}`, // Use the consistent ID passed here
     draggable: isDraggable,
+    onClick, // Pass onClick to the shape component
     ...defaultProps,
     layer,
   };

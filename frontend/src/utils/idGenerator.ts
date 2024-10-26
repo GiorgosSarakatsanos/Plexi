@@ -1,8 +1,7 @@
-// utils/idGenerator.ts
-
+// src/utils/idGenerator.ts
 let currentId = 0;
 
-export function generateId(): number {
+export function generateId(): string {
   currentId += 1;
-  return currentId;
+  return currentId.toString(); // Convert to string to match the Layer type
 }

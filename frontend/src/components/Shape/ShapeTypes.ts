@@ -5,7 +5,7 @@ export interface Position {
 
 // ShapeTypes.ts
 export interface Shape {
-  id: number;
+  id: string;
   type: string;
   position: { x: number; y: number };
   width?: number;

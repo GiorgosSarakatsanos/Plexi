@@ -1,26 +1,25 @@
 import React from "react";
-import { Shape } from "../Shape/ShapeTypes";
-import "./LayerPanel.css";
+import { useLayerContext } from "./useLayerContext";
+import "./layerPanel.css";
 
 interface LayerItemProps {
-  shape: Shape;
-  isSelected: boolean;
-  onClick: () => void;
+  layer: {
+    id: string;
+    name: string;
+    isVisible: boolean;
+  };
 }
 
-const LayerItem: React.FC<LayerItemProps> = ({
-  shape,
-  isSelected,
-  onClick,
-}) => {
-  console.log(`LayerItem: ${shape.id} isSelected =`, isSelected); // Log selection state for each LayerItem
+const LayerItem: React.FC<LayerItemProps> = ({ layer }) => {
+  const { toggleVisibility, selectLayer, selectedLayerId } = useLayerContext();
+  const isSelected = selectedLayerId === layer.id;
 
   return (
-    <div
-      className={`layer-item ${isSelected ? "selected" : ""}`}
-      onClick={onClick}
-    >
-      <span>{shape.type}</span> {/* Display the shape type or name */}
+    <div className={`layer-item ${isSelected ? "selected" : ""}`}>
+      <span onClick={() => selectLayer(layer.id)}>{layer.name}</span>
+      <button onClick={() => toggleVisibility(layer.id)}>
+        {layer.isVisible ? "Hide" : "Show"}
+      </button>
     </div>
   );
 };
