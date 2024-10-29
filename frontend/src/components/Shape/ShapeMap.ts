@@ -8,7 +8,7 @@ const baseShapeProps = {
   fill: "transparent",
   stroke: "blue", // Merged stroke color
   strokeWidth: 2, // Merged stroke width
-  draggable: false,
+  draggable: true,
 };
 
 // Unified shape map for all types of shapes

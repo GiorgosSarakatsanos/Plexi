@@ -7,15 +7,13 @@ import { generateId } from "../../utils/idGenerator";
 interface ShapeRendererProps {
   shapes: Shape[];
   currentShape: Shape | null;
-  selectedShapeId?: string | null;
 }
 
 const ShapeRenderer: React.FC<ShapeRendererProps> = ({
   shapes,
   currentShape,
-  selectedShapeId,
 }) => {
-  const { addLayer, selectLayer } = useLayerContext();
+  const { addLayer } = useLayerContext();
   const addedShapeIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -23,18 +21,13 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
       if (!addedShapeIds.current.has(shape.id)) {
         const unifiedId = shape.id || generateId();
         shape.id = unifiedId;
-        addLayer(shape.type, unifiedId); // Pass shape type to addLayer
+        addLayer(shape.type, unifiedId);
 
         addedShapeIds.current.add(unifiedId);
         console.log(`Shape created with ID: ${unifiedId}`);
       }
     });
   }, [shapes, addLayer]);
-
-  const handleShapeSelect = (shapeId: string) => {
-    selectLayer(shapeId);
-    console.log(`Shape selected with ID: ${shapeId}`);
-  };
 
   return (
     <>
@@ -43,7 +36,6 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
           key={shape.id}
           id={shape.id}
           shapeType={shape.type}
-          isSelected={shape.id === selectedShapeId}
           position={shape.position}
           width={shape.width}
           height={shape.height}
@@ -51,7 +43,6 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
           radiusY={shape.radiusY}
           points={shape.points}
           layer={shape.layer}
-          onClick={() => handleShapeSelect(shape.id)}
         />
       ))}
       {currentShape && (

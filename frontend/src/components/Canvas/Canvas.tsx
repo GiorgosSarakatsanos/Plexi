@@ -42,11 +42,19 @@ const Canvas: React.FC<CanvasProps> = ({
   if (!layerContext) {
     throw new Error("Canvas must be wrapped in a LayerProvider");
   }
-  const { selectedLayerId } = layerContext;
+  const { selectedLayerId, setSelectedLayerId } = layerContext; // Use setSelectedLayerId for layer sync
 
   // Konva mouse events hook
   const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
-    useKonvaMouseEvents(selectedShape, addShape, selectShapeById, stageRef);
+    useKonvaMouseEvents(
+      selectedShape,
+      addShape,
+      (id) => {
+        selectShapeById(id);
+        setSelectedLayerId(id); // Update layer context when selecting a shape on the canvas
+      },
+      stageRef
+    );
 
   // Sync transformer with selected shape
   useEffect(() => {
@@ -61,12 +69,12 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [selectedShapeId, shapes]);
 
-  // Sync selectedLayerId with selectedShapeId
+  // Sync selectedLayerId with selectedShapeId (avoid loop by checking equality)
   useEffect(() => {
-    if (selectedLayerId) {
-      selectShapeById(selectedLayerId); // Select shape on canvas
+    if (selectedLayerId && selectedLayerId !== selectedShapeId) {
+      selectShapeById(selectedLayerId);
     }
-  }, [selectedLayerId, selectShapeById]);
+  }, [selectedLayerId, selectedShapeId, selectShapeById]);
 
   return (
     <Stage
@@ -82,7 +90,6 @@ const Canvas: React.FC<CanvasProps> = ({
         <ShapeRenderer
           shapes={shapes}
           currentShape={currentShape}
-          selectedShapeId={selectedShapeId} // Pass selectedShapeId as a prop
         />
         <Transformer ref={transformerRef} />
       </Layer>

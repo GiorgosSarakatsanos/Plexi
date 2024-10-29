@@ -1,5 +1,3 @@
-// src/LayerContext.tsx
-
 import React, { createContext, useState, useEffect } from "react";
 import { Layer } from "./LayerHelpers";
 import { generateId } from "../../utils/idGenerator";
@@ -10,6 +8,8 @@ interface LayerContextProps {
   addLayer: (shapeType: string, id?: string) => void;
   toggleVisibility: (id: string) => void;
   selectLayer: (id: string) => void;
+  deselectLayer: () => void; // Add deselectLayer to clear selection
+  setSelectedLayerId: React.Dispatch<React.SetStateAction<string | null>>; // Expose setSelectedLayerId for direct updates
   selectedLayerId: string | null;
 }
 
@@ -59,8 +59,15 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const selectLayer = (id: string) => {
-    setSelectedLayerId(id);
-    console.log("Selected layer ID:", id);
+    if (id !== selectedLayerId) {
+      setSelectedLayerId(id);
+      console.log("Selected layer ID:", id);
+    }
+  };
+
+  const deselectLayer = () => {
+    setSelectedLayerId(null);
+    console.log("Layer deselected");
   };
 
   return (
@@ -70,6 +77,8 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
         addLayer,
         toggleVisibility,
         selectLayer,
+        deselectLayer, // Provide deselectLayer to clear selection
+        setSelectedLayerId, // Provide setSelectedLayerId for external updates
         selectedLayerId,
       }}
     >

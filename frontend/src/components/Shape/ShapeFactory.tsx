@@ -4,6 +4,7 @@ import { Rect, Ellipse, Line } from "react-konva";
 import { shapeMap } from "./ShapeMap";
 import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { LineConfig } from "konva/lib/shapes/Line";
+import Konva from "konva";
 
 interface Position {
   x: number;
@@ -22,7 +23,9 @@ interface ShapeFactoryProps {
   layer: number;
   isDraggable?: boolean;
   isSelected?: boolean;
-  onClick?: () => void; // Add onClick as an optional prop
+  onClick?: () => void;
+  onDragMove?: (id: string, newPos: Position) => void;
+  onDragEnd?: (id: string, finalPos: Position) => void;
 }
 
 const ShapeFactory: React.FC<ShapeFactoryProps> = ({
@@ -36,7 +39,9 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
   points,
   layer,
   isDraggable = false,
-  onClick, // Destructure onClick to use it in Konva shapes
+  onClick,
+  onDragMove,
+  onDragEnd,
 }) => {
   const shapeProps = shapeMap[shapeType];
 
@@ -47,11 +52,24 @@ const ShapeFactory: React.FC<ShapeFactoryProps> = ({
   const { type, defaultProps } = shapeProps;
 
   const shapeCommonProps = {
-    id: `shape-${id}`, // Use the consistent ID passed here
+    id: `shape-${id}`,
     draggable: isDraggable,
-    onClick, // Pass onClick to the shape component
+    onClick,
+    strokeScaleEnabled: false,
     ...defaultProps,
     layer,
+    onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
+      if (onDragMove) {
+        const { x, y } = e.target.position();
+        onDragMove(id, { x, y });
+      }
+    },
+    onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
+      if (onDragEnd) {
+        const { x, y } = e.target.position();
+        onDragEnd(id, { x, y });
+      }
+    },
   };
 
   switch (type) {

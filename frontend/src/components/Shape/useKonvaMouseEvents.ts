@@ -24,10 +24,15 @@ const useKonvaMouseEvents = (
       )?.attrs?.id;
 
       if (clickedOnShapeId) {
-        // Remove "shape-" prefix if used in IDs
         const shapeId = clickedOnShapeId.replace("shape-", "");
-        selectShapeById(shapeId);
+        if (shapeId === selectedShape) {
+          // Deselect if already selected
+          selectShapeById(null);
+        } else {
+          selectShapeById(shapeId); // Select shape
+        }
       } else {
+        // Deselect if clicked on an empty area
         selectShapeById(null);
       }
     } else if (selectedShape && pointerPosition) {
@@ -35,7 +40,7 @@ const useKonvaMouseEvents = (
       setStartPos(pointerPosition);
 
       const newShape: Shape = {
-        id: generateId(), // Ensure this ID matches the ID format used elsewhere
+        id: generateId(),
         type: selectedShape,
         position: { x: pointerPosition.x, y: pointerPosition.y },
         layer: 1,
@@ -90,7 +95,6 @@ const useKonvaMouseEvents = (
 
   const handleMouseUp = () => {
     if (isDrawing && currentShape) {
-      // Add the finalized shape with a generated ID
       const finalizedShape = addShape({
         type: currentShape.type,
         position: currentShape.position,
@@ -102,16 +106,13 @@ const useKonvaMouseEvents = (
         layer: currentShape.layer,
       });
 
-      // Assign the ID from the finalized shape
       selectShapeById(finalizedShape.id);
 
-      // Reset drawing state
       setIsDrawing(false);
       setStartPos(null);
       setCurrentShape(null);
     }
   };
-
 
   return {
     handleMouseDown,

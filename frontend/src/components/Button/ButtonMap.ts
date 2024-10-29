@@ -15,13 +15,6 @@ export const ToolbarButtons = [
     shapeType: "select",
   },
   {
-    id: "move",
-    label: "Move",
-    iconName: "Move",
-    dropdownItems: [],
-    shapeType: "move",
-  },
-  {
     id: "rectangle",
     label: "Rectangle",
     iconName: "Rectangular",
