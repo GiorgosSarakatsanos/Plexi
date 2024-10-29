@@ -7,9 +7,9 @@ interface ToolbarProps {
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
-  const [activeButtonId, setActiveButtonId] = useState<number | null>(null);
+  const [activeButtonId, setActiveButtonId] = useState<string | null>(null);
 
-  const handleShapeSelection = (shapeType: string | undefined, id: number) => {
+  const handleShapeSelection = (shapeType: string | undefined, id: string) => {
     if (shapeType) {
       console.log("Selected shape:", shapeType); // Add this for debugging
       setSelectedShape(shapeType);

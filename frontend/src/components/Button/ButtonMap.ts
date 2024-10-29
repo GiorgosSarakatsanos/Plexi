@@ -1,56 +1,67 @@
-//ButtonMap.ts
 export const StatebarButtons = [
-  { id: 1, label: "Design", iconName: "Create" },
-  { id: 2, label: "Edit", iconName: "Pencil Drawing" },
-  { id: 3, label: "Print", iconName: "Bursts" },
-  { id: 4, label: "Share", iconName: "Share Rounded" },
+  { id: "design", label: "Design", iconName: "Create" },
+  { id: "edit", label: "Edit", iconName: "Pencil Drawing" },
+  { id: "print", label: "Print", iconName: "Bursts" },
+  { id: "share", label: "Share", iconName: "Share Rounded" },
   // Add more buttons as needed
 ];
 
 export const ToolbarButtons = [
   {
-    id: 1,
-    label: "Line",
-    iconName: "Line",
+    id: "select",
+    label: "Select",
+    iconName: "Cursor",
     dropdownItems: [],
-    shapeType: "line",
+    shapeType: "select",
   },
   {
-    id: 2,
-    label: "Text",
-    iconName: "Typography",
+    id: "move",
+    label: "Move",
+    iconName: "Move",
     dropdownItems: [],
-    shapeType: "text",
+    shapeType: "move",
   },
   {
-    id: 3,
+    id: "rectangle",
     label: "Rectangle",
     iconName: "Rectangular",
     shapeType: "rect",
     dropdownItems: [
-      { label: "Circle", iconName: "Circle", shapeType: "circle" }, // Adds circle
-      { label: "Line", iconName: "Line", shapeType: "line" }, // Adds line
+      {
+        id: "circle",
+        label: "Circle",
+        iconName: "Circle",
+        shapeType: "circle",
+      },
+      { id: "line", label: "Line", iconName: "Line", shapeType: "line" },
     ],
   },
   {
-    id: 4,
+    id: "ellipse",
     label: "Ellipse",
     iconName: "Circle",
     shapeType: "ellipse",
     dropdownItems: [],
   },
   {
-    id: 5,
+    id: "triangle",
     label: "Triangle",
     iconName: "Triangle",
     dropdownItems: [],
     shapeType: "triangle",
   },
   {
-    id: 6,
-    label: "Select",
-    iconName: "Cursor",
+    id: "line",
+    label: "Line",
+    iconName: "Line",
     dropdownItems: [],
-    shapeType: "select",
+    shapeType: "line",
+  },
+  {
+    id: "text",
+    label: "Text",
+    iconName: "Typography",
+    dropdownItems: [],
+    shapeType: "text",
   },
 ];
