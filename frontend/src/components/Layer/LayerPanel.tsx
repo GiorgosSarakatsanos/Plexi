@@ -1,6 +1,7 @@
 // LayerPanel.tsx
 import React from "react";
 import { useLayerContext } from "./useLayerContext";
+import "./layerPanel.css";
 
 const LayerPanel: React.FC = () => {
   const { layers, selectedLayerId, selectLayer } = useLayerContext();
@@ -14,12 +15,9 @@ const LayerPanel: React.FC = () => {
             selectLayer(layer.id); // Selects layer
             console.log(`Layer selected with ID: ${layer.id}`); // Log layer selection
           }}
-          style={{
-            backgroundColor:
-              layer.id === selectedLayerId ? "lightblue" : "white",
-            padding: "8px",
-            cursor: "pointer",
-          }}
+          className={`layer-item ${
+            layer.id === selectedLayerId ? "selected" : ""
+          }`}
         >
           {layer.name}
         </div>

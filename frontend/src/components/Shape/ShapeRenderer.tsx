@@ -1,4 +1,3 @@
-// ShapeRenderer.tsx
 import React, { useEffect, useRef } from "react";
 import ShapeFactory from "./ShapeFactory";
 import { Shape } from "./ShapeTypes";
@@ -8,25 +7,23 @@ import { generateId } from "../../utils/idGenerator";
 interface ShapeRendererProps {
   shapes: Shape[];
   currentShape: Shape | null;
-  selectedShapeId?: string | null; // Make selectedShapeId optional
+  selectedShapeId?: string | null;
 }
 
 const ShapeRenderer: React.FC<ShapeRendererProps> = ({
   shapes,
   currentShape,
-  selectedShapeId, // Receive selectedShapeId as a prop
+  selectedShapeId,
 }) => {
-  const { addLayer, selectLayer } = useLayerContext(); // Access other context functions as needed
+  const { addLayer, selectLayer } = useLayerContext();
   const addedShapeIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     shapes.forEach((shape) => {
-      const shapeIdStr = shape.id.toString();
-
-      if (!addedShapeIds.current.has(shapeIdStr)) {
-        const unifiedId = generateId();
+      if (!addedShapeIds.current.has(shape.id)) {
+        const unifiedId = shape.id || generateId();
         shape.id = unifiedId;
-        addLayer(`${shape.type} ${unifiedId}`, unifiedId);
+        addLayer(shape.type, unifiedId); // Pass shape type to addLayer
 
         addedShapeIds.current.add(unifiedId);
         console.log(`Shape created with ID: ${unifiedId}`);
@@ -46,7 +43,7 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
           key={shape.id}
           id={shape.id}
           shapeType={shape.type}
-          isSelected={shape.id === selectedShapeId} // Use selectedShapeId here
+          isSelected={shape.id === selectedShapeId}
           position={shape.position}
           width={shape.width}
           height={shape.height}

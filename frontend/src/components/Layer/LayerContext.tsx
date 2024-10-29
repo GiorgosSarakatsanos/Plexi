@@ -1,11 +1,13 @@
-// LayerContext.tsx
+// src/LayerContext.tsx
+
 import React, { createContext, useState, useEffect } from "react";
 import { Layer } from "./LayerHelpers";
 import { generateId } from "../../utils/idGenerator";
+import { shapeTypeNames } from "./ShapeTypeNames"; // Import the external map
 
 interface LayerContextProps {
   layers: Layer[];
-  addLayer: (name: string, id?: string) => void; // Add optional id parameter
+  addLayer: (shapeType: string, id?: string) => void;
   toggleVisibility: (id: string) => void;
   selectLayer: (id: string) => void;
   selectedLayerId: string | null;
@@ -14,6 +16,8 @@ interface LayerContextProps {
 export const LayerContext = createContext<LayerContextProps | undefined>(
   undefined
 );
+
+const shapeTypeCounters: { [key: string]: number } = {};
 
 export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -25,14 +29,25 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log("Layers updated:", layers);
   }, [layers]);
 
-  const addLayer = (name: string, id?: string) => {
+  const addLayer = (shapeType: string, id?: string) => {
+    if (!shapeTypeCounters[shapeType]) {
+      shapeTypeCounters[shapeType] = 1;
+    } else {
+      shapeTypeCounters[shapeType] += 1;
+    }
+
+    const displayShapeType = shapeTypeNames[shapeType] || shapeType;
+    const layerName = `${displayShapeType} ${shapeTypeCounters[shapeType]}`;
+    const layerId = id || generateId();
+
     const newLayer = {
-      id: id || generateId(), // Use provided ID or generate a new one
-      name,
+      id: layerId,
+      name: layerName,
       isVisible: true,
     };
+
     setLayers((prevLayers) => [...prevLayers, newLayer]);
-    console.log(`Layer created with ID: ${newLayer.id}`); // Log layer creation ID
+    console.log(`Layer created with name: ${layerName} and ID: ${layerId}`);
   };
 
   const toggleVisibility = (id: string) => {

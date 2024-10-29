@@ -90,7 +90,7 @@ const useKonvaMouseEvents = (
 
   const handleMouseUp = () => {
     if (isDrawing && currentShape) {
-      // Finalize and add the shape
+      // Add the finalized shape with a generated ID
       const finalizedShape = addShape({
         type: currentShape.type,
         position: currentShape.position,
@@ -102,7 +102,7 @@ const useKonvaMouseEvents = (
         layer: currentShape.layer,
       });
 
-      // Set the newly created shape as selected with string ID
+      // Assign the ID from the finalized shape
       selectShapeById(finalizedShape.id);
 
       // Reset drawing state
@@ -111,6 +111,7 @@ const useKonvaMouseEvents = (
       setCurrentShape(null);
     }
   };
+
 
   return {
     handleMouseDown,
