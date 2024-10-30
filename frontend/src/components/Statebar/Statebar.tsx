@@ -1,22 +1,18 @@
-// src/components/Toolbox.tsx
-import React, { useState } from "react";
+import React from "react";
 import Button from "../Button/Button";
 import { StatebarButtons } from "../Button/ButtonMap";
 
-const Statebar: React.FC = () => {
-  const [activeButton, setActiveButton] = useState<number | null>(null);
-
-  const handleButtonClick = (id: number) => {
-    setActiveButton(id);
-  };
-
+const Statebar: React.FC<{
+  setActiveButton: (id: string) => void;
+  activeButton: string | null;
+}> = ({ setActiveButton, activeButton }) => {
   return (
     <div>
       {StatebarButtons.map((button) => (
         <Button
           key={button.id}
           label={button.label}
-          onClick={() => handleButtonClick(button.id)}
+          onClick={() => setActiveButton(button.id)}
           isActive={activeButton === button.id}
           iconName={button.iconName}
         />

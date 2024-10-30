@@ -1,6 +1,6 @@
 import React from "react";
 import Icon from "../Icon/Icon";
-import "../Button/Button.css";
+import "../Button/ButtonStyle.css";
 
 interface DropdownItem {
   label: string;

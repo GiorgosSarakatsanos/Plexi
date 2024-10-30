@@ -1,9 +1,10 @@
 export const StatebarButtons = [
-  { id: "design", label: "Design", iconName: "Create" },
-  { id: "edit", label: "Edit", iconName: "Pencil Drawing" },
+  { id: "canvas", label: "Canvas", iconName: "Create" },
+  { id: "layers", label: "Layers", iconName: "Pencil Drawing" },
+  { id: "create", label: "Create", iconName: "Create" },
+  { id: "browse", label: "Browse", iconName: "Create" },
   { id: "print", label: "Print", iconName: "Bursts" },
   { id: "share", label: "Share", iconName: "Share Rounded" },
-  // Add more buttons as needed
 ];
 
 export const ToolbarButtons = [

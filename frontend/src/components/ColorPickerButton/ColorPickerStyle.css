@@ -1,4 +1,4 @@
-@import url('../../styles/App.css');
+@import url('./../../styles/App.css');
 
 .color-picker-container {
     display: flex;
@@ -10,8 +10,8 @@
 }
 
 .color-preview {
-    width: 22px;
-    height: 22px;
+    width: var(--l-gap);
+    height: var(--l-gap);
     aspect-ratio: 1 / 1;
     border: var(--border);
     border-radius: var(--border-radius);

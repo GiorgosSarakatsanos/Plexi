@@ -1,0 +1,20 @@
+@import url('./src/styles/App.css');
+
+.layer-item {
+    display: flex;
+    padding: var(--s-gap);
+    border-radius: var(--border-radius);
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: var(--s-text);
+}
+
+.layer-item.selected {
+    background-color: var(--active-color);
+    font-weight: var(--font-weight);
+    color: white;
+}
+
+.layer-item:hover {
+    background-color: var(--accent-color);
+}

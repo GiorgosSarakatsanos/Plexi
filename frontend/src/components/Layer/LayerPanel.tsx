@@ -1,7 +1,7 @@
 // LayerPanel.tsx
 import React from "react";
 import { useLayerContext } from "./useLayerContext";
-import "./layerPanel.css";
+import "./layerStyle.css";
 
 const LayerPanel: React.FC = () => {
   const { layers, selectedLayerId, selectLayer } = useLayerContext();
