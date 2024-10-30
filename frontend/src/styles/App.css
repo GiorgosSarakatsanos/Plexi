@@ -101,9 +101,14 @@ h3 {
 
 .main-wrapper {
   display: grid;
-  grid-template-columns: var(--xl-gap) calc(var(--xl-gap)*4) 1fr;
+  grid-template-columns: var(--xl-gap) calc(var(--xl-gap) * 4) 1fr;
   grid-gap: var(--s-gap);
   height: calc(100vh - var(--xl-gap) - var(--l-gap) + var(--s-gap));
+}
+
+.main-wrapper.no-sidebar {
+  grid-template-columns: var(--xl-gap) 1fr;
+  /* Only two columns when sidebar is hidden */
 }
 
 .menubar-container {
@@ -128,13 +133,6 @@ h3 {
   border-radius: var(--border-radius);
 }
 
-.scroll-wrapper {
-  overflow: hidden;
-  /* Hides the overflow, including parts of scrollbar */
-  width: 100%;
-  /* Match to canvas-container's width */
-}
-
 .canvas-container {
   display: flex;
   align-items: center;
@@ -145,6 +143,19 @@ h3 {
   border-radius: var(--border-radius);
   overflow-y: auto;
   position: relative;
+  grid-column: 3 / 4;
+}
+
+.main-wrapper.no-sidebar .canvas-container {
+  grid-column: 2 / 3;
+  /* Expand canvas-container to the second column when sidebar is hidden */
+}
+
+.scroll-wrapper {
+  overflow: hidden;
+  /* Hides the overflow, including parts of scrollbar */
+  width: 100%;
+  /* Match to canvas-container's width */
 }
 
 /* WebKit scrollbar styling */

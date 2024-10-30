@@ -2,16 +2,10 @@ import React, { useState } from "react";
 import Toolbar from "./components/Toolbar/Toolbar";
 import Statebar from "./components/Statebar/Statebar";
 import Canvas from "./components/Canvas/Canvas";
-import ColorPickerButton from "./components/ColorPickerButton/ColorPickerButton";
-import ToggleButton from "./components/ToggleButton/ToggleButton";
-import SizeSelector from "./components/SizeSelection/SizeSelector";
-import FourSidedInput from "./components/FourSidedInput/FourSidedInput";
+import Sidebar from "./components/Sidebar/Sidebar";
 import { useCanvasSize } from "./components/Canvas/useCanvasSize";
 import { useColor } from "./hooks/useColor";
-import { marginInputData } from "./components/FourSidedInput/FourSidedInputData";
-import LayerPanel from "./components/Layer/LayerPanel";
 import { LayerProvider } from "./components/Layer/LayerContext";
-
 import "./styles/App.css";
 import "./index.css";
 
@@ -19,6 +13,8 @@ const App: React.FC = () => {
   const { canvasSize, onSizeSelect } = useCanvasSize();
   const { color: backgroundColor, handleColorChange } = useColor();
 
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [activeButton, setActiveButton] = useState<string | null>("canvas");
   const [selectedShape, setSelectedShape] = useState<string | null>(null);
   const [showMarginLines, setShowMarginLines] = useState(false);
   const [margins, setMargins] = useState({
@@ -28,8 +24,14 @@ const App: React.FC = () => {
     left: "24",
   });
 
-  // Define activeButton and setActiveButton to control the sidebar
-  const [activeButton, setActiveButton] = useState<string | null>("canvas");
+  const handleSetActiveButton = (id: string) => {
+    if (activeButton === id) {
+      setShowSidebar(!showSidebar); // Toggle sidebar visibility if the same button is clicked
+    } else {
+      setActiveButton(id);
+      setShowSidebar(true); // Show sidebar when a new button is clicked
+    }
+  };
 
   const handleMarginChange = (updatedMargins: {
     top: string;
@@ -48,68 +50,34 @@ const App: React.FC = () => {
             <span>Logo</span>
           </div>
           <div className="topbar-container">
-            <div className="topbar">
-              <Toolbar setSelectedShape={setSelectedShape} />
-            </div>
+            <Toolbar setSelectedShape={setSelectedShape} />
           </div>
         </div>
 
-        <div className="main-wrapper">
+        <div
+          className={`main-wrapper ${
+            showSidebar ? "with-sidebar" : "no-sidebar"
+          }`}
+        >
           <div className="menubar-container">
-            {/* Pass activeButton and setActiveButton to Statebar */}
             <Statebar
               activeButton={activeButton}
-              setActiveButton={setActiveButton}
+              setActiveButton={handleSetActiveButton} // Use handleSetActiveButton here
             />
           </div>
 
-          <div className="sidebar-container">
-            {activeButton === "canvas" && (
-              <div className="sidebar" id="image-options">
-                <h2>01. Canvas</h2>
-                <h3>Image size</h3>
-                <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-                <h3>Canvas color</h3>
-                <ColorPickerButton onChangeColor={handleColorChange} />
-                <ToggleButton
-                  isToggled={showMarginLines}
-                  onToggle={() => setShowMarginLines(!showMarginLines)}
-                />
-                <h3>Margins</h3>
-                <FourSidedInput
-                  {...marginInputData}
-                  onValuesChange={handleMarginChange}
-                />
-              </div>
-            )}
-            {activeButton === "layers" && (
-              <div className="sidebar" id="layer-options">
-                <h2>02. Layers</h2>
-                <h3>Layers</h3>
-                <LayerPanel />
-              </div>
-            )}
-            {activeButton === "create" && (
-              <div className="sidebar" id="file-browser">
-                <h2>03. Create</h2>
-              </div>
-            )}
-            {activeButton === "browse" && (
-              <div className="sidebar" id="page-options">
-                <h2>04. Browse</h2>
-              </div>
-            )}
-            {activeButton === "print" && (
-              <div className="sidebar" id="page-options">
-                <h2>05. Print</h2>
-              </div>
-            )}
-            {activeButton === "share" && (
-              <div className="sidebar" id="share-options">
-                <h2>06. Share</h2>
-              </div>
-            )}
-          </div>
+          {showSidebar && (
+            <Sidebar
+              activeButton={activeButton}
+              onSizeSelect={onSizeSelect}
+              handleColorChange={handleColorChange}
+              showMarginLines={showMarginLines}
+              setShowMarginLines={setShowMarginLines}
+              margins={margins}
+              handleMarginChange={handleMarginChange}
+              onClose={() => setShowSidebar(false)} // Close sidebar on button click
+            />
+          )}
 
           <div className="canvas-container">
             <Canvas
@@ -118,7 +86,7 @@ const App: React.FC = () => {
               backgroundColor={backgroundColor}
               selectedShape={selectedShape}
               showMarginLines={showMarginLines}
-              margins={margins}
+              margins={margins} // Ensure margins is used here
             />
           </div>
         </div>
