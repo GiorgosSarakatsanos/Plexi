@@ -1,0 +1,108 @@
+/* src/components/Tooltip/TooltipStyle.css */
+.tooltip {
+    position: absolute;
+    background-color: black;
+    /* Black background */
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    /* Square with slight rounding */
+    font-size: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* Show tooltip when visible */
+.tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Explicitly disable any pseudo-element */
+.tooltip::before,
+.tooltip::after {
+    content: none !important;
+    /* Ensure no arrow or additional content appears */
+}
+
+/* Arrow Styling */
+.tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+/* Tooltip Positioning and Custom Arrow */
+
+/* Top Position */
+.tooltip.top {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.tooltip.top .tooltip-arrow {
+    top: 100%;
+    /* Position arrow below the tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0 6px;
+    border-color: black transparent transparent transparent;
+    /* Black arrow pointing up */
+}
+
+/* Bottom Position */
+.tooltip.bottom {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+}
+
+.tooltip.bottom .tooltip-arrow {
+    bottom: 100%;
+    /* Position arrow above the tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 6px 6px 6px;
+    border-color: transparent transparent black transparent;
+    /* Black arrow pointing down */
+}
+
+/* Left Position */
+.tooltip.left {
+    top: 50%;
+    right: 100%;
+    transform: translateX(-10px) translateY(-50%);
+}
+
+.tooltip.left .tooltip-arrow {
+    top: 50%;
+    right: -6px;
+    /* Position arrow to the left of tooltip */
+    transform: translateY(-50%);
+    border-width: 6px 0 6px 6px;
+    border-color: transparent transparent transparent black;
+    /* Black arrow pointing left */
+}
+
+/* Right Position */
+.tooltip.right {
+    top: 50%;
+    left: 100%;
+    transform: translateX(10px) translateY(-50%);
+}
+
+.tooltip.right .tooltip-arrow {
+    top: 50%;
+    left: -6px;
+    /* Position arrow to the right of tooltip */
+    transform: translateY(-50%);
+    border-width: 6px 6px 6px 0;
+    border-color: transparent black transparent transparent;
+    /* Black arrow pointing right */
+}

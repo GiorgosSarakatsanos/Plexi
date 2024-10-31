@@ -1,3 +1,4 @@
+// src/components/Toolbar/Toolbar.tsx
 import React, { useState } from "react";
 import Button from "../Button/Button";
 import { ToolbarButtons } from "../Button/ButtonMap";
@@ -11,7 +12,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
 
   const handleShapeSelection = (shapeType: string | undefined, id: string) => {
     if (shapeType) {
-      console.log("Selected shape:", shapeType); // Add this for debugging
+      console.log("Selected shape:", shapeType); // Debugging
       setSelectedShape(shapeType);
       setActiveButtonId(id); // Set the active button when clicked
     }
@@ -26,6 +27,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
             onClick={() => handleShapeSelection(button.shapeType, button.id)}
             iconName={button.iconName}
             isActive={activeButtonId === button.id} // Check if button is active
+            tooltipPosition={button.tooltipPosition} // Pass tooltip position
           />
           {button.dropdownItems && button.dropdownItems.length > 0 && (
             <div className="dropdown">
@@ -38,6 +40,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
                   }
                   iconName={dropdownItem.iconName}
                   isActive={activeButtonId === button.id} // Check if button is active
+                  tooltipPosition={button.tooltipPosition} // Pass tooltip position for dropdown
                 />
               ))}
             </div>

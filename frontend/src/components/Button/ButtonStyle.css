@@ -1,32 +1,20 @@
 @import url('./../../styles/App.css');
 
-.button-container {
-    position: relative;
-    display: inline-block;
-    margin: var(--s-gap);
-}
-
 .button {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--s-gap);
-    gap: var(--s-gap);
     border: 1px solid transparent;
     /* Transparent border to prevent movement */
-    border-radius: var(--border-radius);
+    border-radius: 50%;
     margin-bottom: var(--s-gap);
     width: var(--button-width);
-    height: var(--input-height);
-    font-size: var(--s-text);
-    font-weight: var(--font-weight);
+    height: var(--button-width);
     cursor: pointer;
-    text-align: left;
     background-color: transparent;
     box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-    /* No initial shadow but set it */
     transition: border 0.3s ease, box-shadow 0.3s ease;
-    /* Smooth transition */
 }
 
 .button:hover {
@@ -97,25 +85,4 @@
     /* Show border on hover */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     /* Show shadow on hover */
-}
-
-/* Media Query: Hide button text for screen width < 600px */
-@media (max-width: 1000px) {
-    .button .button-text {
-        display: none;
-        /* Hide the text */
-    }
-
-    .button {
-        justify-content: center;
-        /* Center the icon */
-        width: auto;
-        /* Adjust width to fit the icon only */
-    }
-}
-
-.button:hover {
-    border: var(--border);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    /* Add shadow on hover */
 }

@@ -1,33 +1,80 @@
-export const StatebarButtons = [
-  { id: "canvas", label: "Canvas", iconName: "Create" },
-  { id: "layers", label: "Layers", iconName: "Pencil Drawing" },
-  { id: "create", label: "Create", iconName: "Create" },
-  { id: "browse", label: "Browse", iconName: "Create" },
-  { id: "print", label: "Print", iconName: "Bursts" },
-  { id: "share", label: "Share", iconName: "Share Rounded" },
+interface TooltipSide {
+  id: string;
+  label: string;
+  iconName: string;
+  tooltipPosition: "top" | "bottom" | "left" | "right";
+  shapeType?: string; // Optional for buttons that need a shapeType
+  dropdownItems?: TooltipSide[]; // Optional for buttons with dropdown items
+}
+
+export const StatebarButtons: TooltipSide[] = [
+  {
+    id: "canvas",
+    label: "Canvas",
+    iconName: "Create",
+    tooltipPosition: "right",
+  },
+  {
+    id: "layers",
+    label: "Layers",
+    iconName: "Pencil Drawing",
+    tooltipPosition: "right",
+  },
+  {
+    id: "create",
+    label: "Create",
+    iconName: "Create",
+    tooltipPosition: "right",
+  },
+  {
+    id: "browse",
+    label: "Browse",
+    iconName: "Create",
+    tooltipPosition: "right",
+  },
+  {
+    id: "print",
+    label: "Print",
+    iconName: "Bursts",
+    tooltipPosition: "right",
+  },
+  {
+    id: "share",
+    label: "Share",
+    iconName: "Share Rounded",
+    tooltipPosition: "right",
+  },
 ];
 
-export const ToolbarButtons = [
+export const ToolbarButtons: TooltipSide[] = [
   {
     id: "select",
     label: "Select",
     iconName: "Cursor",
-    dropdownItems: [],
     shapeType: "select",
+    tooltipPosition: "bottom",
   },
   {
     id: "rectangle",
     label: "Rectangle",
     iconName: "Rectangular",
     shapeType: "rect",
+    tooltipPosition: "bottom",
     dropdownItems: [
       {
         id: "circle",
         label: "Circle",
         iconName: "Circle",
         shapeType: "circle",
+        tooltipPosition: "bottom",
       },
-      { id: "line", label: "Line", iconName: "Line", shapeType: "line" },
+      {
+        id: "line",
+        label: "Line",
+        iconName: "Line",
+        shapeType: "line",
+        tooltipPosition: "bottom",
+      },
     ],
   },
   {
@@ -35,27 +82,27 @@ export const ToolbarButtons = [
     label: "Ellipse",
     iconName: "Circle",
     shapeType: "ellipse",
-    dropdownItems: [],
+    tooltipPosition: "bottom",
   },
   {
     id: "triangle",
     label: "Triangle",
     iconName: "Triangle",
-    dropdownItems: [],
     shapeType: "triangle",
+    tooltipPosition: "bottom",
   },
   {
     id: "line",
     label: "Line",
     iconName: "Line",
-    dropdownItems: [],
     shapeType: "line",
+    tooltipPosition: "bottom",
   },
   {
     id: "text",
     label: "Text",
     iconName: "Typography",
-    dropdownItems: [],
     shapeType: "text",
+    tooltipPosition: "bottom",
   },
 ];

@@ -93,10 +93,10 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--xl-gap);
+  width: calc(var(--xl-gap)*2);
   height: var(--xl-gap);
   background-color: var(--background-color);
-  border-radius: 50%;
+  border-radius: var(--border-radius);
 }
 
 .main-wrapper {
@@ -107,7 +107,7 @@ h3 {
 }
 
 .main-wrapper.no-sidebar {
-  grid-template-columns: var(--xl-gap) 1fr;
+  grid-template-columns: calc(var(--xl-gap)*2) 1fr;
   /* Only two columns when sidebar is hidden */
 }
 

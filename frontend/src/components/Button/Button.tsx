@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Icon from "../Icon/Icon";
 import Dropdown from "../Dropdown/Dropdown";
+import Tooltip from "../Tooltip/Tooltip";
 import "./ButtonMap";
 
 interface DropdownItem {
@@ -13,6 +14,7 @@ interface ButtonProps {
   iconName?: string;
   dropdownItems?: DropdownItem[];
   isActive?: boolean;
+  tooltipPosition?: "top" | "bottom" | "left" | "right";
   onClick: () => void;
 }
 
@@ -21,9 +23,11 @@ const Button: React.FC<ButtonProps> = ({
   iconName,
   dropdownItems = [],
   isActive,
+  tooltipPosition = "top", // Default position if not provided
   onClick,
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const [activeItem, setActiveItem] = useState<DropdownItem>({
     label,
     iconName: iconName || "",
@@ -32,10 +36,12 @@ const Button: React.FC<ButtonProps> = ({
     useState<DropdownItem[]>(dropdownItems);
 
   const handleMouseEnter = () => {
+    setShowTooltip(true);
     if (dropdownItems.length > 0) setShowDropdown(true);
   };
 
   const handleMouseLeave = () => {
+    setShowTooltip(false);
     setShowDropdown(false);
   };
 
@@ -54,16 +60,17 @@ const Button: React.FC<ButtonProps> = ({
       className="button-container"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      style={{ position: "relative" }}
     >
       <button
         className={`button ${isActive ? "active" : ""}`}
         onClick={onClick}
       >
-
         <Icon name={activeItem.iconName} />
-        <span className="button-text">{activeItem.label}</span>{" "}
-
       </button>
+
+      {/* Pass tooltipPosition to Tooltip */}
+      <Tooltip text={label} visible={showTooltip} position={tooltipPosition} />
 
       {currentItems.length > 0 && (
         <Dropdown
