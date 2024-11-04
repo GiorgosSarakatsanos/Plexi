@@ -21,31 +21,16 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
   return (
     <div className="button-panel">
       {ToolbarButtons.map((button) => (
-        <div key={button.id}>
-          <Button
-            label={button.label}
-            onClick={() => handleShapeSelection(button.shapeType, button.id)}
-            iconName={button.iconName}
-            isActive={activeButtonId === button.id} // Check if button is active
-            tooltipPosition={button.tooltipPosition} // Pass tooltip position
-          />
-          {button.dropdownItems && button.dropdownItems.length > 0 && (
-            <div className="dropdown">
-              {button.dropdownItems.map((dropdownItem) => (
-                <Button
-                  key={dropdownItem.label}
-                  label={dropdownItem.label}
-                  onClick={() =>
-                    handleShapeSelection(dropdownItem.shapeType, button.id)
-                  }
-                  iconName={dropdownItem.iconName}
-                  isActive={activeButtonId === button.id} // Check if button is active
-                  tooltipPosition={button.tooltipPosition} // Pass tooltip position for dropdown
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <Button
+          className="round"
+          key={button.id}
+          label={button.label}
+          onClick={() => handleShapeSelection(button.shapeType, button.id)}
+          iconName={button.iconName}
+          isActive={activeButtonId === button.id}
+          tooltipPosition={button.tooltipPosition}
+          iconSize="normal" // Ensure normal-sized icon
+        />
       ))}
     </div>
   );

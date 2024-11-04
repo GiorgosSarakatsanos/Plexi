@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from "react";
-import "./Input.css";
+import "./../../styles/App.css";
 
 // Define the props for the Input component
 interface InputProps {
@@ -26,7 +26,7 @@ const Input: React.FC<InputProps> = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="custom-input"
+        className="input large"
         disabled={disabled} // Apply the disabled prop
       />
     </div>

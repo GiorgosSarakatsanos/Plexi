@@ -6,7 +6,6 @@ import ToggleButton from "../ToggleButton/ToggleButton";
 import FourSidedInput from "../FourSidedInput/FourSidedInput";
 import LayerPanel from "../Layer/LayerPanel";
 import { marginInputData } from "../FourSidedInput/FourSidedInputData";
-
 import "./SidebarStyle.css";
 
 interface SidebarProps {
@@ -22,7 +21,7 @@ interface SidebarProps {
     bottom: string;
     left: string;
   }) => void;
-  onClose: () => void; // New prop for closing sidebar
+  onClose: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -42,19 +41,38 @@ const Sidebar: React.FC<SidebarProps> = ({
       {activeButton === "canvas" && (
         <div className="sidebar" id="image-options">
           <h2>01. Canvas</h2>
-          <h3>Image size</h3>
-          <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-          <h3>Canvas color</h3>
-          <ColorPickerButton onChangeColor={handleColorChange} />
-          <ToggleButton
-            isToggled={showMarginLines}
-            onToggle={() => setShowMarginLines(!showMarginLines)}
-          />
-          <h3>Margins</h3>
-          <FourSidedInput
-            {...marginInputData}
-            onValuesChange={handleMarginChange}
-          />
+          <div className="stack-container">
+            <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
+          </div>
+          <div className="stack-container">
+            <div className="inline-container">
+              <div>
+                <h3>Canvas fill:</h3>
+              </div>
+              <div>
+                <ColorPickerButton onChangeColor={handleColorChange} />
+              </div>
+            </div>
+          </div>
+          <div className="stack-container">
+            <div className="inline-container">
+              <div className="inline-container space-between">
+                <h3>Margins</h3>
+              </div>
+              <div>
+                <ToggleButton
+                  isToggled={showMarginLines}
+                  onToggle={() => setShowMarginLines(!showMarginLines)}
+                />
+              </div>
+            </div>
+            <div className="inline-container" id="margin-input">
+              <FourSidedInput
+                {...marginInputData}
+                onValuesChange={handleMarginChange}
+              />
+            </div>
+          </div>
         </div>
       )}
       {activeButton === "layers" && (

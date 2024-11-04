@@ -1,6 +1,6 @@
 import React from "react";
 import { useLayerContext } from "./useLayerContext";
-import "./layerPanel.css";
+import "./layerStyle.css";
 
 interface LayerItemProps {
   layer: {

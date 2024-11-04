@@ -8,15 +8,17 @@ const Statebar: React.FC<{
   activeButton: string | null;
 }> = ({ setActiveButton, activeButton }) => {
   return (
-    <div>
+    <div className="statebar-panel">
       {StatebarButtons.map((button) => (
         <Button
+          className="round"
           key={button.id}
           label={button.label}
           iconName={button.iconName}
           onClick={() => setActiveButton(button.id)}
           isActive={activeButton === button.id}
           tooltipPosition={button.tooltipPosition} // Pass tooltipPosition here
+          iconSize="normal"
         />
       ))}
     </div>

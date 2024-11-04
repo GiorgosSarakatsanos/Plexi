@@ -4,9 +4,10 @@ import "./Icon.css";
 interface IconProps {
   name: string;
   alt?: string;
+  size?: "normal" | "small"; // Add size prop
 }
 
-const Icon: React.FC<IconProps> = ({ name, alt = "" }) => {
+const Icon: React.FC<IconProps> = ({ name, alt = "", size = "normal" }) => {
   const icons = import.meta.glob<{ default: string }>(
     "../../assets/icons/*.svg",
     {
@@ -21,7 +22,13 @@ const Icon: React.FC<IconProps> = ({ name, alt = "" }) => {
     return null;
   }
 
-  return <img src={SvgIcon} alt={alt} className="icon" />;
+  return (
+    <img
+      src={SvgIcon}
+      alt={alt}
+      className={size === "small" ? "small-icon" : "normal-icon"}
+    />
+  );
 };
 
-export default Icon; // Ensure default export
+export default Icon;

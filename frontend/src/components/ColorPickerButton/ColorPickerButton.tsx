@@ -18,7 +18,7 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   };
 
   return (
-    <div className="color-picker-container">
+    <div className="inline-container">
       {/* Color preview box */}
       <div
         className="color-preview"
@@ -34,6 +34,7 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
       {/* HEX input field */}
       <div className="hex-input-container">
         <input
+          className="input large"
           type="text"
           value={selectedColor.replace("#", "")} // Remove hashtag
           maxLength={6}

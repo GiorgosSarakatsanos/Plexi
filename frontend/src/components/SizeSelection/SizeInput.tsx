@@ -33,7 +33,7 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
   };
 
   return (
-    <div className="input-row">
+    <div className="inline-container">
       <input
         ref={widthRef}
         type="text"
@@ -41,16 +41,15 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
         onChange={(e) => onWidthChange(e.target.value)}
         onBlur={() => onWidthChange(evaluateExpression(width))}
         placeholder="Width"
-        className="size-input"
+        className="input extra-large"
       />
-      <span className="separator">x</span>
       <input
         type="text"
         value={height}
         onChange={(e) => onHeightChange(e.target.value)}
         onBlur={() => onHeightChange(evaluateExpression(height))}
         placeholder="Height"
-        className="size-input"
+        className="input extra-large"
       />
 
       {/* Add a title attribute for accessibility */}
@@ -58,7 +57,7 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
         title="Select unit" // Provide an accessible name for the select element
         value={unit}
         onChange={(e) => onUnitChange(e.target.value)}
-        className="unit-dropdown"
+        className="dropdown large"
       >
         {units.map((unitOption: string) => (
           <option key={unitOption} value={unitOption}>

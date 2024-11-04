@@ -1,9 +1,9 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Input from "../Input/Input";
 import Button from "../Button/Button";
 import Icon from "../Icon/Icon";
+import Tooltip from "../Tooltip/Tooltip";
 import { useFourSidedInput } from "./useFourSidedInput";
-import "./FourSidedInput.css";
 
 interface FourSidedInputProps {
   label: string;
@@ -25,7 +25,7 @@ interface FourSidedInputProps {
     right: string;
     bottom: string;
     left: string;
-  }) => void; // Function to notify when values change
+  }) => void;
 }
 
 const FourSidedInput: React.FC<FourSidedInputProps> = ({
@@ -49,12 +49,12 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
     defaultValue,
   });
   const [showIndividualInputs, setShowIndividualInputs] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleGenericValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    updateAllSides(value); // When typing in the general input, update all individual sides
-  };
+  // Tooltip visibility states for each icon
+  const [showTopTooltip, setShowTopTooltip] = useState(false);
+  const [showRightTooltip, setShowRightTooltip] = useState(false);
+  const [showBottomTooltip, setShowBottomTooltip] = useState(false);
+  const [showLeftTooltip, setShowLeftTooltip] = useState(false);
 
   const handleIndividualInputChange = (
     side: keyof typeof values,
@@ -67,111 +67,133 @@ const FourSidedInput: React.FC<FourSidedInputProps> = ({
     setShowIndividualInputs(!showIndividualInputs);
   };
 
-  // Use useEffect to notify the parent component whenever values change
   useEffect(() => {
     onValuesChange(values);
   }, [values, onValuesChange]);
 
-  // Determine if all sides are the same
-  const allSidesEqual =
-    values.top === values.right &&
-    values.right === values.bottom &&
-    values.bottom === values.left;
-
-  // If all sides are equal, display the general input value
-  // Otherwise, display "Custom"
-  const combinedValue = allSidesEqual
-    ? values.top // Display top value (or any value, since they're the same)
-    : `Custom (${values.top}, ${values.right}, ${values.bottom}, ${values.left})`;
-
-  // Add event listener to close individual inputs when clicked outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setShowIndividualInputs(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [containerRef]);
-
   return (
-    <div ref={containerRef} className="four-sided-input-container">
-      <div className="generic-input">
-        <label>
-          {label} {unit}
-        </label>
-        <Input
-          placeholder={`Set ${label} for all sides`}
-          value={combinedValue} // Display "Custom" or combined value
-          onChange={handleGenericValueChange} // Update all sides if changed
-        />
-      </div>
+    <div className="stack-container">
+      <div className="inline-container">
+        <div>
+          <label className="small-icon round">
+            {label} {unit}
+          </label>
+        </div>
+        <div>
+          <Input
+            placeholder={`Set ${label} for all sides`}
+            value={values.top} // Display top value or "Custom"
+            onChange={(e) => updateAllSides(e.target.value)}
+          />
+        </div>
 
-      <div className="show-sides-button">
-        <Button
-          label={
-            showIndividualInputs ? buttonTextWhenOpen : buttonTextWhenClosed
-          }
-          onClick={handleShowIndividualInputs}
-          iconName={buttonIconName}
-        />
+        <div>
+          <Button
+            className="round"
+            label={
+              showIndividualInputs ? buttonTextWhenOpen : buttonTextWhenClosed
+            }
+            onClick={handleShowIndividualInputs}
+            iconName={buttonIconName}
+            iconSize="small"
+          />
+        </div>
       </div>
 
       {showIndividualInputs && (
-        <div className="individual-inputs">
-          <div className="input-group">
-            <label>{topLabel}</label>
-            <Input
-              placeholder={topLabel}
-              value={values.top}
-              onChange={(e) =>
-                handleIndividualInputChange("top", e.target.value)
-              }
-              icon={topIconName ? <Icon name={topIconName} /> : null}
-            />
+        <>
+          <div className="inline-container">
+            <div
+              className="inline-container"
+              onMouseEnter={() => setShowTopTooltip(true)}
+              onMouseLeave={() => setShowTopTooltip(false)}
+            >
+              {topIconName && <Icon name={topIconName} size="small" />}
+              <Input
+                placeholder={topLabel}
+                value={values.top}
+                onChange={(e) =>
+                  handleIndividualInputChange("top", e.target.value)
+                }
+              />
+              {showTopTooltip && (
+                <Tooltip
+                  text={topLabel}
+                  visible={showTopTooltip}
+                  position="top"
+                />
+              )}
+            </div>
+
+            <div
+              className="inline-container"
+              onMouseEnter={() => setShowRightTooltip(true)}
+              onMouseLeave={() => setShowRightTooltip(false)}
+            >
+              {rightIconName && <Icon name={rightIconName} size="small" />}
+              <Input
+                placeholder={rightLabel}
+                value={values.right}
+                onChange={(e) =>
+                  handleIndividualInputChange("right", e.target.value)
+                }
+              />
+              {showRightTooltip && (
+                <Tooltip
+                  text={rightLabel}
+                  visible={showRightTooltip}
+                  position="top"
+                />
+              )}
+            </div>
           </div>
-          <div className="input-group">
-            <label>{rightLabel}</label>
-            <Input
-              placeholder={rightLabel}
-              value={values.right}
-              onChange={(e) =>
-                handleIndividualInputChange("right", e.target.value)
-              }
-              icon={rightIconName ? <Icon name={rightIconName} /> : null}
-            />
+
+          <div className="inline-container">
+            <div
+              className="inline-container"
+              onMouseEnter={() => setShowBottomTooltip(true)}
+              onMouseLeave={() => setShowBottomTooltip(false)}
+            >
+              {bottomIconName && <Icon name={bottomIconName} size="small" />}
+              <Input
+                placeholder={bottomLabel}
+                value={values.bottom}
+                onChange={(e) =>
+                  handleIndividualInputChange("bottom", e.target.value)
+                }
+              />
+              {showBottomTooltip && (
+                <Tooltip
+                  text={bottomLabel}
+                  visible={showBottomTooltip}
+                  position="bottom"
+                />
+              )}
+            </div>
+
+            <div
+              className="inline-container"
+              onMouseEnter={() => setShowLeftTooltip(true)}
+              onMouseLeave={() => setShowLeftTooltip(false)}
+            >
+              {leftIconName && <Icon name={leftIconName} size="small" />}
+              <Input
+                placeholder={leftLabel}
+                value={values.left}
+                onChange={(e) =>
+                  handleIndividualInputChange("left", e.target.value)
+                }
+              />
+              {showLeftTooltip && (
+                <Tooltip
+                  text={leftLabel}
+                  visible={showLeftTooltip}
+                  position="bottom"
+                />
+              )}
+            </div>
           </div>
-          <div className="input-group">
-            <label>{bottomLabel}</label>
-            <Input
-              placeholder={bottomLabel}
-              value={values.bottom}
-              onChange={(e) =>
-                handleIndividualInputChange("bottom", e.target.value)
-              }
-              icon={bottomIconName ? <Icon name={bottomIconName} /> : null}
-            />
-          </div>
-          <div className="input-group">
-            <label>{leftLabel}</label>
-            <Input
-              placeholder={leftLabel}
-              value={values.left}
-              onChange={(e) =>
-                handleIndividualInputChange("left", e.target.value)
-              }
-              icon={leftIconName ? <Icon name={leftIconName} /> : null}
-            />
-          </div>
-        </div>
+        </>
       )}
     </div>
   );

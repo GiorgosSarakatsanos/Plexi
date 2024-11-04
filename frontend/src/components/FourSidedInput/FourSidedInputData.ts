@@ -2,20 +2,20 @@
 
 // Margin data
 export const marginInputData = {
-  label: "Margin",
+  label: "",
   unit: "px",
   defaultValue: "10",
-  topLabel: "Top Margin",
-  rightLabel: "Right Margin",
-  bottomLabel: "Bottom Margin",
-  leftLabel: "Left Margin",
+  topLabel: "Top side margin",
+  rightLabel: "Right side margin",
+  bottomLabel: "Bottom side margin",
+  leftLabel: "Left side margin",
   topIconName: "Sun",
   rightIconName: "Sun",
   bottomIconName: "Sun",
   leftIconName: "Sun",
   buttonIconName: "Eye",
   buttonTextWhenOpen: "Hide Individual Margins",
-  buttonTextWhenClosed: "Open"
+  buttonTextWhenClosed: "Open",
 };
 
 // Border radius data
@@ -33,5 +33,5 @@ export const borderRadiusInputData = {
   leftIconName: "bottom-left-radius-icon",
   buttonIconName: "expand-icon",
   buttonTextWhenOpen: "Hide Individual Border Radius",
-  buttonTextWhenClosed: "Set Individual Border Radius"
+  buttonTextWhenClosed: "Set Individual Border Radius",
 };

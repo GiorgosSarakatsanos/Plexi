@@ -5,14 +5,14 @@ export const sizeMap = {
       "A5 (148 x 210 mm)",
       "Letter (216 x 279 mm)",
     ],
-    units: ["mm", "cm", "inches"], // Allowed units for paper size
+    units: ["mm", "cm", "in"], // Use "in" instead of "inch"
   },
   imageSize: {
     predefined: [
-      "Web view (1920 x 1080 pixels)",
+      "Web view (1920 x 1080 px)",
       "Business card (85 x 55 mm)",
-      "Square web image (1080 x 1080 pixels)",
+      "Square web image (1080 x 1080 px)",
     ],
-    units: ["pixels", "mm", "cm", "inches"], // Allowed units for image size
+    units: ["px", "mm", "cm", "in"], // Use "in" instead of "inch"
   },
 };

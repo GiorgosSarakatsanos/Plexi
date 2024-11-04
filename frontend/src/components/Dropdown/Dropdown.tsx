@@ -24,7 +24,7 @@ const Dropdown: React.FC<DropdownProps> = ({
     items.find((item) => item.label === activeItem) || items[0];
 
   return (
-    <div className="dropdown-container">
+    <div className="input">
       {/* Display the collapsed item (active or first) */}
       <div className="collapsed-item">
         <Icon name={collapsedItem.iconName} />
@@ -36,7 +36,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           {items.map((item, index) => (
             <div
               key={index}
-              className={`dropdown-item ${
+              className={`list-item ${
                 item.label === activeItem ? "active" : ""
               }`}
               onClick={() => onItemClick(item)}

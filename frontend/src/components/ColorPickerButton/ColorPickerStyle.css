@@ -29,27 +29,3 @@
     opacity: 0;
     cursor: pointer;
 }
-
-.hex-input-container {
-    height: var(--input-height);
-    border: var(--border);
-    border-radius: var(--border-radius);
-    display: flex;
-    align-items: center;
-
-}
-
-input {
-    height: 22px;
-    width: 6ch;
-    border: none;
-    background-color: transparent;
-    font-size: var(--s-text);
-    font-weight: var(--font-weight);
-    text-align: center;
-}
-
-input:focus {
-    outline: none;
-    border: none;
-}

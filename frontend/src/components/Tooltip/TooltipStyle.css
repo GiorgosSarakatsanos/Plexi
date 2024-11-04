@@ -9,6 +9,7 @@
     /* Square with slight rounding */
     font-size: 12px;
     opacity: 0;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
     white-space: nowrap;
@@ -20,6 +21,8 @@
 .tooltip.visible {
     opacity: 1;
     visibility: visible;
+    transition-delay: 0.8s;
+    /* Delay before showing tooltip */
 }
 
 /* Explicitly disable any pseudo-element */

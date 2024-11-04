@@ -4,7 +4,6 @@ interface TooltipSide {
   iconName: string;
   tooltipPosition: "top" | "bottom" | "left" | "right";
   shapeType?: string; // Optional for buttons that need a shapeType
-  dropdownItems?: TooltipSide[]; // Optional for buttons with dropdown items
 }
 
 export const StatebarButtons: TooltipSide[] = [
@@ -60,22 +59,6 @@ export const ToolbarButtons: TooltipSide[] = [
     iconName: "Rectangular",
     shapeType: "rect",
     tooltipPosition: "bottom",
-    dropdownItems: [
-      {
-        id: "circle",
-        label: "Circle",
-        iconName: "Circle",
-        shapeType: "circle",
-        tooltipPosition: "bottom",
-      },
-      {
-        id: "line",
-        label: "Line",
-        iconName: "Line",
-        shapeType: "line",
-        tooltipPosition: "bottom",
-      },
-    ],
   },
   {
     id: "ellipse",
