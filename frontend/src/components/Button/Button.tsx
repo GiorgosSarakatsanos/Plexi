@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Icon from "../Icon/Icon";
 import Tooltip from "../Tooltip/Tooltip";
 import "./ButtonMap";
 
@@ -15,12 +14,10 @@ interface ButtonProps {
 
 const Button: React.FC<ButtonProps> = ({
   label,
-  iconName,
   isActive,
   tooltipPosition = "top",
   onClick,
   className,
-  iconSize = "normal", // Default to normal if not provided
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -40,7 +37,6 @@ const Button: React.FC<ButtonProps> = ({
       onMouseLeave={handleMouseLeave}
       style={{ position: "relative" }}
     >
-      {iconName && <Icon name={iconName} size={iconSize} />}
       <Tooltip text={label} visible={showTooltip} position={tooltipPosition} />
     </button>
   );

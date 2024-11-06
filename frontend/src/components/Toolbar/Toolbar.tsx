@@ -1,37 +1,89 @@
 // src/components/Toolbar/Toolbar.tsx
-import React, { useState } from "react";
-import Button from "../Button/Button";
-import { ToolbarButtons } from "../Button/ButtonMap";
+import React from "react";
+import { IconButton } from "@chakra-ui/react";
+import "boxicons/css/boxicons.min.css"; // Import Boxicons CSS
 
 interface ToolbarProps {
   setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
-  const [activeButtonId, setActiveButtonId] = useState<string | null>(null);
+  const handleShapeSelection = (shapeType: string) => {
+    console.log("Selected shape:", shapeType); // Debugging
+    setSelectedShape(shapeType);
+  };
 
-  const handleShapeSelection = (shapeType: string | undefined, id: string) => {
-    if (shapeType) {
-      console.log("Selected shape:", shapeType); // Debugging
-      setSelectedShape(shapeType);
-      setActiveButtonId(id); // Set the active button when clicked
-    }
+  // Use Chakra's CSS variables for size and color
+  const iconStyle = {
+    fontSize: "var(--chakra-sizes-7)", // Standard `3` size for icons
+    color: "var(--chakra-colors-blue-500)", // Standard `blue.500` color for icons
   };
 
   return (
-    <div className="button-panel">
-      {ToolbarButtons.map((button) => (
-        <Button
-          className="round"
-          key={button.id}
-          label={button.label}
-          onClick={() => handleShapeSelection(button.shapeType, button.id)}
-          iconName={button.iconName}
-          isActive={activeButtonId === button.id}
-          tooltipPosition={button.tooltipPosition}
-          iconSize="normal" // Ensure normal-sized icon
-        />
-      ))}
+    <div className="toolbar-container">
+      <IconButton
+        aria-label="Select"
+        onClick={() => handleShapeSelection("select")}
+        variant="outline"
+        rounded="full"
+        size="xl"
+        borderColor="var(--chakra-colors-blue-500)" // Button border color
+      >
+        <i className="bx bx-pointer" style={iconStyle} /> {/* Select icon */}
+      </IconButton>
+      <IconButton
+        aria-label="Rectangle"
+        onClick={() => handleShapeSelection("rect")}
+        variant="outline"
+        rounded="full"
+        size="xl"
+        borderColor="var(--chakra-colors-blue-500)"
+      >
+        <i className="bx bx-shape-square" style={iconStyle} />{" "}
+        {/* Rectangle icon */}
+      </IconButton>
+      <IconButton
+        aria-label="Ellipse"
+        onClick={() => handleShapeSelection("ellipse")}
+        variant="outline"
+        rounded="full"
+        size="xl"
+        borderColor="var(--chakra-colors-blue-500)"
+      >
+        <i className="bx bx-shape-circle" style={iconStyle} />{" "}
+        {/* Ellipse icon */}
+      </IconButton>
+      <IconButton
+        aria-label="Triangle"
+        onClick={() => handleShapeSelection("triangle")}
+        variant="outline"
+        rounded="full"
+        size="xl"
+        borderColor="var(--chakra-colors-blue-500)"
+      >
+        <i className="bx bx-shape-triangle" style={iconStyle} />{" "}
+        {/* Triangle icon */}
+      </IconButton>
+      <IconButton
+        aria-label="Line"
+        onClick={() => handleShapeSelection("line")}
+        variant="outline"
+        rounded="full"
+        size="xl"
+        borderColor="var(--chakra-colors-blue-500)"
+      >
+        <i className="bx bx-minus" style={iconStyle} /> {/* Line icon */}
+      </IconButton>
+      <IconButton
+        aria-label="Text"
+        onClick={() => handleShapeSelection("text")}
+        variant="outline"
+        rounded="full"
+        size="xl"
+        borderColor="var(--chakra-colors-blue-500)"
+      >
+        <i className="bx bx-font" style={iconStyle} /> {/* Text icon */}
+      </IconButton>
     </div>
   );
 };

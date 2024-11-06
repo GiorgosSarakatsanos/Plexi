@@ -18,7 +18,6 @@ const Statebar: React.FC<{
           onClick={() => setActiveButton(button.id)}
           isActive={activeButton === button.id}
           tooltipPosition={button.tooltipPosition} // Pass tooltipPosition here
-          iconSize="normal"
         />
       ))}
     </div>

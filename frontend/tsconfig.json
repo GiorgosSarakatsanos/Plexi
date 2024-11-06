@@ -1,4 +1,13 @@
 {
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "jsx": "react-jsx" // Correct placement of JSX option
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },

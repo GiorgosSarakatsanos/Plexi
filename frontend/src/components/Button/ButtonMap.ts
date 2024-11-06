@@ -49,7 +49,7 @@ export const ToolbarButtons: TooltipSide[] = [
   {
     id: "select",
     label: "Select",
-    iconName: "Cursor",
+    iconName: "cursor",
     shapeType: "select",
     tooltipPosition: "bottom",
   },

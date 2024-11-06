@@ -14,6 +14,13 @@
   },
   "scripts": {
     "release": "release-it",
-    "scripts": "eslint.js"
+    "lint-root": "eslint .",
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "preview": "npm run preview --prefix frontend",
+    "lint-frontend": "npm run lint --prefix frontend"
+  },
+  "dependencies": {
+    "boxicons": "^2.1.4"
   }
 }
