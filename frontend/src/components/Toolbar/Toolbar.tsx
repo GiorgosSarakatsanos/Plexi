@@ -1,89 +1,102 @@
 // src/components/Toolbar/Toolbar.tsx
-import React from "react";
-import { IconButton } from "@chakra-ui/react";
-import "boxicons/css/boxicons.min.css"; // Import Boxicons CSS
+import React, { useState } from "react";
+import {
+  LuMousePointer2,
+  LuSquare,
+  LuCircle,
+  LuTriangle,
+  LuMinus,
+  LuType,
+} from "react-icons/lu";
+import { Flex, IconButton } from "@chakra-ui/react";
 
 interface ToolbarProps {
   setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
+  const [activeShape, setActiveShape] = useState<string>("select"); // Default to "select" tool
+
   const handleShapeSelection = (shapeType: string) => {
     console.log("Selected shape:", shapeType); // Debugging
     setSelectedShape(shapeType);
-  };
-
-  // Use Chakra's CSS variables for size and color
-  const iconStyle = {
-    fontSize: "var(--chakra-sizes-7)", // Standard `3` size for icons
-    color: "var(--chakra-colors-blue-500)", // Standard `blue.500` color for icons
+    setActiveShape(shapeType); // Set the active shape for toggling
   };
 
   return (
     <div className="toolbar-container">
-      <IconButton
-        aria-label="Select"
-        onClick={() => handleShapeSelection("select")}
-        variant="outline"
-        rounded="full"
-        size="xl"
-        borderColor="var(--chakra-colors-blue-500)" // Button border color
-      >
-        <i className="bx bx-pointer" style={iconStyle} /> {/* Select icon */}
-      </IconButton>
-      <IconButton
-        aria-label="Rectangle"
-        onClick={() => handleShapeSelection("rect")}
-        variant="outline"
-        rounded="full"
-        size="xl"
-        borderColor="var(--chakra-colors-blue-500)"
-      >
-        <i className="bx bx-shape-square" style={iconStyle} />{" "}
-        {/* Rectangle icon */}
-      </IconButton>
-      <IconButton
-        aria-label="Ellipse"
-        onClick={() => handleShapeSelection("ellipse")}
-        variant="outline"
-        rounded="full"
-        size="xl"
-        borderColor="var(--chakra-colors-blue-500)"
-      >
-        <i className="bx bx-shape-circle" style={iconStyle} />{" "}
-        {/* Ellipse icon */}
-      </IconButton>
-      <IconButton
-        aria-label="Triangle"
-        onClick={() => handleShapeSelection("triangle")}
-        variant="outline"
-        rounded="full"
-        size="xl"
-        borderColor="var(--chakra-colors-blue-500)"
-      >
-        <i className="bx bx-shape-triangle" style={iconStyle} />{" "}
-        {/* Triangle icon */}
-      </IconButton>
-      <IconButton
-        aria-label="Line"
-        onClick={() => handleShapeSelection("line")}
-        variant="outline"
-        rounded="full"
-        size="xl"
-        borderColor="var(--chakra-colors-blue-500)"
-      >
-        <i className="bx bx-minus" style={iconStyle} /> {/* Line icon */}
-      </IconButton>
-      <IconButton
-        aria-label="Text"
-        onClick={() => handleShapeSelection("text")}
-        variant="outline"
-        rounded="full"
-        size="xl"
-        borderColor="var(--chakra-colors-blue-500)"
-      >
-        <i className="bx bx-font" style={iconStyle} /> {/* Text icon */}
-      </IconButton>
+      <Flex direction="column" gap="2">
+        <IconButton
+          aria-label="Select"
+          onClick={() => handleShapeSelection("select")}
+          variant={activeShape === "select" ? "solid" : "ghost"}
+          rounded="full"
+          size="lg"
+          colorPalette="blue"
+        >
+          <LuMousePointer2 />
+        </IconButton>
+
+        <IconButton
+          aria-label="Rectangle"
+          onClick={() => handleShapeSelection("rect")}
+          variant={activeShape === "rect" ? "solid" : "ghost"}
+          rounded="full"
+          size="lg"
+          borderColor="var(--chakra-colors-blue-500)"
+          colorPalette="blue"
+        >
+          <LuSquare />
+        </IconButton>
+
+        <IconButton
+          aria-label="Ellipse"
+          onClick={() => handleShapeSelection("ellipse")}
+          variant={activeShape === "ellipse" ? "solid" : "ghost"}
+          rounded="full"
+          size="lg"
+          borderColor="var(--chakra-colors-blue-500)"
+          colorPalette="blue"
+        >
+          <LuCircle />
+        </IconButton>
+
+        <IconButton
+          aria-label="Triangle"
+          onClick={() => handleShapeSelection("triangle")}
+          variant={activeShape === "triangle" ? "solid" : "ghost"}
+          rounded="full"
+          size="lg"
+          borderColor="var(--chakra-colors-blue-500)"
+          colorPalette="blue"
+        >
+          <LuTriangle />
+        </IconButton>
+
+        <IconButton
+          aria-label="Line"
+          onClick={() => handleShapeSelection("line")}
+          variant={activeShape === "line" ? "solid" : "ghost"}
+          rounded="full"
+          size="lg"
+          borderColor="var(--chakra-colors-blue-500)"
+          colorPalette="blue"
+        >
+          <LuMinus />
+        </IconButton>
+
+        <IconButton
+          aria-label="Text"
+          onClick={() => handleShapeSelection("text")}
+          variant={activeShape === "text" ? "solid" : "ghost"}
+          rounded="full"
+          size="lg"
+          borderColor="var(--chakra-colors-blue-500)"
+          colorPalette="blue"
+        >
+          <LuType />
+        </IconButton>
+      </Flex>
     </div>
   );
 };

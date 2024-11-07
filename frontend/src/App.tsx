@@ -6,17 +6,22 @@ import { useColor } from "./hooks/useColor";
 import SizeSelector from "./components/SizeSelection/SizeSelector";
 import ColorPickerButton from "./components/ColorPickerButton/ColorPickerButton";
 import { LayerProvider } from "./components/Layer/LayerContext";
+import { Avatar } from "./components/ui/avatar";
+import userPhoto from "./assets/images/user-photo.jpg";
 
 import {
   Box,
   VStack,
   Flex,
+  Fieldset,
   IconButton,
+  Text,
   Button,
   Group,
   Grid,
   GridItem,
   Center,
+  Tabs,
 } from "@chakra-ui/react";
 
 import {
@@ -36,6 +41,8 @@ import {
   LuAtom,
   LuZap,
   LuPanelRightOpen,
+  LuImage,
+  LuStickyNote,
 } from "react-icons/lu";
 
 const Layout: React.FC = () => {
@@ -60,14 +67,14 @@ const Layout: React.FC = () => {
       <Grid
         templateAreas={`"sidebar toolbar main"
                       "sidebar toolbar main"`}
-        templateColumns="300px 80px 1fr"
+        templateColumns="300px 50px 1fr"
         templateRows="1fr"
         h="100vh"
         gap="4"
         padding="4"
       >
         {/* Sidebar */}
-        <GridItem area="sidebar" bg="gray.200" p={4} rounded="xl">
+        <GridItem area="sidebar" bg="blue.50" p={4} rounded="xl">
           {/* Sidebar Content */}
           <VStack align="stretch" height="100%">
             {/* Logo and Menu Box */}
@@ -76,39 +83,6 @@ const Layout: React.FC = () => {
                 <IconButton aria-label="Logo" rounded="full" variant="ghost">
                   <LuAtom />
                 </IconButton>
-              </div>
-              <div>
-                <MenuRoot>
-                  <MenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <LuZap />
-                      Actions
-                    </Button>
-                  </MenuTrigger>
-                  <MenuContent>
-                    <Group grow gap="0">
-                      {horizontalMenuItems.map((item) => (
-                        <MenuItem
-                          key={item.value}
-                          value={item.value}
-                          width="14"
-                          gap="1"
-                          flexDirection="column"
-                          justifyContent="center"
-                        >
-                          {item.icon}
-                          {item.label}
-                        </MenuItem>
-                      ))}
-                    </Group>
-                    {verticalMenuItems.map((item) => (
-                      <MenuItem key={item.value} value={item.value}>
-                        <Box flex="1">{item.label}</Box>
-                        {item.icon}
-                      </MenuItem>
-                    ))}
-                  </MenuContent>
-                </MenuRoot>
               </div>
               <div>
                 <IconButton
@@ -120,26 +94,73 @@ const Layout: React.FC = () => {
                 </IconButton>
               </div>
             </Flex>
-            <ColorPickerButton onChangeColor={handleColorChange} />
-            <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
+            <Box>
+              <Tabs.Root defaultValue="image">
+                <Tabs.List>
+                  <Tabs.Trigger value="image">
+                    <LuImage />
+                    Image
+                  </Tabs.Trigger>
+                  <Tabs.Trigger value="page">
+                    <LuStickyNote />
+                    Page
+                  </Tabs.Trigger>
+                </Tabs.List>
+                <Tabs.Content value="image">
+                  <VStack>
+                    <Fieldset.Root>
+                      <Fieldset.Legend>Canvas size</Fieldset.Legend>
+                      <Fieldset.Content>
+                        <Box>
+                          <SizeSelector
+                            type="imageSize"
+                            onSizeSelect={onSizeSelect}
+                          />
+                        </Box>
+                      </Fieldset.Content>
+                    </Fieldset.Root>
+                    <Fieldset.Root>
+                      <Fieldset.Legend>Canvas color</Fieldset.Legend>
+                      <Fieldset.Content>
+                        <Box>
+                          <ColorPickerButton
+                            onChangeColor={handleColorChange}
+                          />
+                        </Box>
+                      </Fieldset.Content>
+                    </Fieldset.Root>
+                    <Fieldset.Root>
+                      <Fieldset.Legend>Grid setup</Fieldset.Legend>
+                      <Fieldset.Content>
+                        <Box></Box>
+                      </Fieldset.Content>
+                    </Fieldset.Root>
+                  </VStack>
+                  <VStack></VStack>
+                </Tabs.Content>
+                <Tabs.Content value="page">Manage your projects</Tabs.Content>
+              </Tabs.Root>
+            </Box>
           </VStack>
         </GridItem>
 
-        {/* Vertical Toolbox */}
-        <GridItem area="toolbar" bg="gray.300" p={4} width="80px" rounded="xl">
+        {/* Toolbox */}
+        <GridItem area="toolbar" rounded="xl" padding="1">
           {/* Toolbox Content */}
-          <Box>One</Box>
-          <Box>
-            <Toolbar setSelectedShape={setSelectedShape} />
-          </Box>
-          <Box>Three</Box>
+          <Flex direction="column" justifyContent="space-between" height="100%">
+            <Box>One</Box>
+            <Box>
+              <Toolbar setSelectedShape={setSelectedShape} />
+            </Box>
+            <Box>Three</Box>
+          </Flex>
         </GridItem>
 
         {/* Main Container with Overflow */}
         <GridItem
           area="main"
           position="relative"
-          bg="gray.50"
+          bg="gray.300"
           overflow="auto"
           rounded="xl"
         >
@@ -151,18 +172,71 @@ const Layout: React.FC = () => {
             width="100%"
             p={4}
             zIndex="overlay"
-            boxShadow="sm"
-            rounded="xl"
           >
             {/* Top Toolbox Content */}
-            Top Toolbox
+            <Flex justify="space-between" align="center">
+              <Box>
+                <MenuRoot>
+                  <MenuTrigger asChild>
+                    <Button variant="solid" size="xs" colorPalette="blue">
+                      <LuZap />
+                      Quick actions
+                    </Button>
+                  </MenuTrigger>
+                  <MenuContent>
+                    <Group grow gap="0">
+                      {horizontalMenuItems.map((item) => (
+                        <MenuItem
+                          key={item.value}
+                          value={item.value}
+                          width="14"
+                          gap="1"
+                          flexDirection="column"
+                          justifyContent="flex-start" // Align content to the left
+                          alignItems="flex-start" // Ensure content is aligned to the left
+                        >
+                          {item.icon}
+                          {item.label}
+                        </MenuItem>
+                      ))}
+                    </Group>
+                    {verticalMenuItems.map((item) => (
+                      <MenuItem
+                        key={item.value}
+                        value={item.value}
+                        justifyContent="flex-start"
+                        alignItems="flex-start"
+                      >
+                        <Box flex="1" textAlign="left">
+                          {item.label}
+                        </Box>
+                        {item.icon}
+                      </MenuItem>
+                    ))}
+                  </MenuContent>
+                </MenuRoot>
+              </Box>
+              <Flex align="flex-start">Selected item actions</Flex>
+              <Flex gap={2} align="center">
+                <Box>
+                  <Avatar size="2xs" name="User" src={userPhoto} />
+                </Box>
+                <Box boxSize="8px" bg="green" borderRadius="full" />
+                <Box>
+                  <Text textStyle="xs" fontWeight="medium" color="gray.700">
+                    Online
+                  </Text>
+                </Box>
+              </Flex>
+            </Flex>
           </Box>
 
           {/* Canvas Area: Takes all main container space */}
           <Box
             height="100%"
             overflow="auto"
-            pt={4}
+            p={4}
+            ml={4}
             display="flex"
             alignItems="center"
             justifyContent="center"
