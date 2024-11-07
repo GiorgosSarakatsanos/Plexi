@@ -21,11 +21,13 @@ interface SidebarProps {
     unit: "mm" | "cm" | "in" | "px"
   ) => void;
   handleColorChange: (color: string) => void;
+  handleOpacityChange: (opacity: number) => void; // Add handleOpacityChange
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   onSizeSelect,
   handleColorChange,
+  handleOpacityChange,
 }) => {
   return (
     <VStack align="stretch" height="100%" gap={2}>
@@ -68,7 +70,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
             </Box>
             <Box width="100%">
-              <ColorPickerButton onChangeColor={handleColorChange} />
+              <ColorPickerButton
+                onChangeColor={handleColorChange}
+                onOpacityChange={handleOpacityChange}
+              />
             </Box>
           </VStack>
         </Collapsible.Content>

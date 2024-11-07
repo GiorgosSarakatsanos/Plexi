@@ -5,10 +5,12 @@ import { Slider } from "../ui/slider"; // Import your custom slider component
 
 interface ColorPickerButtonProps {
   onChangeColor: (newColor: string) => void;
+  onOpacityChange: (opacity: number) => void;
 }
 
 const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   onChangeColor,
+  onOpacityChange,
 }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
   const [opacity, setOpacity] = useState<number>(100);
@@ -22,6 +24,7 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
 
   const handleOpacityChange = (value: number) => {
     setOpacity(value);
+    onOpacityChange(value);
   };
 
   const opacityHex = Math.round((opacity / 100) * 255)

@@ -16,6 +16,11 @@ const Layout: React.FC = () => {
   const { canvasSize, onSizeSelect } = useCanvasSize();
   const { color: backgroundColor, handleColorChange } = useColor();
   const [selectedShape, setSelectedShape] = useState<string | null>(null);
+  const [canvasOpacity, setCanvasOpacity] = useState(100);
+
+  const handleOpacityChange = (opacity: number) => {
+    setCanvasOpacity(opacity); // Update the canvas opacity
+  };
 
   return (
     <LayerProvider>
@@ -33,6 +38,7 @@ const Layout: React.FC = () => {
           <Sidebar
             onSizeSelect={onSizeSelect}
             handleColorChange={handleColorChange}
+            handleOpacityChange={handleOpacityChange}
           />
         </GridItem>
 
@@ -77,6 +83,7 @@ const Layout: React.FC = () => {
                 height={canvasSize.height}
                 backgroundColor={backgroundColor}
                 selectedShape={selectedShape}
+                opacity={canvasOpacity}
               />
             </Center>
           </Box>

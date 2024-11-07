@@ -11,6 +11,7 @@ interface CanvasProps {
   height: number;
   backgroundColor: string;
   selectedShape: string | null;
+  opacity: number;
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -18,9 +19,16 @@ const Canvas: React.FC<CanvasProps> = ({
   height,
   backgroundColor,
   selectedShape,
+  opacity,
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+
+  const rgbaBackgroundColor = `${backgroundColor}${Math.round(
+    (opacity / 100) * 255
+  )
+    .toString(16)
+    .padStart(2, "0")}`;
 
   // Shape management hook
   const { shapes, selectedShapeId, addShape, selectShapeById } =
@@ -69,21 +77,16 @@ const Canvas: React.FC<CanvasProps> = ({
     <Stage
       width={width}
       height={height}
-      style={{ backgroundColor }}
+      style={{ backgroundColor: rgbaBackgroundColor }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       ref={stageRef}
     >
       <Layer>
-        <ShapeRenderer
-          shapes={shapes}
-          currentShape={currentShape}
-        />
+        <ShapeRenderer shapes={shapes} currentShape={currentShape} />
         <Transformer ref={transformerRef} />
       </Layer>
-
-
     </Stage>
   );
 };
