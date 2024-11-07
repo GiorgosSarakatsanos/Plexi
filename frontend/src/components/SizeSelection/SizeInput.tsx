@@ -1,4 +1,6 @@
 import React from "react";
+import { Input, HStack } from "@chakra-ui/react";
+import { NativeSelectRoot, NativeSelectField } from "../ui/native-select";
 
 interface SizeInputProps {
   width: string;
@@ -21,51 +23,44 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
   units,
   widthRef,
 }) => {
-  const evaluateExpression = (expression: string): string => {
-    try {
-      const result = new Function("return " + expression)();
-      if (isNaN(result)) throw new Error("Invalid expression");
-      return result.toString();
-    } catch (error) {
-      console.error("Invalid expression:", error);
-      return expression;
-    }
-  };
-
   return (
-    <div className="inline-container">
-      <input
+    <HStack>
+      {/* Width Input */}
+      <Input
         ref={widthRef}
         type="text"
         value={width}
         onChange={(e) => onWidthChange(e.target.value)}
-        onBlur={() => onWidthChange(evaluateExpression(width))}
         placeholder="Width"
-        className="input extra-large"
+        size="xs"
       />
-      <input
+
+      {/* Height Input */}
+      <Input
         type="text"
         value={height}
         onChange={(e) => onHeightChange(e.target.value)}
-        onBlur={() => onHeightChange(evaluateExpression(height))}
         placeholder="Height"
-        className="input extra-large"
+        size="xs"
       />
 
-      {/* Add a title attribute for accessibility */}
-      <select
-        title="Select unit" // Provide an accessible name for the select element
-        value={unit}
-        onChange={(e) => onUnitChange(e.target.value)}
-        className="dropdown large"
-      >
-        {units.map((unitOption: string) => (
-          <option key={unitOption} value={unitOption}>
-            {unitOption}
-          </option>
-        ))}
-      </select>
-    </div>
+      {/* Unit Select with wider width */}
+      <NativeSelectRoot size="sm">
+        {" "}
+        {/* Adjust width directly here */}
+        <NativeSelectField
+          value={unit}
+          onChange={(e) => onUnitChange(e.target.value)}
+          placeholder="Select unit"
+        >
+          {units.map((unitOption) => (
+            <option key={unitOption} value={unitOption}>
+              {unitOption}
+            </option>
+          ))}
+        </NativeSelectField>
+      </NativeSelectRoot>
+    </HStack>
   );
 };
 

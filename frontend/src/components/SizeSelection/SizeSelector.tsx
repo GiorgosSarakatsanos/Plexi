@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Input } from "@chakra-ui/react";
+
 import SizeInputComponent from "./SizeInput";
 import { sizeMap } from "./SizeMap"; // Import the sizeMap
 
@@ -248,13 +250,14 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
       {showNameInput && (
         <div className="stack-container">
           <div>
-            <input
+            <Input
               type="text"
               ref={inputRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter name"
-              className="input extra-extra-large"
+              size="xs"
+              className="extra-extra-large"
             />
           </div>
           <div>

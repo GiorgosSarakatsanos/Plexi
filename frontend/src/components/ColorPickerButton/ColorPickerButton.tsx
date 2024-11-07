@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import "../Button/ButtonStyle.css";
-import { Input, Box, HStack } from "@chakra-ui/react";
-
-import { InputGroup } from "../ui/input-group";
+import { Input, Box, HStack, VStack } from "@chakra-ui/react";
 import { LuPercent } from "react-icons/lu";
+import { Slider } from "../ui/slider"; // Import your custom slider component
 
 interface ColorPickerButtonProps {
   onChangeColor: (newColor: string) => void;
@@ -13,7 +11,8 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   onChangeColor,
 }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
-  const [opacity, setOpacity] = useState<number>(100); // State for opacity (0-100)
+  const [opacity, setOpacity] = useState<number>(100);
+  const [showSlider, setShowSlider] = useState<boolean>(false);
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
@@ -21,40 +20,38 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
     onChangeColor(newColor);
   };
 
-  const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newOpacity = Math.min(Math.max(Number(e.target.value), 0), 100);
-    setOpacity(newOpacity);
+  const handleOpacityChange = (value: number) => {
+    setOpacity(value);
   };
 
+  const opacityHex = Math.round((opacity / 100) * 255)
+    .toString(16)
+    .padStart(2, "0");
+
   return (
-    <HStack>
-      <Box>
+    <VStack align="start">
+      <HStack>
         {/* Color preview box */}
         <Box
-          boxSize="40px"
-          bg={`${selectedColor}${Math.round((opacity / 100) * 255)
-            .toString(16)
-            .padStart(2, "0")}`}
+          bg={`${selectedColor}${opacityHex}`}
           rounded="full"
           display="flex"
           alignItems="center"
           justifyContent="center"
-          overflow="hidden"
         >
           <Input
             type="color"
             value={selectedColor}
             onChange={handleColorChange}
-            boxSize="100%"
             opacity="0"
           />
         </Box>
-      </Box>
 
-      <Box>
+        {/* Hex Input */}
         <Input
           variant="outline"
           size="xs"
+          w={20}
           value={selectedColor.replace("#", "")}
           maxLength={6}
           onChange={(e) => {
@@ -63,11 +60,9 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
             onChangeColor(hexValue);
           }}
         />
-      </Box>
 
-      {/* Opacity input with percent symbol */}
-      <Box>
-        <InputGroup endElement={<LuPercent />}>
+        {/* Opacity input with percentage icon as clickable button */}
+        <Box display="flex" alignItems="center">
           <Input
             variant="outline"
             size="xs"
@@ -76,11 +71,38 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
             max={100}
             min={0}
             value={opacity}
-            onChange={handleOpacityChange}
+            onChange={(e) => handleOpacityChange(Number(e.target.value))}
           />
-        </InputGroup>
-      </Box>
-    </HStack>
+          <Box
+            as="button"
+            onClick={() => setShowSlider(!showSlider)}
+            cursor="pointer"
+            m={2}
+            p={2}
+            border="1px solid transparent"
+            _hover={{
+              border: "1px solid",
+              borderColor: "gray.300", // Adjust color as needed
+              borderRadius: "md", // Optional: adds rounded corners
+            }}
+          >
+            <LuPercent />
+          </Box>
+        </Box>
+      </HStack>
+
+      {/* Slider for adjusting opacity */}
+      {showSlider && (
+        <Box width="100%" mt={2}>
+          <Slider
+            value={[opacity]}
+            onValueChange={(details) => handleOpacityChange(details.value[0])}
+            min={0}
+            max={100}
+          />
+        </Box>
+      )}
+    </VStack>
   );
 };
 
