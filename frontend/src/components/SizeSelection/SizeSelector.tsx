@@ -13,7 +13,6 @@ import { sizeMap } from "./SizeMap";
 import {
   SelectContent,
   SelectItem,
-  SelectLabel,
   SelectRoot,
   SelectTrigger,
 } from "../ui/select";
@@ -121,7 +120,6 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
   return (
     <VStack align="start">
       <SelectRoot collection={sizeCollection} size="sm">
-        <SelectLabel>Select Size</SelectLabel>
         <SelectTrigger>
           <Text>{selectedSize || "Select Size"}</Text>
         </SelectTrigger>
