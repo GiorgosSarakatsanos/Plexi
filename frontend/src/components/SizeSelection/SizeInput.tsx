@@ -51,7 +51,7 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
         <NativeSelectField
           value={unit}
           onChange={(e) => onUnitChange(e.target.value)}
-          placeholder="Select unit"
+          width="80px"
         >
           {units.map((unitOption) => (
             <option key={unitOption} value={unitOption}>
