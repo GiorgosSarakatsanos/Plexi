@@ -119,7 +119,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
 
   return (
     <VStack align="start">
-      <SelectRoot collection={sizeCollection} size="sm">
+      <SelectRoot collection={sizeCollection} size="xs">
         <SelectTrigger>
           <Text>{selectedSize || "Select Size"}</Text>
         </SelectTrigger>
@@ -142,7 +142,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
               <HStack>
                 <Text>{size}</Text>
                 <CloseButton
-                  size="xs"
+                  size="2xs"
                   colorScheme="red"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -162,15 +162,15 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
       </SelectRoot>
 
       {showNameInput && (
-        <HStack>
+        <HStack width="100%">
           <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter name"
-            size="xs"
+            size="2xs"
           />
-          <Button onClick={handleSaveNamedSize} size="xs">
+          <Button onClick={handleSaveNamedSize} size="2xs">
             Save
           </Button>
         </HStack>
@@ -187,8 +187,8 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ type, onSizeSelect }) => {
             onUnitChange={setUnit}
             units={units}
           />
-          <Button size="xs" onClick={handleConfirmCustomSize}>
-            OK
+          <Button size="2xs" onClick={handleConfirmCustomSize}>
+            Save
           </Button>
         </HStack>
       )}

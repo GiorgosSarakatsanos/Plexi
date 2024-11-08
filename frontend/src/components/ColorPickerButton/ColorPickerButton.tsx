@@ -15,7 +15,10 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
   const [opacity, setOpacity] = useState<number>(100);
   const [showSlider, setShowSlider] = useState<boolean>(false);
-  const sliderRef = useRef<HTMLDivElement>(null); // Ref for the slider box
+  const [hoverTimeout, setHoverTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
@@ -28,8 +31,15 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
     onOpacityChange(value);
   };
 
+  // Show slider with a delay on hover
   const handleIconMouseEnter = () => {
-    setShowSlider(true);
+    const timeout = setTimeout(() => setShowSlider(true), 500); // delay time
+    setHoverTimeout(timeout);
+  };
+
+  // Clear timeout if hover ends before delay
+  const handleIconMouseLeave = () => {
+    if (hoverTimeout) clearTimeout(hoverTimeout);
   };
 
   const handleClickOutside = (event: MouseEvent) => {
@@ -66,6 +76,9 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
           display="flex"
           alignItems="center"
           justifyContent="center"
+          border="1px transparent"
+          borderColor="gray.300"
+          boxShadow="inset 0 0 8px 1px rgba(0, 0, 0, 0.15)"
         >
           <Input
             type="color"
@@ -77,7 +90,7 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
 
         <Input
           variant="outline"
-          size="xs"
+          size="2xs"
           w={20}
           value={selectedColor.replace("#", "")}
           maxLength={6}
@@ -91,7 +104,7 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
         <Box display="flex" alignItems="center">
           <Input
             variant="outline"
-            size="xs"
+            size="2xs"
             type="number"
             placeholder="Opacity"
             max={100}
@@ -102,6 +115,8 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
           <Box
             as="button"
             onMouseEnter={handleIconMouseEnter}
+            onMouseLeave={handleIconMouseLeave}
+            onClick={() => setShowSlider(true)} // Open slider on click
             cursor="pointer"
             m={2}
             p={2}

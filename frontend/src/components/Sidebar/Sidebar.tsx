@@ -1,14 +1,13 @@
-// components/Sidebar/Sidebar.tsx
 import React from "react";
 import {
   VStack,
-  Box,
   Flex,
   HStack,
-  IconButton,
+  Box,
   Collapsible,
   Heading,
   Separator,
+  Center,
 } from "@chakra-ui/react";
 import { LuAtom, LuChevronDown, LuPanelRightOpen } from "react-icons/lu";
 import SizeSelector from "../SizeSelection/SizeSelector";
@@ -21,7 +20,7 @@ interface SidebarProps {
     unit: "mm" | "cm" | "in" | "px"
   ) => void;
   handleColorChange: (color: string) => void;
-  handleOpacityChange: (opacity: number) => void; // Add handleOpacityChange
+  handleOpacityChange: (opacity: number) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -32,52 +31,41 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <VStack align="stretch" height="100%" gap={2}>
       {/* Logo and Menu Box */}
-      <HStack gap="4" justifyContent="space-between">
-        <IconButton aria-label="Logo" rounded="full" variant="ghost" size="xl">
-          <LuAtom />
-        </IconButton>
-        <IconButton
-          aria-label="Close panel"
-          rounded="full"
-          variant="ghost"
-          size="2xs"
-        >
+      <HStack justifyContent="space-between">
+        <Center gap={2}>
+          <Box as="span" aria-label="Logo" rounded="full">
+            <LuAtom />
+          </Box>
+          <Heading size="xs">Plexi</Heading>
+        </Center>
+        <Box as="span" aria-label="Close panel" rounded="full">
           <LuPanelRightOpen />
-        </IconButton>
+        </Box>
       </HStack>
+      <Separator />
 
       {/* Options starts here */}
-      <Collapsible.Root>
-        <Collapsible.Trigger width="100%">
-          {" "}
-          {/* Ensure full width here */}
-          <Flex justifyContent="space-between" alignItems="center" width="100%">
-            <Heading size="md" flex="1">
-              {" "}
-              {/* Use flex="1" to make Heading take up extra space */}
-              Setup Canvas
-            </Heading>
-            <IconButton size="xs" variant="ghost">
-              <LuChevronDown />
-            </IconButton>
-          </Flex>
-        </Collapsible.Trigger>
-        <Collapsible.Content width="100%" padding="4 0">
-          {" "}
-          {/* Optional: Ensure full width on content */}
-          <VStack align="start" gap={4} padding={4 - 2} width="100%">
-            <Box width="100%">
+      <VStack align="left">
+        <Collapsible.Root>
+          <Collapsible.Trigger as={Box} width="100%">
+            <Flex justify="space-between" alignItems="center" width="100%">
+              <Heading size="sm">Canvas setup</Heading>
+              <Box>
+                <LuChevronDown />
+              </Box>
+            </Flex>
+          </Collapsible.Trigger>
+          <Collapsible.Content width="100%">
+            <Flex gap={2} direction="column" pt={2} pb={2}>
               <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-            </Box>
-            <Box width="100%">
               <ColorPickerButton
                 onChangeColor={handleColorChange}
                 onOpacityChange={handleOpacityChange}
               />
-            </Box>
-          </VStack>
-        </Collapsible.Content>
-      </Collapsible.Root>
+            </Flex>
+          </Collapsible.Content>
+        </Collapsible.Root>
+      </VStack>
       <Separator />
     </VStack>
   );

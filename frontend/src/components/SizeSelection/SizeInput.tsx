@@ -32,7 +32,7 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
         value={width}
         onChange={(e) => onWidthChange(e.target.value)}
         placeholder="Width"
-        size="xs"
+        size="2xs"
       />
 
       {/* Height Input */}
@@ -41,17 +41,16 @@ const SizeInputComponent: React.FC<SizeInputProps> = ({
         value={height}
         onChange={(e) => onHeightChange(e.target.value)}
         placeholder="Height"
-        size="xs"
+        size="2xs"
       />
 
       {/* Unit Select with wider width */}
-      <NativeSelectRoot size="sm">
+      <NativeSelectRoot size="xs">
         {" "}
         {/* Adjust width directly here */}
         <NativeSelectField
           value={unit}
           onChange={(e) => onUnitChange(e.target.value)}
-          width="80px"
         >
           {units.map((unitOption) => (
             <option key={unitOption} value={unitOption}>

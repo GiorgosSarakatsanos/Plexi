@@ -1,6 +1,6 @@
 // components/TopToolbox.tsx
 import React from "react";
-import { Box, Flex, Button, Text } from "@chakra-ui/react";
+import { Box, Button, Text, HStack } from "@chakra-ui/react";
 import { MenuRoot, MenuTrigger, MenuContent, MenuItem } from "../ui/menu";
 import { Group } from "@chakra-ui/react";
 import { LuZap } from "react-icons/lu";
@@ -29,61 +29,54 @@ const TopToolbox: React.FC<TopToolboxProps> = ({
       p={4}
       zIndex="overlay"
     >
-      <Flex justify="space-between" align="center">
-        <Box>
-          <MenuRoot>
-            <MenuTrigger asChild>
-              <Button variant="solid" size="xs" colorPalette="blue">
-                <LuZap />
-                Quick actions
-              </Button>
-            </MenuTrigger>
-            <MenuContent>
-              <Group grow gap="0">
-                {horizontalMenuItems.map((item) => (
-                  <MenuItem
-                    key={item.value}
-                    value={item.value}
-                    width="14"
-                    gap="1"
-                    flexDirection="column"
-                    justifyContent="flex-start"
-                    alignItems="flex-start"
-                  >
-                    {item.icon}
-                    {item.label}
-                  </MenuItem>
-                ))}
-              </Group>
-              {verticalMenuItems.map((item) => (
+      <HStack justify="end" gap={4} align="center">
+        <MenuRoot>
+          <MenuTrigger asChild>
+            <Button variant="solid" size="2xs" colorPalette="blue">
+              <LuZap />
+              Quick actions
+            </Button>
+          </MenuTrigger>
+          <MenuContent>
+            <Group grow gap="0">
+              {horizontalMenuItems.map((item) => (
                 <MenuItem
                   key={item.value}
                   value={item.value}
+                  width="14"
+                  gap="1"
+                  flexDirection="column"
                   justifyContent="flex-start"
                   alignItems="flex-start"
                 >
-                  <Box flex="1" textAlign="left">
-                    {item.label}
-                  </Box>
                   {item.icon}
+                  {item.label}
                 </MenuItem>
               ))}
-            </MenuContent>
-          </MenuRoot>
-        </Box>
-        <Flex align="flex-start">Selected item actions</Flex>
-        <Flex gap={2} align="center">
-          <Box>
-            <Avatar size="2xs" name="User" src={userPhoto} />
-          </Box>
+            </Group>
+            {verticalMenuItems.map((item) => (
+              <MenuItem
+                key={item.value}
+                value={item.value}
+                justifyContent="flex-start"
+                alignItems="flex-start"
+              >
+                <Box flex="1" textAlign="left">
+                  {item.label}
+                </Box>
+                {item.icon}
+              </MenuItem>
+            ))}
+          </MenuContent>
+        </MenuRoot>
+        <HStack>
+          <Avatar size="2xs" name="User" src={userPhoto} />
           <Box boxSize="8px" bg="green" borderRadius="full" />
-          <Box>
-            <Text textStyle="xs" fontWeight="medium" color="gray.700">
-              Online
-            </Text>
-          </Box>
-        </Flex>
-      </Flex>
+          <Text textStyle="xs" fontWeight="medium" color="gray.700">
+            Online
+          </Text>
+        </HStack>
+      </HStack>
     </Box>
   );
 };

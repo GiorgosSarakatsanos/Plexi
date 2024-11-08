@@ -27,14 +27,14 @@ const Layout: React.FC = () => {
       <Grid
         templateAreas={`"sidebar toolbar main"
                       "sidebar toolbar main"`}
-        templateColumns="320px auto 1fr"
+        templateColumns="300px auto 1fr"
         templateRows="1fr"
         h="100vh"
-        gap="2"
-        padding="4"
+        padding="2"
+        bg="bg.panel"
       >
         {/* Sidebar */}
-        <GridItem area="sidebar" bg="blue.50" p={4} rounded="xl">
+        <GridItem area="sidebar" p={2} rounded="xl">
           <Sidebar
             onSizeSelect={onSizeSelect}
             handleColorChange={handleColorChange}
@@ -43,13 +43,19 @@ const Layout: React.FC = () => {
         </GridItem>
 
         {/* Toolbox */}
-        <GridItem area="toolbar" rounded="xl" padding="1">
-          <Flex direction="column" justifyContent="space-between" height="100%">
-            <Box>One</Box>
+        <GridItem
+          area="toolbar"
+          p={2}
+          borderTopRightRadius="0"
+          borderBottomRightRadius="0"
+          borderTopLeftRadius="xl"
+          borderBottomLeftRadius="xl"
+          bg="bg.subtle"
+        >
+          <Flex direction="column" justifyContent="space-around" height="100%">
             <Box>
               <Toolbar setSelectedShape={setSelectedShape} />
             </Box>
-            <Box>Three</Box>
           </Flex>
         </GridItem>
 
@@ -57,9 +63,12 @@ const Layout: React.FC = () => {
         <GridItem
           area="main"
           position="relative"
-          bg="gray.300"
+          bg="bg.subtle"
           overflow="auto"
-          rounded="xl"
+          borderTopRightRadius="xl"
+          borderBottomRightRadius="xl"
+          borderTopLeftRadius="0"
+          borderBottomLeftRadius="0"
         >
           {/* Top Toolbox */}
           <TopToolbox
@@ -69,18 +78,15 @@ const Layout: React.FC = () => {
 
           {/* Canvas Area */}
           <Box
+            width="100%"
             height="100%"
             overflow="auto"
-            p={4}
-            ml={4}
+            p={2}
             display="flex"
             alignItems="center"
             justifyContent="center"
           >
             <Center height="100%">
-              {" "}
-              {/* Center the canvas container */}
-              {/* Canvas Container with Checkerboard Background */}
               <Box
                 position="relative"
                 width={canvasSize.width}
