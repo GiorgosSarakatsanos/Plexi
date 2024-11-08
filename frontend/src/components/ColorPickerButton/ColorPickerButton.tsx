@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Input, Box, HStack, VStack } from "@chakra-ui/react";
 import { LuPercent } from "react-icons/lu";
-import { Slider } from "../ui/slider"; // Import your custom slider component
+import { Slider } from "../ui/slider";
 
 interface ColorPickerButtonProps {
   onChangeColor: (newColor: string) => void;
@@ -15,6 +15,7 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
   const [opacity, setOpacity] = useState<number>(100);
   const [showSlider, setShowSlider] = useState<boolean>(false);
+  const sliderRef = useRef<HTMLDivElement>(null); // Ref for the slider box
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
@@ -27,6 +28,31 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
     onOpacityChange(value);
   };
 
+  const handleIconMouseEnter = () => {
+    setShowSlider(true);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      sliderRef.current &&
+      !sliderRef.current.contains(event.target as Node)
+    ) {
+      setShowSlider(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showSlider) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSlider]);
+
   const opacityHex = Math.round((opacity / 100) * 255)
     .toString(16)
     .padStart(2, "0");
@@ -34,7 +60,6 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
   return (
     <VStack align="start">
       <HStack>
-        {/* Color preview box */}
         <Box
           bg={`${selectedColor}${opacityHex}`}
           rounded="full"
@@ -50,7 +75,6 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
           />
         </Box>
 
-        {/* Hex Input */}
         <Input
           variant="outline"
           size="xs"
@@ -64,7 +88,6 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
           }}
         />
 
-        {/* Opacity input with percentage icon as clickable button */}
         <Box display="flex" alignItems="center">
           <Input
             variant="outline"
@@ -78,15 +101,15 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
           />
           <Box
             as="button"
-            onClick={() => setShowSlider(!showSlider)}
+            onMouseEnter={handleIconMouseEnter}
             cursor="pointer"
             m={2}
             p={2}
             border="1px solid transparent"
             _hover={{
               border: "1px solid",
-              borderColor: "gray.300", // Adjust color as needed
-              borderRadius: "md", // Optional: adds rounded corners
+              borderColor: "gray.300",
+              borderRadius: "md",
             }}
           >
             <LuPercent />
@@ -94,9 +117,12 @@ const ColorPickerButton: React.FC<ColorPickerButtonProps> = ({
         </Box>
       </HStack>
 
-      {/* Slider for adjusting opacity */}
       {showSlider && (
-        <Box width="100%" mt={2}>
+        <Box
+          width="100%"
+          p={2}
+          ref={sliderRef} // Attach ref to the slider container
+        >
           <Slider
             value={[opacity]}
             onValueChange={(details) => handleOpacityChange(details.value[0])}
