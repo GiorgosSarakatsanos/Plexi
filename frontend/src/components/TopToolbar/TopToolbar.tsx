@@ -1,4 +1,4 @@
-// components/TopToolbox.tsx
+// components/TopToolbar.tsx
 import React from "react";
 import { Box, Button, Text, HStack } from "@chakra-ui/react";
 import { MenuRoot, MenuTrigger, MenuContent, MenuItem } from "../ui/menu";
@@ -7,7 +7,7 @@ import { LuZap } from "react-icons/lu";
 import { Avatar } from "../ui/avatar";
 import userPhoto from "../../assets/images/user-photo.jpg";
 
-interface TopToolboxProps {
+interface TopToolbarProps {
   horizontalMenuItems: {
     label: string;
     value: string;
@@ -16,7 +16,7 @@ interface TopToolboxProps {
   verticalMenuItems: { label: string; value: string; icon: React.ReactNode }[];
 }
 
-const TopToolbox: React.FC<TopToolboxProps> = ({
+const TopToolbar: React.FC<TopToolbarProps> = ({
   horizontalMenuItems,
   verticalMenuItems,
 }) => {
@@ -81,4 +81,4 @@ const TopToolbox: React.FC<TopToolboxProps> = ({
   );
 };
 
-export default TopToolbox;
+export default TopToolbar;

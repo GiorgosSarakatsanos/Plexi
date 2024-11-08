@@ -4,13 +4,23 @@ import Toolbar from "./components/Toolbar/Toolbar";
 import { useCanvasSize } from "./components/Canvas/useCanvasSize";
 import { useColor } from "./hooks/useColor";
 import Sidebar from "./components/Sidebar/Sidebar";
-import TopToolbox from "./components/TopToolbox/TopToolbox";
+import TopToolbar from "./components/TopToolbar/TopToolbar";
 import { LayerProvider } from "./components/Layer/LayerContext";
-import { Box, Flex, Grid, GridItem, Center } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Grid,
+  GridItem,
+  Center,
+  HStack,
+  Heading,
+  IconButton,
+} from "@chakra-ui/react";
 import {
   horizontalMenuItems,
   verticalMenuItems,
-} from "./components/TopToolbox/menuItems"; // Import menu items
+} from "./components/TopToolbar/menuItems"; // Import menu items
+import { LuAtom, LuChevronLeft } from "react-icons/lu";
 
 const Layout: React.FC = () => {
   const { canvasSize, onSizeSelect } = useCanvasSize();
@@ -25,16 +35,43 @@ const Layout: React.FC = () => {
   return (
     <LayerProvider>
       <Grid
-        templateAreas={`"sidebar toolbar main"
-                      "sidebar toolbar main"`}
+        templateAreas={`"sidebarTop toptoolbar toptoolbar"
+                  "sidebar toolbar main"
+                  "sidebar toolbar main"`}
         templateColumns="300px auto 1fr"
-        templateRows="1fr"
+        templateRows="50px 1fr 80px"
         h="100vh"
         padding="2"
         bg="bg.panel"
       >
+        <GridItem
+          area="sidebarTop"
+          display="flex"
+          alignItems="center"
+          height="100%"
+        >
+          <HStack justifyContent="space-between" width="100%" p={2}>
+            <HStack gap={2}>
+              <IconButton
+                variant="subtle"
+                rounded="xl"
+                size="2xs"
+                colorPalette="blue"
+              >
+                <LuAtom />
+              </IconButton>
+              <Heading size="xs" fontWeight="bold">
+                Plexi
+              </Heading>
+            </HStack>
+            <IconButton variant="ghost" size="2xs">
+              <LuChevronLeft />
+            </IconButton>
+          </HStack>
+        </GridItem>
+
         {/* Sidebar */}
-        <GridItem area="sidebar" p={2} rounded="xl">
+        <GridItem area="sidebar" rounded="xl">
           <Sidebar
             onSizeSelect={onSizeSelect}
             handleColorChange={handleColorChange}
@@ -45,6 +82,7 @@ const Layout: React.FC = () => {
         {/* Toolbox */}
         <GridItem
           area="toolbar"
+          height="100%"
           p={2}
           borderTopRightRadius="0"
           borderBottomRightRadius="0"
@@ -59,9 +97,18 @@ const Layout: React.FC = () => {
           </Flex>
         </GridItem>
 
-        {/* Main Container with Overflow */}
+        {/* Top Toolbar */}
+        <GridItem area="toptoolbar" height="100%">
+          <TopToolbar
+            horizontalMenuItems={horizontalMenuItems}
+            verticalMenuItems={verticalMenuItems}
+          />
+        </GridItem>
+
+        {/* Main Container */}
         <GridItem
           area="main"
+          height="100%"
           position="relative"
           bg="bg.subtle"
           overflow="auto"
@@ -70,12 +117,6 @@ const Layout: React.FC = () => {
           borderTopLeftRadius="0"
           borderBottomLeftRadius="0"
         >
-          {/* Top Toolbox */}
-          <TopToolbox
-            horizontalMenuItems={horizontalMenuItems}
-            verticalMenuItems={verticalMenuItems}
-          />
-
           {/* Canvas Area */}
           <Box
             width="100%"

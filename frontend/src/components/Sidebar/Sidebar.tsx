@@ -1,17 +1,9 @@
 import React from "react";
-import {
-  VStack,
-  Flex,
-  HStack,
-  Box,
-  Collapsible,
-  Heading,
-  Separator,
-  Center,
-} from "@chakra-ui/react";
-import { LuAtom, LuChevronDown, LuPanelRightOpen } from "react-icons/lu";
+import { VStack, Separator } from "@chakra-ui/react";
+import { LuImage, LuLayout, LuPalette } from "react-icons/lu";
 import SizeSelector from "../SizeSelection/SizeSelector";
 import ColorPickerButton from "../ColorPickerButton/ColorPickerButton";
+import CollapsibleSection from "./CollapsibleSection"; // Import the new component
 
 interface SidebarProps {
   onSizeSelect: (
@@ -29,43 +21,25 @@ const Sidebar: React.FC<SidebarProps> = ({
   handleOpacityChange,
 }) => {
   return (
-    <VStack align="stretch" height="100%" gap={2}>
-      {/* Logo and Menu Box */}
-      <HStack justifyContent="space-between">
-        <Center gap={2}>
-          <Box as="span" aria-label="Logo" rounded="full">
-            <LuAtom />
-          </Box>
-          <Heading size="xs">Plexi</Heading>
-        </Center>
-        <Box as="span" aria-label="Close panel" rounded="full">
-          <LuPanelRightOpen />
-        </Box>
-      </HStack>
+    <VStack align="stretch" height="100%" gap={2} pr={2} pl={2}>
       <Separator />
-
-      {/* Options starts here */}
-      <VStack align="left">
-        <Collapsible.Root>
-          <Collapsible.Trigger as={Box} width="100%">
-            <Flex justify="space-between" alignItems="center" width="100%">
-              <Heading size="sm">Canvas setup</Heading>
-              <Box>
-                <LuChevronDown />
-              </Box>
-            </Flex>
-          </Collapsible.Trigger>
-          <Collapsible.Content width="100%">
-            <Flex gap={2} direction="column" pt={2} pb={2}>
-              <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-              <ColorPickerButton
-                onChangeColor={handleColorChange}
-                onOpacityChange={handleOpacityChange}
-              />
-            </Flex>
-          </Collapsible.Content>
-        </Collapsible.Root>
-      </VStack>
+      <CollapsibleSection icon={<LuImage />} title="Size" defaultOpen>
+        <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
+      </CollapsibleSection>
+      <Separator />
+      <CollapsibleSection icon={<LuPalette />} title="Color">
+        <ColorPickerButton
+          onChangeColor={handleColorChange}
+          onOpacityChange={handleOpacityChange}
+        />
+      </CollapsibleSection>
+      <Separator />
+      <CollapsibleSection icon={<LuLayout />} title="Grid">
+        <ColorPickerButton
+          onChangeColor={handleColorChange}
+          onOpacityChange={handleOpacityChange}
+        />
+      </CollapsibleSection>
       <Separator />
     </VStack>
   );

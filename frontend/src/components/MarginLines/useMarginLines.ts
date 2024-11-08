@@ -1,6 +1,5 @@
 // hooks/useMarginLines.ts
 import { useEffect, useRef } from "react";
-import * as fabric from "fabric";
 
 interface UseMarginLinesProps {
   canvas: fabric.Canvas | null;
