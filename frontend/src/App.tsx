@@ -1,165 +1,156 @@
-import React, { useState } from "react";
-import Canvas from "./components/Canvas/Canvas";
-import Toolbar from "./components/Toolbar/Toolbar";
-import { useCanvasSize } from "./components/Canvas/useCanvasSize";
-import { useColor } from "./hooks/useColor";
-import Sidebar from "./components/Sidebar/Sidebar";
-import TopToolbar from "./components/TopToolbar/TopToolbar";
-import { LayerProvider } from "./components/Layer/LayerContext";
 import {
-  Box,
   Flex,
-  Grid,
-  GridItem,
-  Center,
   HStack,
-  Heading,
   IconButton,
+  Heading,
+  VStack,
+  Stack,
+  Center,
 } from "@chakra-ui/react";
+import { LuAtom } from "react-icons/lu";
+import { useState } from "react";
+import TopToolbar from "./components/TopToolbar/TopToolbar";
 import {
   horizontalMenuItems,
   verticalMenuItems,
-} from "./components/TopToolbar/menuItems"; // Import menu items
-import { LuAtom, LuChevronLeft } from "react-icons/lu";
+} from "./components/TopToolbar/menuItems";
+import Sidebar from "./components/Sidebar/Sidebar";
+import { useCanvasSize } from "./components/Canvas/useCanvasSize";
+import { useColor } from "./hooks/useColor";
+import Canvas from "./components/Canvas/Canvas";
+
+import { useZoom } from "./utils/useZoom";
+import { UnitProvider } from "./utils/UnitContext";
+import { LayerProvider } from "./components/Layer/LayerContext";
 
 const Layout: React.FC = () => {
   const { canvasSize, onSizeSelect } = useCanvasSize();
   const { color: backgroundColor, handleColorChange } = useColor();
-  const [selectedShape, setSelectedShape] = useState<string | null>(null);
   const [canvasOpacity, setCanvasOpacity] = useState(100);
-
   const handleOpacityChange = (opacity: number) => {
     setCanvasOpacity(opacity); // Update the canvas opacity
   };
+  const [selectedShape] = useState<string | null>(null);
+
+  // Define barSize for the top bar height
+  const barSize = "45px";
+
+  const [sidebarWidth, setSidebarWidth] = useState("275px");
+  const isSidebarCollapsed = sidebarWidth === barSize;
+
+  // Toggle sidebar width between expanded and collapsed
+  const toggleSidebarWidth = () => {
+    setSidebarWidth((prevWidth) => (prevWidth === "275px" ? barSize : "275px"));
+  };
+
+  // Expand sidebar only if it's currently collapsed
+  const expandSidebar = () => {
+    if (sidebarWidth === barSize) {
+      setSidebarWidth("275px");
+    }
+  };
+
+  const { zoomLevel, zoomIn, zoomOut } = useZoom();
 
   return (
     <LayerProvider>
-      <Grid
-        templateAreas={`"sidebarTop toptoolbar toptoolbar"
-                  "sidebar toolbar main"
-                  "sidebar toolbar main"`}
-        templateColumns="300px auto 1fr"
-        templateRows="50px 1fr 80px"
-        h="100vh"
-        padding="2"
-        bg="bg.panel"
-      >
-        <GridItem
-          area="sidebarTop"
-          display="flex"
-          alignItems="center"
-          height="100%"
+      <UnitProvider>
+        <Flex
+          className="main-wrapper"
+          width="100%"
+          height="100vh"
+          overflow="hidden"
         >
-          <HStack justifyContent="space-between" width="100%" p={2}>
-            <HStack gap={2}>
-              <IconButton
-                variant="subtle"
-                rounded="xl"
-                size="2xs"
-                colorPalette="blue"
-              >
-                <LuAtom />
-              </IconButton>
-              <Heading size="xs" fontWeight="bold">
-                Plexi
-              </Heading>
-            </HStack>
-            <IconButton variant="ghost" size="2xs">
-              <LuChevronLeft />
-            </IconButton>
-          </HStack>
-        </GridItem>
-
-        {/* Sidebar */}
-        <GridItem area="sidebar" rounded="xl">
-          <Sidebar
-            onSizeSelect={onSizeSelect}
-            handleColorChange={handleColorChange}
-            handleOpacityChange={handleOpacityChange}
-          />
-        </GridItem>
-
-        {/* Toolbox */}
-        <GridItem
-          area="toolbar"
-          height="100%"
-          p={2}
-          borderTopRightRadius="0"
-          borderBottomRightRadius="0"
-          borderTopLeftRadius="xl"
-          borderBottomLeftRadius="xl"
-          bg="bg.subtle"
-        >
-          <Flex direction="column" justifyContent="space-around" height="100%">
-            <Box>
-              <Toolbar setSelectedShape={setSelectedShape} />
-            </Box>
-          </Flex>
-        </GridItem>
-
-        {/* Top Toolbar */}
-        <GridItem area="toptoolbar" height="100%">
-          <TopToolbar
-            horizontalMenuItems={horizontalMenuItems}
-            verticalMenuItems={verticalMenuItems}
-          />
-        </GridItem>
-
-        {/* Main Container */}
-        <GridItem
-          area="main"
-          height="100%"
-          position="relative"
-          bg="bg.subtle"
-          overflow="auto"
-          borderTopRightRadius="xl"
-          borderBottomRightRadius="xl"
-          borderTopLeftRadius="0"
-          borderBottomLeftRadius="0"
-        >
-          {/* Canvas Area */}
-          <Box
+          {/* Top bar */}
+          <HStack
+            justify="space-between"
+            className="top-bar"
+            h={barSize} // Use barSize here
             width="100%"
-            height="100%"
-            overflow="auto"
-            p={2}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
+            position="fixed"
+            zIndex={2}
+            background="bg.panel"
+            borderBottomWidth={"1px"}
           >
-            <Center height="100%">
-              <Box
-                position="relative"
-                width={canvasSize.width}
-                height={canvasSize.height}
-              >
-                {/* Checkerboard Background */}
-                <Box
-                  position="absolute"
-                  top={0}
-                  left={0}
-                  width="100%"
-                  height="100%"
-                  bgImage="url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 40 40%22><rect width=%2240%22 height=%2240%22 fill=%22%23ccc%22 /><rect width=%2220%22 height=%2220%22 fill=%22%23eee%22 /><rect x=%2220%22 y=%2220%22 width=%2220%22 height=%2220%22 fill=%22%23eee%22 /></svg>')"
-                  opacity={canvasOpacity < 100 ? 1 : 0} // Show only when opacity is less than 100%
-                  zIndex={1}
-                />
+            {/* Area in top of the sidebar */}
+            <HStack
+              justifyContent="space-between"
+              width="275px"
+              p={2}
+              borderRightWidth={"1px"}
+            >
+              <HStack gap={2}>
+                <IconButton
+                  variant="subtle"
+                  rounded="xl"
+                  size="2xs"
+                  colorPalette="blue"
+                >
+                  <LuAtom />
+                </IconButton>
+                <Heading size="xs" fontWeight="bold">
+                  Plexi
+                </Heading>
+              </HStack>
+            </HStack>
 
-                {/* Canvas Component */}
-                <Box position="relative" zIndex={2}>
-                  <Canvas
-                    width={canvasSize.width}
-                    height={canvasSize.height}
-                    backgroundColor={backgroundColor}
-                    selectedShape={selectedShape}
-                    opacity={canvasOpacity}
-                  />
-                </Box>
-              </Box>
-            </Center>
-          </Box>
-        </GridItem>
-      </Grid>
+            {/* Area on top of the canvas */}
+            <VStack alignItems="right" p={2}>
+              <TopToolbar
+                horizontalMenuItems={horizontalMenuItems}
+                verticalMenuItems={verticalMenuItems}
+                zoomIn={zoomIn}
+                zoomOut={zoomOut}
+                zoomLevel={zoomLevel}
+              />
+            </VStack>
+          </HStack>
+
+          <Stack
+            className="side-bar"
+            w={sidebarWidth}
+            height={`calc(100vh - ${barSize})`} // Use barSize here
+            position="fixed"
+            p={2}
+            inset={`${barSize} 0px 0px 0px`} // Use barSize here
+            background="bg.panel"
+            zIndex={3}
+            transition="width 0.3s ease"
+            borderRightWidth={"1px"}
+            flexWrap={"nowrap"}
+            overflow="hidden" // Prevents content from wrapping
+          >
+            <Sidebar
+              onSizeSelect={onSizeSelect}
+              handleColorChange={handleColorChange}
+              handleOpacityChange={handleOpacityChange}
+              toggleSidebarWidth={toggleSidebarWidth}
+              expandSidebar={expandSidebar}
+              isSidebarCollapsed={isSidebarCollapsed}
+            />
+          </Stack>
+
+          {/* Canvas */}
+          <Center
+            className="canvas"
+            height={`calc(100vh - ${barSize})`} // Use barSize here
+            w="auto"
+            position="absolute"
+            background="bg.subtle"
+            inset={`${barSize} 0px 0px ${sidebarWidth}`} // Use barSize and sidebarWidth here
+            zIndex={1}
+          >
+            <Canvas
+              width={canvasSize.width}
+              height={canvasSize.height}
+              backgroundColor={backgroundColor}
+              selectedShape={selectedShape}
+              opacity={canvasOpacity}
+              zoomLevel={zoomLevel} // Pass dynamic zoom level
+            />
+          </Center>
+        </Flex>
+      </UnitProvider>
     </LayerProvider>
   );
 };

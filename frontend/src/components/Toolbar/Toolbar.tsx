@@ -21,6 +21,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
     console.log("Selected shape:", shapeType); // Debugging
     setSelectedShape(shapeType);
     setActiveShape(shapeType); // Set the active shape for toggling
+    
   };
 
   return (

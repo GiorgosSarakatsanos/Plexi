@@ -12,7 +12,9 @@ interface CanvasProps {
   backgroundColor: string;
   selectedShape: string | null;
   opacity: number;
+  zoomLevel: number;
 }
+
 
 const Canvas: React.FC<CanvasProps> = ({
   width,
@@ -20,9 +22,18 @@ const Canvas: React.FC<CanvasProps> = ({
   backgroundColor,
   selectedShape,
   opacity,
+  zoomLevel,
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  // Log zoom and dimension details
+  useEffect(() => {
+    console.log(`Canvas Dimensions: ${width}x${height}`);
+    console.log(`Zoom Level: ${zoomLevel}`);
+    console.log(
+      `Displayed Dimensions: ${width * zoomLevel}x${height * zoomLevel}`
+    );
+  }, [width, height, zoomLevel]);
 
   const rgbaBackgroundColor = `${backgroundColor}${Math.round(
     (opacity / 100) * 255
@@ -39,7 +50,7 @@ const Canvas: React.FC<CanvasProps> = ({
   if (!layerContext) {
     throw new Error("Canvas must be wrapped in a LayerProvider");
   }
-  const { selectedLayerId, setSelectedLayerId } = layerContext; // Use setSelectedLayerId for layer sync
+  const { selectedLayerId, setSelectedLayerId } = layerContext;
 
   // Konva mouse events hook
   const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
@@ -48,7 +59,7 @@ const Canvas: React.FC<CanvasProps> = ({
       addShape,
       (id) => {
         selectShapeById(id);
-        setSelectedLayerId(id); // Update layer context when selecting a shape on the canvas
+        setSelectedLayerId(id);
       },
       stageRef
     );
@@ -73,10 +84,20 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [selectedLayerId, selectedShapeId, selectShapeById]);
 
+  console.log(`Final canvas dimensions in pixels: ${width} x ${height}`);
+  console.log(`Applied zoom level: ${zoomLevel}`);
+  console.log(
+    `Displayed dimensions on canvas: ${width * zoomLevel} x ${
+      height * zoomLevel
+    }`
+  );
+
   return (
     <Stage
-      width={width}
-      height={height}
+      width={width * zoomLevel} // Apply zoom level
+      height={height * zoomLevel} // Apply zoom level
+      scaleX={zoomLevel} // Apply zoom level to X scale
+      scaleY={zoomLevel} // Apply zoom level to Y scale
       style={{ backgroundColor: rgbaBackgroundColor }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

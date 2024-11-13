@@ -1,9 +1,11 @@
-import React from "react";
-import { VStack, Separator } from "@chakra-ui/react";
-import { LuImage, LuLayout, LuPalette } from "react-icons/lu";
+import React, { useState, useEffect } from "react";
+import { VStack, Separator, Text, Box, IconButton } from "@chakra-ui/react";
+import { LuChevronLeft, LuImage, LuLayout, LuPalette } from "react-icons/lu";
 import SizeSelector from "../SizeSelection/SizeSelector";
 import ColorPickerButton from "../ColorPickerButton/ColorPickerButton";
-import CollapsibleSection from "./CollapsibleSection"; // Import the new component
+import CollapsibleSection from "./CollapsibleSection";
+import { useUnit } from "../../utils/UnitContext";
+import Toolbar from "../Toolbar/Toolbar";
 
 interface SidebarProps {
   onSizeSelect: (
@@ -13,34 +15,93 @@ interface SidebarProps {
   ) => void;
   handleColorChange: (color: string) => void;
   handleOpacityChange: (opacity: number) => void;
+  toggleSidebarWidth: () => void;
+  expandSidebar: () => void;
+  isSidebarCollapsed: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   onSizeSelect,
   handleColorChange,
   handleOpacityChange,
+  toggleSidebarWidth,
+  expandSidebar, // Expand-only function
+  isSidebarCollapsed,
 }) => {
+  const { unit } = useUnit();
+
+  const [selectedShape, setSelectedShape] = useState<string | null>(null);
+
+  // State for each section's open status
+  const [isSizeOpen, setIsSizeOpen] = useState(true);
+  const [isColorOpen, setIsColorOpen] = useState(false);
+  const [isGridOpen, setIsGridOpen] = useState(true);
+
+  // Close all sections when the sidebar is collapsed
+  useEffect(() => {
+    if (isSidebarCollapsed) {
+      setIsSizeOpen(false);
+      setIsColorOpen(false);
+      setIsGridOpen(false);
+    }
+  }, [isSidebarCollapsed]);
+
   return (
-    <VStack align="stretch" height="100%" gap={2} pr={2} pl={2}>
-      <Separator />
-      <CollapsibleSection icon={<LuImage />} title="Size" defaultOpen>
-        <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-      </CollapsibleSection>
-      <Separator />
-      <CollapsibleSection icon={<LuPalette />} title="Color">
-        <ColorPickerButton
-          onChangeColor={handleColorChange}
-          onOpacityChange={handleOpacityChange}
-        />
-      </CollapsibleSection>
-      <Separator />
-      <CollapsibleSection icon={<LuLayout />} title="Grid">
-        <ColorPickerButton
-          onChangeColor={handleColorChange}
-          onOpacityChange={handleOpacityChange}
-        />
-      </CollapsibleSection>
-      <Separator />
+    <VStack align="stretch" justify={"space-between"} height="100%">
+      <VStack gap={2}>
+        <CollapsibleSection
+          icon={<LuImage />}
+          title="Size"
+          defaultOpen={isSizeOpen}
+          expandSidebar={expandSidebar} // Use expandSidebar here
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsSizeOpen((prev) => !prev)} // Toggle this section
+        >
+          <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
+        </CollapsibleSection>
+        <Separator />
+        <CollapsibleSection
+          icon={<LuPalette />}
+          title="Color"
+          defaultOpen={isColorOpen}
+          expandSidebar={expandSidebar} // Use expandSidebar here
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsColorOpen((prev) => !prev)} // Toggle this section
+        >
+          <ColorPickerButton
+            onChangeColor={handleColorChange}
+            onOpacityChange={handleOpacityChange}
+          />
+        </CollapsibleSection>
+        <Separator />
+        <CollapsibleSection
+          icon={<LuLayout />}
+          title="Grid"
+          defaultOpen={isGridOpen}
+          expandSidebar={expandSidebar} // Use expandSidebar here
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsGridOpen((prev) => !prev)} // Toggle this section
+        >
+          <Text>Selected Unit Value: {unit}</Text>
+        </CollapsibleSection>
+        <Separator />
+        <CollapsibleSection
+          icon={<LuLayout />}
+          title="Toolbar"
+          defaultOpen={isGridOpen}
+          expandSidebar={expandSidebar} // Use expandSidebar here
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsGridOpen((prev) => !prev)} // Toggle this section
+        >
+          <Toolbar setSelectedShape={setSelectedShape} />
+        </CollapsibleSection>
+        <Separator />
+      </VStack>
+      <Box>
+        <IconButton size={"2xs"} onClick={toggleSidebarWidth}>
+          <LuChevronLeft />
+        </IconButton>
+      </Box>
     </VStack>
   );
 };
