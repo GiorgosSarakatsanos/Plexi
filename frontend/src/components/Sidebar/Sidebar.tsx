@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { VStack, Separator, Text, Box, IconButton } from "@chakra-ui/react";
+import { VStack, Text, Box, IconButton } from "@chakra-ui/react";
 import { LuChevronLeft, LuImage, LuLayout, LuPalette } from "react-icons/lu";
 import SizeSelector from "../SizeSelection/SizeSelector";
 import ColorPickerButton from "../ColorPickerButton/ColorPickerButton";
 import CollapsibleSection from "./CollapsibleSection";
 import { useUnit } from "../../utils/UnitContext";
-import Toolbar from "../Toolbar/Toolbar";
 
 interface SidebarProps {
   onSizeSelect: (
@@ -29,8 +28,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   isSidebarCollapsed,
 }) => {
   const { unit } = useUnit();
-
-  const [selectedShape, setSelectedShape] = useState<string | null>(null);
 
   // State for each section's open status
   const [isSizeOpen, setIsSizeOpen] = useState(true);
@@ -59,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
         </CollapsibleSection>
-        <Separator />
+
         <CollapsibleSection
           icon={<LuPalette />}
           title="Color"
@@ -73,7 +70,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             onOpacityChange={handleOpacityChange}
           />
         </CollapsibleSection>
-        <Separator />
         <CollapsibleSection
           icon={<LuLayout />}
           title="Grid"
@@ -84,18 +80,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           <Text>Selected Unit Value: {unit}</Text>
         </CollapsibleSection>
-        <Separator />
-        <CollapsibleSection
-          icon={<LuLayout />}
-          title="Toolbar"
-          defaultOpen={isGridOpen}
-          expandSidebar={expandSidebar} // Use expandSidebar here
-          isSidebarCollapsed={isSidebarCollapsed}
-          onToggle={() => setIsGridOpen((prev) => !prev)} // Toggle this section
-        >
-          <Toolbar setSelectedShape={setSelectedShape} />
-        </CollapsibleSection>
-        <Separator />
       </VStack>
       <Box>
         <IconButton size={"2xs"} onClick={toggleSidebarWidth}>

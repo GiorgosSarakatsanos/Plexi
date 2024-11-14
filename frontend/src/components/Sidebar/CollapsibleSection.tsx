@@ -7,6 +7,7 @@ import {
   Heading,
   VStack,
   Collapsible,
+  Separator,
 } from "@chakra-ui/react";
 
 interface CollapsibleSectionProps {
@@ -70,6 +71,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           </Box>
         </Collapsible.Content>
       </Collapsible.Root>
+      <Separator />
     </VStack>
   );
 };

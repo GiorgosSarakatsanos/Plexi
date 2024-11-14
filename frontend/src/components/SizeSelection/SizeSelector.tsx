@@ -145,6 +145,12 @@ const UnifiedSizeSelector: React.FC<UnifiedSizeSelectorProps> = ({
     setShowNameInput(false);
   };
 
+  // New function to close the save prompt without saving
+  const handleCancelSaveNamedSize = () => {
+    setName(""); // Clear the name input
+    setShowNameInput(false); // Hide the save prompt
+  };
+
   const handleRemoveCustomSize = (sizeToRemove: SizeItem) => {
     const updatedSizes = customSizes.filter((size) => size !== sizeToRemove);
     setCustomSizes(updatedSizes);
@@ -220,6 +226,9 @@ const UnifiedSizeSelector: React.FC<UnifiedSizeSelectorProps> = ({
           />
           <Button onClick={handleSaveNamedSize} size="2xs">
             Save
+          </Button>
+          <Button size="2xs" onClick={handleCancelSaveNamedSize}>
+            Dismiss
           </Button>
         </HStack>
       )}

@@ -18,6 +18,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import { useCanvasSize } from "./components/Canvas/useCanvasSize";
 import { useColor } from "./hooks/useColor";
 import Canvas from "./components/Canvas/Canvas";
+import Toolbar from "./components/Toolbar/Toolbar";
 
 import { useZoom } from "./utils/useZoom";
 import { UnitProvider } from "./utils/UnitContext";
@@ -30,7 +31,7 @@ const Layout: React.FC = () => {
   const handleOpacityChange = (opacity: number) => {
     setCanvasOpacity(opacity); // Update the canvas opacity
   };
-  const [selectedShape] = useState<string | null>(null);
+  const [selectedShape, setSelectedShape] = useState<string | null>(null);
 
   // Define barSize for the top bar height
   const barSize = "45px";
@@ -60,6 +61,7 @@ const Layout: React.FC = () => {
           width="100%"
           height="100vh"
           overflow="hidden"
+          boxSizing={"border-box"}
         >
           {/* Top bar */}
           <HStack
@@ -106,6 +108,7 @@ const Layout: React.FC = () => {
             </VStack>
           </HStack>
 
+          {/* Sidebar */}
           <Stack
             className="side-bar"
             w={sidebarWidth}
@@ -114,7 +117,7 @@ const Layout: React.FC = () => {
             p={2}
             inset={`${barSize} 0px 0px 0px`} // Use barSize here
             background="bg.panel"
-            zIndex={3}
+            zIndex={4}
             transition="width 0.3s ease"
             borderRightWidth={"1px"}
             flexWrap={"nowrap"}
@@ -136,9 +139,25 @@ const Layout: React.FC = () => {
             height={`calc(100vh - ${barSize})`} // Use barSize here
             w="auto"
             position="absolute"
-            background="bg.subtle"
+            background="bg.emphasized"
             inset={`${barSize} 0px 0px ${sidebarWidth}`} // Use barSize and sidebarWidth here
             zIndex={1}
+            overflow={"auto"}
+            css={{
+              "&::-webkit-scrollbar": {
+                width: "6px",
+                height: "6px",
+              },
+              "&::-webkit-scrollbar-track": {
+                width: "6px",
+                height: "6px",
+                background: "bg.panel",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "gray.300",
+                borderRadius: "24px",
+              },
+            }}
           >
             <Canvas
               width={canvasSize.width}
@@ -149,6 +168,20 @@ const Layout: React.FC = () => {
               zoomLevel={zoomLevel} // Pass dynamic zoom level
             />
           </Center>
+
+          {/* Tool bar */}
+          <Flex
+            position={"fixed"}
+            h="calc({barSize} + 4px)"
+            bottom={"14px"}
+            width={"100%"}
+            justify={"center"}
+            zIndex={3}
+          >
+            <HStack>
+              <Toolbar setSelectedShape={setSelectedShape} />
+            </HStack>
+          </Flex>
         </Flex>
       </UnitProvider>
     </LayerProvider>
