@@ -10,14 +10,18 @@ interface CanvasProps {
   backgroundColor: string;
   selectedShape: string | null;
   opacity: number;
-  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>; // Included here
+  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
+  width: string;
+  height: string;
 }
 
 const Canvas: React.FC<CanvasProps> = ({
   backgroundColor,
   selectedShape,
-  setSelectedShape, // Add this line
+  setSelectedShape,
   opacity,
+  width,
+  height,
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -76,7 +80,7 @@ const Canvas: React.FC<CanvasProps> = ({
         selectShapeById(id);
       },
       stageRef,
-      setSelectedShape // Pass `setSelectedShape` here
+      setSelectedShape
     );
 
   useEffect(() => {
@@ -97,8 +101,8 @@ const Canvas: React.FC<CanvasProps> = ({
 
   return (
     <Stage
-      width={window.innerWidth}
-      height={window.innerHeight}
+      width={parseInt(width)}
+      height={parseInt(height)}
       style={{ backgroundColor: rgbaBackgroundColor }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

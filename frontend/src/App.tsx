@@ -23,7 +23,7 @@ import { UnitProvider } from "./utils/UnitContext";
 import { LayerProvider } from "./components/Layer/LayerProvider";
 
 const Layout: React.FC = () => {
-    const [selectedShape, setSelectedShape] = useState<string | null>("select");
+  const [selectedShape, setSelectedShape] = useState<string | null>("select");
 
   const { color: backgroundColor, handleColorChange } = useColor();
   const [canvasOpacity, setCanvasOpacity] = useState(100);
@@ -48,6 +48,9 @@ const Layout: React.FC = () => {
       setSidebarWidth("275px");
     }
   };
+
+  const calculatedWidth = window.innerWidth - parseInt(sidebarWidth);
+  const calculatedHeight = window.innerHeight - parseInt(barSize);
 
   return (
     <LayerProvider>
@@ -152,6 +155,8 @@ const Layout: React.FC = () => {
             }}
           >
             <Canvas
+              width={`${calculatedWidth}`}
+              height={`${calculatedHeight}`}
               backgroundColor={backgroundColor}
               selectedShape={selectedShape}
               opacity={canvasOpacity}
