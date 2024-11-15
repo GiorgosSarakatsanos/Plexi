@@ -15,23 +15,21 @@ import {
   verticalMenuItems,
 } from "./components/TopToolbar/menuItems";
 import Sidebar from "./components/Sidebar/Sidebar";
-import { useCanvasSize } from "./components/Canvas/useCanvasSize";
 import { useColor } from "./hooks/useColor";
 import Canvas from "./components/Canvas/Canvas";
 import Toolbar from "./components/Toolbar/Toolbar";
 
-import { useZoom } from "./utils/useZoom";
 import { UnitProvider } from "./utils/UnitContext";
-import { LayerProvider } from "./components/Layer/LayerContext";
+import { LayerProvider } from "./components/Layer/LayerProvider";
 
 const Layout: React.FC = () => {
-  const { canvasSize, onSizeSelect } = useCanvasSize();
+    const [selectedShape, setSelectedShape] = useState<string | null>("select");
+
   const { color: backgroundColor, handleColorChange } = useColor();
   const [canvasOpacity, setCanvasOpacity] = useState(100);
   const handleOpacityChange = (opacity: number) => {
     setCanvasOpacity(opacity); // Update the canvas opacity
   };
-  const [selectedShape, setSelectedShape] = useState<string | null>(null);
 
   // Define barSize for the top bar height
   const barSize = "45px";
@@ -50,8 +48,6 @@ const Layout: React.FC = () => {
       setSidebarWidth("275px");
     }
   };
-
-  const { zoomLevel, zoomIn, zoomOut } = useZoom();
 
   return (
     <LayerProvider>
@@ -101,9 +97,6 @@ const Layout: React.FC = () => {
               <TopToolbar
                 horizontalMenuItems={horizontalMenuItems}
                 verticalMenuItems={verticalMenuItems}
-                zoomIn={zoomIn}
-                zoomOut={zoomOut}
-                zoomLevel={zoomLevel}
               />
             </VStack>
           </HStack>
@@ -124,7 +117,6 @@ const Layout: React.FC = () => {
             overflow="hidden" // Prevents content from wrapping
           >
             <Sidebar
-              onSizeSelect={onSizeSelect}
               handleColorChange={handleColorChange}
               handleOpacityChange={handleOpacityChange}
               toggleSidebarWidth={toggleSidebarWidth}
@@ -160,12 +152,10 @@ const Layout: React.FC = () => {
             }}
           >
             <Canvas
-              width={canvasSize.width}
-              height={canvasSize.height}
               backgroundColor={backgroundColor}
               selectedShape={selectedShape}
               opacity={canvasOpacity}
-              zoomLevel={zoomLevel} // Pass dynamic zoom level
+              setSelectedShape={setSelectedShape} // Pass the setter function
             />
           </Center>
 
@@ -179,7 +169,10 @@ const Layout: React.FC = () => {
             zIndex={3}
           >
             <HStack>
-              <Toolbar setSelectedShape={setSelectedShape} />
+              <Toolbar
+                selectedShape={selectedShape}
+                setSelectedShape={setSelectedShape}
+              />
             </HStack>
           </Flex>
         </Flex>

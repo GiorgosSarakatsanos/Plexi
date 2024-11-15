@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { VStack, Text, Box, IconButton } from "@chakra-ui/react";
-import { LuChevronLeft, LuImage, LuLayout, LuPalette } from "react-icons/lu";
-import SizeSelector from "../SizeSelection/SizeSelector";
+import { LuChevronLeft, LuLayers, LuLayout, LuPalette } from "react-icons/lu";
 import ColorPickerButton from "../ColorPickerButton/ColorPickerButton";
 import CollapsibleSection from "./CollapsibleSection";
 import { useUnit } from "../../utils/UnitContext";
+import LayerPanel from "../Layer/LayerList";
 
 interface SidebarProps {
-  onSizeSelect: (
-    width: number,
-    height: number,
-    unit: "mm" | "cm" | "in" | "px"
-  ) => void;
   handleColorChange: (color: string) => void;
   handleOpacityChange: (opacity: number) => void;
   toggleSidebarWidth: () => void;
@@ -20,7 +15,6 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
-  onSizeSelect,
   handleColorChange,
   handleOpacityChange,
   toggleSidebarWidth,
@@ -30,33 +24,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { unit } = useUnit();
 
   // State for each section's open status
-  const [isSizeOpen, setIsSizeOpen] = useState(true);
   const [isColorOpen, setIsColorOpen] = useState(false);
-  const [isGridOpen, setIsGridOpen] = useState(true);
+  const [isGridOpen, setIsGridOpen] = useState(false);
+  const [isLayersOpen, setIsLayersOpen] = useState(false);
 
   // Close all sections when the sidebar is collapsed
   useEffect(() => {
     if (isSidebarCollapsed) {
-      setIsSizeOpen(false);
       setIsColorOpen(false);
       setIsGridOpen(false);
+      setIsLayersOpen(false);
     }
   }, [isSidebarCollapsed]);
 
   return (
     <VStack align="stretch" justify={"space-between"} height="100%">
       <VStack gap={2}>
-        <CollapsibleSection
-          icon={<LuImage />}
-          title="Size"
-          defaultOpen={isSizeOpen}
-          expandSidebar={expandSidebar} // Use expandSidebar here
-          isSidebarCollapsed={isSidebarCollapsed}
-          onToggle={() => setIsSizeOpen((prev) => !prev)} // Toggle this section
-        >
-          <SizeSelector type="imageSize" onSizeSelect={onSizeSelect} />
-        </CollapsibleSection>
-
         <CollapsibleSection
           icon={<LuPalette />}
           title="Color"
@@ -79,6 +62,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           onToggle={() => setIsGridOpen((prev) => !prev)} // Toggle this section
         >
           <Text>Selected Unit Value: {unit}</Text>
+        </CollapsibleSection>
+        <CollapsibleSection
+          icon={<LuLayers />}
+          title="Layers"
+          defaultOpen={isLayersOpen}
+          expandSidebar={expandSidebar} // Use expandSidebar here
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsLayersOpen((prev) => !prev)} // Toggle this section
+        >
+          <LayerPanel />
         </CollapsibleSection>
       </VStack>
       <Box>

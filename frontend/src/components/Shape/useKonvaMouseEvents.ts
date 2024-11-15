@@ -6,8 +6,13 @@ import { generateId } from "../../utils/idGenerator";
 const useKonvaMouseEvents = (
   selectedShape: string | null,
   addShape: (shape: Omit<Shape, "id">) => Shape,
-  selectShapeById: (id: string | null) => void,
-  stageRef: React.RefObject<Konva.Stage>
+  selectShapeById: (
+    id: string | null,
+    ctrlKey: boolean,
+    shiftKey: boolean
+  ) => void,
+  stageRef: React.RefObject<Konva.Stage>,
+  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>> // Add this
 ) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(
@@ -15,8 +20,10 @@ const useKonvaMouseEvents = (
   );
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
 
-  const handleMouseDown = () => {
+  const handleMouseDown = (event: Konva.KonvaEventObject<MouseEvent>) => {
     const pointerPosition = stageRef.current?.getPointerPosition();
+    const ctrlKey = event.evt.ctrlKey || event.evt.metaKey;
+    const shiftKey = event.evt.shiftKey;
 
     if (selectedShape === "select") {
       const clickedOnShapeId = stageRef.current?.getIntersection(
@@ -25,15 +32,9 @@ const useKonvaMouseEvents = (
 
       if (clickedOnShapeId) {
         const shapeId = clickedOnShapeId.replace("shape-", "");
-        if (shapeId === selectedShape) {
-          // Deselect if already selected
-          selectShapeById(null);
-        } else {
-          selectShapeById(shapeId); // Select shape
-        }
+        selectShapeById(shapeId, ctrlKey, shiftKey); // Pass ctrlKey and shiftKey
       } else {
-        // Deselect if clicked on an empty area
-        selectShapeById(null);
+        selectShapeById(null, ctrlKey, shiftKey); // Deselect if clicked on empty space
       }
     } else if (selectedShape && pointerPosition) {
       setIsDrawing(true);
@@ -106,11 +107,14 @@ const useKonvaMouseEvents = (
         layer: currentShape.layer,
       });
 
-      selectShapeById(finalizedShape.id);
+      selectShapeById(finalizedShape.id, false, false); // Select the finalized shape
 
       setIsDrawing(false);
       setStartPos(null);
       setCurrentShape(null);
+
+      console.log("Switching tool to select");
+      setSelectedShape("select");
     }
   };
 

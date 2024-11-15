@@ -21,9 +21,6 @@ interface TopToolbarProps {
     icon: React.ReactNode;
   }[];
   verticalMenuItems: { label: string; value: string; icon: React.ReactNode }[];
-  zoomIn: () => void;
-  zoomOut: () => void;
-  zoomLevel: number;
 }
 
 const TopToolbar: React.FC<TopToolbarProps> = ({

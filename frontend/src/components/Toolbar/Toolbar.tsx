@@ -1,5 +1,5 @@
 // src/components/Toolbar/Toolbar.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
   LuMousePointer2,
   LuSquare,
@@ -12,16 +12,17 @@ import { HStack, IconButton } from "@chakra-ui/react";
 import { Tooltip } from "../ui/tooltip";
 
 interface ToolbarProps {
+  selectedShape: string | null; // Add this
   setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
-  const [activeShape, setActiveShape] = useState<string>("select"); // Default to "select" tool
-
+const Toolbar: React.FC<ToolbarProps> = ({
+  selectedShape,
+  setSelectedShape,
+}) => {
   const handleShapeSelection = (shapeType: string) => {
     console.log("Selected shape:", shapeType); // Debugging
     setSelectedShape(shapeType);
-    setActiveShape(shapeType); // Set the active shape for toggling
   };
 
   return (
@@ -31,7 +32,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
           <IconButton
             aria-label="Select"
             onClick={() => handleShapeSelection("select")}
-            variant={activeShape === "select" ? "solid" : "ghost"}
+            variant={selectedShape === "select" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             colorPalette="blue"
@@ -43,7 +44,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
           <IconButton
             aria-label="Rectangle"
             onClick={() => handleShapeSelection("rect")}
-            variant={activeShape === "rect" ? "solid" : "ghost"}
+            variant={selectedShape === "rect" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             borderColor="var(--chakra-colors-blue-500)"
@@ -56,7 +57,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
           <IconButton
             aria-label="Ellipse"
             onClick={() => handleShapeSelection("ellipse")}
-            variant={activeShape === "ellipse" ? "solid" : "ghost"}
+            variant={selectedShape === "ellipse" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             borderColor="var(--chakra-colors-blue-500)"
@@ -69,7 +70,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
           <IconButton
             aria-label="Triangle"
             onClick={() => handleShapeSelection("triangle")}
-            variant={activeShape === "triangle" ? "solid" : "ghost"}
+            variant={selectedShape === "triangle" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             borderColor="var(--chakra-colors-blue-500)"
@@ -78,12 +79,11 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
             <LuTriangle />
           </IconButton>
         </Tooltip>
-
         <Tooltip showArrow content={"Line"}>
           <IconButton
             aria-label="Line"
             onClick={() => handleShapeSelection("line")}
-            variant={activeShape === "line" ? "solid" : "ghost"}
+            variant={selectedShape === "line" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             borderColor="var(--chakra-colors-blue-500)"
@@ -92,12 +92,11 @@ const Toolbar: React.FC<ToolbarProps> = ({ setSelectedShape }) => {
             <LuMinus />
           </IconButton>
         </Tooltip>
-
         <Tooltip showArrow content={"Text"}>
           <IconButton
             aria-label="Text"
             onClick={() => handleShapeSelection("text")}
-            variant={activeShape === "text" ? "solid" : "ghost"}
+            variant={selectedShape === "text" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             borderColor="var(--chakra-colors-blue-500)"

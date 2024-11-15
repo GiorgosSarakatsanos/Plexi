@@ -4,36 +4,23 @@ import ShapeRenderer from "../Shape/ShapeRenderer";
 import useKonvaMouseEvents from "../Shape/useKonvaMouseEvents";
 import { useShapeManagement } from "../Shape/useShapeManagement";
 import Konva from "konva";
-import { LayerContext } from "../Layer/LayerContext";
+import { LayerContext } from "../Layer/LayerProvider";
 
 interface CanvasProps {
-  width: number;
-  height: number;
   backgroundColor: string;
   selectedShape: string | null;
   opacity: number;
-  zoomLevel: number;
+  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>; // Included here
 }
 
-
 const Canvas: React.FC<CanvasProps> = ({
-  width,
-  height,
   backgroundColor,
   selectedShape,
+  setSelectedShape, // Add this line
   opacity,
-  zoomLevel,
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
-  // Log zoom and dimension details
-  useEffect(() => {
-    console.log(`Canvas Dimensions: ${width}x${height}`);
-    console.log(`Zoom Level: ${zoomLevel}`);
-    console.log(
-      `Displayed Dimensions: ${width * zoomLevel}x${height * zoomLevel}`
-    );
-  }, [width, height, zoomLevel]);
 
   const rgbaBackgroundColor = `${backgroundColor}${Math.round(
     (opacity / 100) * 255
@@ -41,63 +28,77 @@ const Canvas: React.FC<CanvasProps> = ({
     .toString(16)
     .padStart(2, "0")}`;
 
-  // Shape management hook
-  const { shapes, selectedShapeId, addShape, selectShapeById } =
-    useShapeManagement();
+  const { shapes, addShape, selectShapeById } = useShapeManagement();
 
-  // Access LayerContext and add a type guard
   const layerContext = useContext(LayerContext);
   if (!layerContext) {
     throw new Error("Canvas must be wrapped in a LayerProvider");
   }
-  const { selectedLayerId, setSelectedLayerId } = layerContext;
+  const { layers, selectedLayerIds, setSelectedLayerIds } = layerContext;
 
-  // Konva mouse events hook
   const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
     useKonvaMouseEvents(
       selectedShape,
       addShape,
-      (id) => {
+      (id: string | null, ctrlKey: boolean, shiftKey: boolean) => {
+        if (shiftKey && id !== null) {
+          const lastSelectedIndex = layers.findIndex(
+            (layer) =>
+              layer.id === selectedLayerIds[selectedLayerIds.length - 1]
+          );
+          const clickedIndex = layers.findIndex((layer) => layer.id === id);
+
+          if (lastSelectedIndex >= 0 && clickedIndex >= 0) {
+            const [start, end] = [
+              Math.min(lastSelectedIndex, clickedIndex),
+              Math.max(lastSelectedIndex, clickedIndex),
+            ];
+            const rangeIds = layers
+              .slice(start, end + 1)
+              .map((layer) => layer.id);
+
+            setSelectedLayerIds((prev) =>
+              Array.from(new Set([...prev, ...rangeIds]))
+            );
+          }
+        } else if (ctrlKey && id !== null) {
+          setSelectedLayerIds((prev) =>
+            prev.includes(id)
+              ? prev.filter((layerId) => layerId !== id)
+              : [...prev, id]
+          );
+        } else if (id !== null) {
+          setSelectedLayerIds([id]);
+        } else {
+          setSelectedLayerIds([]);
+        }
+
         selectShapeById(id);
-        setSelectedLayerId(id);
       },
-      stageRef
+      stageRef,
+      setSelectedShape // Pass `setSelectedShape` here
     );
 
-  // Sync transformer with selected shape
   useEffect(() => {
     const transformer = transformerRef.current;
-    const selectedNode = stageRef.current?.findOne(`#shape-${selectedShapeId}`);
+    if (!transformer) return;
 
-    if (selectedNode && transformer) {
-      transformer.nodes([selectedNode]);
+    const selectedNodes = selectedLayerIds
+      .map((id) => stageRef.current?.findOne(`#shape-${id}`))
+      .filter(Boolean) as Konva.Node[];
+
+    if (selectedNodes.length) {
+      transformer.nodes(selectedNodes);
       transformer.getLayer()?.batchDraw();
-    } else if (transformer) {
+    } else {
       transformer.nodes([]);
     }
-  }, [selectedShapeId, shapes]);
-
-  // Sync selectedLayerId with selectedShapeId (avoid loop by checking equality)
-  useEffect(() => {
-    if (selectedLayerId && selectedLayerId !== selectedShapeId) {
-      selectShapeById(selectedLayerId);
-    }
-  }, [selectedLayerId, selectedShapeId, selectShapeById]);
-
-  console.log(`Final canvas dimensions in pixels: ${width} x ${height}`);
-  console.log(`Applied zoom level: ${zoomLevel}`);
-  console.log(
-    `Displayed dimensions on canvas: ${width * zoomLevel} x ${
-      height * zoomLevel
-    }`
-  );
+  }, [selectedLayerIds, shapes, stageRef]);
 
   return (
     <Stage
-      width={width * zoomLevel} // Apply zoom level
-      height={height * zoomLevel} // Apply zoom level
-      scaleX={zoomLevel} // Apply zoom level to X scale
-      scaleY={zoomLevel} // Apply zoom level to Y scale
+      width={window.innerWidth}
+      height={window.innerHeight}
       style={{ backgroundColor: rgbaBackgroundColor }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

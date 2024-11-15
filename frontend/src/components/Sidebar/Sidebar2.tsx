@@ -3,7 +3,7 @@ import React from "react";
 import SizeSelector from "../SizeSelection/SizeSelector";
 import ColorPickerButton from "../ColorPickerButton/ColorPickerButton";
 import ToggleButton from "../ToggleButton/ToggleButton";
-import LayerPanel from "../Layer/LayerPanel";
+import LayerPanel from "../Layer/LayerList";
 import "./SidebarStyle.css";
 
 interface SidebarProps {
@@ -60,7 +60,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
             </div>
           </div>
-
         </div>
       </div>
       <div className="sidebar" id="layer-options">
