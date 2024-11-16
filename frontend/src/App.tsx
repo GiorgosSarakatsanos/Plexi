@@ -219,7 +219,7 @@ const Layout: React.FC = () => {
           justify={"center"}
           zIndex={3}
         >
-          <HStack>
+          <HStack dropShadow={"xs"}>
             <Toolbar
               selectedShape={selectedShape}
               setSelectedShape={setSelectedShape}

@@ -10,7 +10,7 @@ import useKonvaMouseEvents from "../Shape/useKonvaMouseEvents";
 import { useShapeManagement } from "../Shape/useShapeManagement";
 import Konva from "konva";
 import { LayerContext } from "../Layer/LayerProvider";
-import { zoomIn, zoomOut, setZoomToPercentage } from "../Zoom/Zoom"; // Import the functions
+import { zoomIn, zoomOut, setZoomToPercentage } from "../Zoom/Zoom";
 
 interface CanvasProps {
   backgroundColor: string;
@@ -30,28 +30,14 @@ export interface CanvasRef {
 }
 
 const Canvas = React.forwardRef((props: CanvasProps, ref) => {
-  const {
-    backgroundColor,
-    selectedShape,
-    setSelectedShape,
-    opacity,
-    width,
-    height,
-    onZoomChange,
-  } = props;
+  const { selectedShape, setSelectedShape, width, height, onZoomChange } =
+    props;
 
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
 
-  const rgbaBackgroundColor = `${backgroundColor}${Math.round(
-    (opacity / 100) * 255
-  )
-    .toString(16)
-    .padStart(2, "0")}`;
-
   const { shapes, addShape, selectShapeById } = useShapeManagement();
 
-  // Zoom function
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
       if (stageRef.current) zoomIn(stageRef.current);
@@ -77,9 +63,6 @@ const Canvas = React.forwardRef((props: CanvasProps, ref) => {
     const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
       e.evt.preventDefault();
 
-      const stage = stageRef.current;
-      if (!stage) return;
-
       const oldScale = stage.scaleX();
       const pointer = stage.getPointerPosition();
 
@@ -91,12 +74,12 @@ const Canvas = React.forwardRef((props: CanvasProps, ref) => {
       };
 
       // Invert zoom direction: scroll up to zoom in, scroll down to zoom out
-      const direction = e.evt.deltaY < 0 ? 1 : -1; // Reverse the condition
+      const direction = e.evt.deltaY < 0 ? 1 : -1;
 
       const newScale = Math.max(
         0.01,
         Math.min(oldScale * (direction > 0 ? 1.25 : 0.8), 250)
-      ); // Constrain zoom
+      );
 
       stage.scale({ x: newScale, y: newScale });
 
@@ -116,9 +99,9 @@ const Canvas = React.forwardRef((props: CanvasProps, ref) => {
     stage.on("wheel", handleWheel);
 
     return () => {
-      stage.off("wheel", handleWheel); // Clean up
+      stage.off("wheel", handleWheel);
     };
-  }, [onZoomChange]); // Add `onZoomChange` to the dependency array
+  }, [onZoomChange]);
 
   const layerContext = useContext(LayerContext);
   if (!layerContext) {
@@ -189,12 +172,12 @@ const Canvas = React.forwardRef((props: CanvasProps, ref) => {
     <Stage
       width={parseInt(width)}
       height={parseInt(height)}
-      style={{ backgroundColor: rgbaBackgroundColor }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       ref={stageRef}
     >
+      {/* Shape Layer */}
       <Layer>
         <ShapeRenderer shapes={shapes} currentShape={currentShape} />
         <Transformer ref={transformerRef} />
