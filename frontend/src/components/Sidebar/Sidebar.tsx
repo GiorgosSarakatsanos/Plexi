@@ -3,7 +3,6 @@ import { VStack, Text, Box, IconButton } from "@chakra-ui/react";
 import { LuChevronLeft, LuLayers, LuLayout, LuPalette } from "react-icons/lu";
 import ColorPickerButton from "../ColorPickerButton/ColorPickerButton";
 import CollapsibleSection from "./CollapsibleSection";
-import { useUnit } from "../../utils/UnitContext";
 import LayerPanel from "../Layer/LayerList";
 
 interface SidebarProps {
@@ -21,8 +20,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   expandSidebar, // Expand-only function
   isSidebarCollapsed,
 }) => {
-  const { unit } = useUnit();
-
   // State for each section's open status
   const [isColorOpen, setIsColorOpen] = useState(false);
   const [isGridOpen, setIsGridOpen] = useState(false);
@@ -61,7 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           isSidebarCollapsed={isSidebarCollapsed}
           onToggle={() => setIsGridOpen((prev) => !prev)} // Toggle this section
         >
-          <Text>Selected Unit Value: {unit}</Text>
+          <Text>Selected Unit Value: </Text>
         </CollapsibleSection>
         <CollapsibleSection
           icon={<LuLayers />}

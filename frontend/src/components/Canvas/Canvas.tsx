@@ -1,10 +1,16 @@
-import React, { useRef, useEffect, useContext } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useContext,
+  useImperativeHandle,
+} from "react";
 import { Stage, Layer, Transformer } from "react-konva";
 import ShapeRenderer from "../Shape/ShapeRenderer";
 import useKonvaMouseEvents from "../Shape/useKonvaMouseEvents";
 import { useShapeManagement } from "../Shape/useShapeManagement";
 import Konva from "konva";
 import { LayerContext } from "../Layer/LayerProvider";
+import { zoomIn, zoomOut, setZoomToPercentage } from "../Zoom/Zoom"; // Import the functions
 
 interface CanvasProps {
   backgroundColor: string;
@@ -13,16 +19,27 @@ interface CanvasProps {
   setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
   width: string;
   height: string;
+  onZoomChange: (zoomLevel: number) => void; // Correct type
 }
 
-const Canvas: React.FC<CanvasProps> = ({
-  backgroundColor,
-  selectedShape,
-  setSelectedShape,
-  opacity,
-  width,
-  height,
-}) => {
+export interface CanvasRef {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  setZoomToPercentage: (percentage: number) => void;
+  getStage: () => Konva.Stage | null;
+}
+
+const Canvas = React.forwardRef((props: CanvasProps, ref) => {
+  const {
+    backgroundColor,
+    selectedShape,
+    setSelectedShape,
+    opacity,
+    width,
+    height,
+    onZoomChange,
+  } = props;
+
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
 
@@ -33,6 +50,75 @@ const Canvas: React.FC<CanvasProps> = ({
     .padStart(2, "0")}`;
 
   const { shapes, addShape, selectShapeById } = useShapeManagement();
+
+  // Zoom function
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => {
+      if (stageRef.current) zoomIn(stageRef.current);
+    },
+    zoomOut: () => {
+      if (stageRef.current) zoomOut(stageRef.current);
+    },
+    setZoomToPercentage: (percentage: number) => {
+      if (stageRef.current) {
+        setZoomToPercentage(stageRef.current, percentage);
+        if (onZoomChange) {
+          onZoomChange(percentage);
+        }
+      }
+    },
+    getStage: () => stageRef.current, // Expose the Konva Stage
+  }));
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
+      e.evt.preventDefault();
+
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      const oldScale = stage.scaleX();
+      const pointer = stage.getPointerPosition();
+
+      if (!pointer) return;
+
+      const mousePointTo = {
+        x: (pointer.x - stage.x()) / oldScale,
+        y: (pointer.y - stage.y()) / oldScale,
+      };
+
+      // Invert zoom direction: scroll up to zoom in, scroll down to zoom out
+      const direction = e.evt.deltaY < 0 ? 1 : -1; // Reverse the condition
+
+      const newScale = Math.max(
+        0.01,
+        Math.min(oldScale * (direction > 0 ? 1.25 : 0.8), 250)
+      ); // Constrain zoom
+
+      stage.scale({ x: newScale, y: newScale });
+
+      const newPos = {
+        x: pointer.x - mousePointTo.x * newScale,
+        y: pointer.y - mousePointTo.y * newScale,
+      };
+
+      stage.position(newPos);
+      stage.batchDraw();
+
+      if (onZoomChange) {
+        onZoomChange(Math.round(newScale * 100)); // Update zoom level
+      }
+    };
+
+    stage.on("wheel", handleWheel);
+
+    return () => {
+      stage.off("wheel", handleWheel); // Clean up
+    };
+  }, [onZoomChange]); // Add `onZoomChange` to the dependency array
 
   const layerContext = useContext(LayerContext);
   if (!layerContext) {
@@ -115,6 +201,6 @@ const Canvas: React.FC<CanvasProps> = ({
       </Layer>
     </Stage>
   );
-};
+});
 
 export default Canvas;

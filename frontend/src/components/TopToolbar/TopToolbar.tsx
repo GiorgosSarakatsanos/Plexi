@@ -12,7 +12,6 @@ import { Group } from "@chakra-ui/react";
 import { LuZap } from "react-icons/lu";
 import { Avatar } from "../ui/avatar";
 import userPhoto from "../../assets/images/user-photo.jpg";
-import { useZoom } from "../../utils/useZoom";
 
 interface TopToolbarProps {
   horizontalMenuItems: {
@@ -21,15 +20,20 @@ interface TopToolbarProps {
     icon: React.ReactNode;
   }[];
   verticalMenuItems: { label: string; value: string; icon: React.ReactNode }[];
+  zoomLevel: number; // Add zoomLevel prop
+  zoomIn: () => void;
+  zoomOut: () => void;
+  setZoomToPercentage: (percentage: number) => void;
 }
 
 const TopToolbar: React.FC<TopToolbarProps> = ({
   horizontalMenuItems,
   verticalMenuItems,
+  zoomLevel,
+  zoomIn,
+  zoomOut,
+  setZoomToPercentage,
 }) => {
-  // Get zoom controls from useZoom hook
-  const { zoomLevel, zoomIn, zoomOut, setZoomToPercentage } = useZoom();
-
   return (
     <HStack>
       {/* Quick Actions Menu */}
@@ -76,8 +80,8 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
       {/* Zoom Level Menu */}
       <MenuRoot>
         <MenuTrigger asChild>
-          <Button variant="ghost" size="2xs">
-            {Math.round(zoomLevel * 100)}%
+          <Button variant="ghost" size="2xs" w={14}>
+            {zoomLevel}%
           </Button>
         </MenuTrigger>
         <MenuContent>
@@ -86,10 +90,6 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
           </MenuItem>
           <MenuItem onClick={zoomOut} value="zoom-out">
             Zoom out <MenuItemCommand>-</MenuItemCommand>
-          </MenuItem>
-
-          <MenuItem onClick={() => setZoomToPercentage(50)} value="zoom-50">
-            Half size <MenuItemCommand>Ctrl+2</MenuItemCommand>
           </MenuItem>
           <MenuItem onClick={() => setZoomToPercentage(100)} value="zoom-100">
             Actual size <MenuItemCommand>Ctrl+1</MenuItemCommand>

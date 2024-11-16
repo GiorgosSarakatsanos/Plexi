@@ -8,7 +8,7 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { LuAtom } from "react-icons/lu";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import TopToolbar from "./components/TopToolbar/TopToolbar";
 import {
   horizontalMenuItems,
@@ -18,11 +18,21 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import { useColor } from "./hooks/useColor";
 import Canvas from "./components/Canvas/Canvas";
 import Toolbar from "./components/Toolbar/Toolbar";
+import Konva from "konva";
 
-import { UnitProvider } from "./utils/UnitContext";
 import { LayerProvider } from "./components/Layer/LayerProvider";
 
+export interface CanvasRef {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  setZoomToPercentage: (percentage: number) => void; // Include this method
+  getStage: () => Konva.Stage | null; // Include this method
+}
+
 const Layout: React.FC = () => {
+  const canvasRef = useRef<CanvasRef>(null); // Use the CanvasRef type
+  const [zoomLevel, setZoomLevel] = useState(100); // Default zoom level at 100%
+
   const [selectedShape, setSelectedShape] = useState<string | null>("select");
 
   const { color: backgroundColor, handleColorChange } = useColor();
@@ -52,136 +62,171 @@ const Layout: React.FC = () => {
   const calculatedWidth = window.innerWidth - parseInt(sidebarWidth);
   const calculatedHeight = window.innerHeight - parseInt(barSize);
 
+  const setZoomToPercentage = (percentage: number) => {
+    if (canvasRef.current) {
+      canvasRef.current.setZoomToPercentage(percentage);
+      setZoomLevel(percentage);
+    }
+  };
+
+  const updateZoomLevel = () => {
+    if (canvasRef.current) {
+      const stage = canvasRef.current.getStage(); // Access the exposed getStage method
+      if (stage) {
+        const scale = stage.scaleX();
+        setZoomLevel(Math.round(scale * 100)); // Convert scale to percentage
+      }
+    }
+  };
+
+  const zoomIn = () => {
+    if (canvasRef.current) {
+      canvasRef.current.zoomIn();
+      updateZoomLevel();
+    }
+  };
+
+  const zoomOut = () => {
+    if (canvasRef.current) {
+      canvasRef.current.zoomOut();
+      updateZoomLevel();
+    }
+  };
+
   return (
     <LayerProvider>
-      <UnitProvider>
-        <Flex
-          className="main-wrapper"
+      <Flex
+        className="main-wrapper"
+        width="100%"
+        height="100vh"
+        overflow="hidden"
+        boxSizing={"border-box"}
+      >
+        {/* Top bar */}
+        <HStack
+          justify="space-between"
+          className="top-bar"
+          h={barSize} // Use barSize here
           width="100%"
-          height="100vh"
-          overflow="hidden"
-          boxSizing={"border-box"}
+          position="fixed"
+          zIndex={2}
+          background="bg.panel"
+          borderBottomWidth={"1px"}
         >
-          {/* Top bar */}
+          {/* Area in top of the sidebar */}
           <HStack
-            justify="space-between"
-            className="top-bar"
-            h={barSize} // Use barSize here
-            width="100%"
-            position="fixed"
-            zIndex={2}
-            background="bg.panel"
-            borderBottomWidth={"1px"}
+            justifyContent="space-between"
+            width="275px"
+            p={2}
+            borderRightWidth={"1px"}
           >
-            {/* Area in top of the sidebar */}
-            <HStack
-              justifyContent="space-between"
-              width="275px"
-              p={2}
-              borderRightWidth={"1px"}
-            >
-              <HStack gap={2}>
-                <IconButton
-                  variant="subtle"
-                  rounded="xl"
-                  size="2xs"
-                  colorPalette="blue"
-                >
-                  <LuAtom />
-                </IconButton>
-                <Heading size="xs" fontWeight="bold">
-                  Plexi
-                </Heading>
-              </HStack>
+            <HStack gap={2}>
+              <IconButton
+                variant="subtle"
+                rounded="xl"
+                size="2xs"
+                colorPalette="blue"
+              >
+                <LuAtom />
+              </IconButton>
+              <Heading size="xs" fontWeight="bold">
+                Plexi
+              </Heading>
             </HStack>
-
-            {/* Area on top of the canvas */}
-            <VStack alignItems="right" p={2}>
-              <TopToolbar
-                horizontalMenuItems={horizontalMenuItems}
-                verticalMenuItems={verticalMenuItems}
-              />
-            </VStack>
           </HStack>
 
-          {/* Sidebar */}
-          <Stack
-            className="side-bar"
-            w={sidebarWidth}
-            height={`calc(100vh - ${barSize})`} // Use barSize here
-            position="fixed"
-            p={2}
-            inset={`${barSize} 0px 0px 0px`} // Use barSize here
-            background="bg.panel"
-            zIndex={4}
-            transition="width 0.3s ease"
-            borderRightWidth={"1px"}
-            flexWrap={"nowrap"}
-            overflow="hidden" // Prevents content from wrapping
-          >
-            <Sidebar
-              handleColorChange={handleColorChange}
-              handleOpacityChange={handleOpacityChange}
-              toggleSidebarWidth={toggleSidebarWidth}
-              expandSidebar={expandSidebar}
-              isSidebarCollapsed={isSidebarCollapsed}
+          {/* Area on top of the canvas */}
+          <VStack alignItems="right" p={2}>
+            <TopToolbar
+              zoomLevel={zoomLevel}
+              horizontalMenuItems={horizontalMenuItems}
+              verticalMenuItems={verticalMenuItems}
+              zoomIn={zoomIn}
+              zoomOut={zoomOut}
+              setZoomToPercentage={setZoomToPercentage}
             />
-          </Stack>
+          </VStack>
+        </HStack>
 
-          {/* Canvas */}
-          <Center
-            className="canvas"
-            height={`calc(100vh - ${barSize})`} // Use barSize here
-            w="auto"
-            position="absolute"
-            background="bg.emphasized"
-            inset={`${barSize} 0px 0px ${sidebarWidth}`} // Use barSize and sidebarWidth here
-            zIndex={1}
-            overflow={"auto"}
-            css={{
-              "&::-webkit-scrollbar": {
-                width: "6px",
-                height: "6px",
-              },
-              "&::-webkit-scrollbar-track": {
-                width: "6px",
-                height: "6px",
-                background: "bg.panel",
-              },
-              "&::-webkit-scrollbar-thumb": {
-                background: "gray.300",
-                borderRadius: "24px",
-              },
-            }}
-          >
-            <Canvas
-              width={`${calculatedWidth}`}
-              height={`${calculatedHeight}`}
-              backgroundColor={backgroundColor}
+        {/* Sidebar */}
+        <Stack
+          className="side-bar"
+          w={sidebarWidth}
+          height={`calc(100vh - ${barSize})`} // Use barSize here
+          position="fixed"
+          p={2}
+          inset={`${barSize} 0px 0px 0px`} // Use barSize here
+          background="bg.panel"
+          zIndex={4}
+          transition="width 0.3s ease"
+          borderRightWidth={"1px"}
+          flexWrap={"nowrap"}
+          overflow="hidden" // Prevents content from wrapping
+        >
+          <Sidebar
+            handleColorChange={handleColorChange}
+            handleOpacityChange={handleOpacityChange}
+            toggleSidebarWidth={toggleSidebarWidth}
+            expandSidebar={expandSidebar}
+            isSidebarCollapsed={isSidebarCollapsed}
+          />
+        </Stack>
+
+        {/* Canvas */}
+        <Center
+          className="canvas"
+          height={`calc(100vh - ${barSize})`} // Use barSize here
+          w="auto"
+          position="absolute"
+          background="bg.emphasized"
+          inset={`${barSize} 0px 0px ${sidebarWidth}`} // Use barSize and sidebarWidth here
+          zIndex={1}
+          overflow={"auto"}
+          css={{
+            "&::-webkit-scrollbar": {
+              width: "6px",
+              height: "6px",
+            },
+            "&::-webkit-scrollbar-track": {
+              width: "6px",
+              height: "6px",
+              background: "bg.panel",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "gray.300",
+              borderRadius: "24px",
+            },
+          }}
+        >
+          <Canvas
+            ref={canvasRef}
+            width={`${calculatedWidth}`}
+            height={`${calculatedHeight}`}
+            backgroundColor={backgroundColor}
+            selectedShape={selectedShape}
+            opacity={canvasOpacity}
+            setSelectedShape={setSelectedShape} // Pass the setter function
+            onZoomChange={setZoomLevel} // Pass the callback here
+          />
+        </Center>
+
+        {/* Tool bar */}
+        <Flex
+          position={"fixed"}
+          h="calc({barSize} + 4px)"
+          bottom={"14px"}
+          width={"100%"}
+          justify={"center"}
+          zIndex={3}
+        >
+          <HStack>
+            <Toolbar
               selectedShape={selectedShape}
-              opacity={canvasOpacity}
-              setSelectedShape={setSelectedShape} // Pass the setter function
+              setSelectedShape={setSelectedShape}
             />
-          </Center>
-
-          {/* Tool bar */}
-          <Flex
-            position={"fixed"}
-            h="calc({barSize} + 4px)"
-            bottom={"14px"}
-            width={"100%"}
-            justify={"center"}
-            zIndex={3}
-          >
-            <HStack>
-              <Toolbar
-                selectedShape={selectedShape}
-                setSelectedShape={setSelectedShape}
-              />
-            </HStack>
-          </Flex>
+          </HStack>
         </Flex>
-      </UnitProvider>
+      </Flex>
     </LayerProvider>
   );
 };
