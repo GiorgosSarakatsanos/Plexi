@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Konva from "konva";
 import { Shape } from "./ShapeTypes";
 import { generateId } from "../../utils/idGenerator";
@@ -12,16 +12,53 @@ const useKonvaMouseEvents = (
     shiftKey: boolean
   ) => void,
   stageRef: React.RefObject<Konva.Stage>,
-  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>> // Add this
+  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>
 ) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(
     null
   );
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+
+  // Add keyboard event listeners for Spacebar
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === "Space") {
+        setIsPanning(true);
+        document.body.style.cursor = "grab";
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.code === "Space") {
+        setIsPanning(false);
+        setStartPos(null);
+        document.body.style.cursor = "default";
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   const handleMouseDown = (event: Konva.KonvaEventObject<MouseEvent>) => {
     const pointerPosition = stageRef.current?.getPointerPosition();
+
+    if (isPanning && pointerPosition) {
+      // Initialize panning start position
+      setStartPos({
+        x: pointerPosition.x - stageRef.current!.x(),
+        y: pointerPosition.y - stageRef.current!.y(),
+      });
+      return;
+    }
+
     const ctrlKey = event.evt.ctrlKey || event.evt.metaKey;
     const shiftKey = event.evt.shiftKey;
 
@@ -32,9 +69,9 @@ const useKonvaMouseEvents = (
 
       if (clickedOnShapeId) {
         const shapeId = clickedOnShapeId.replace("shape-", "");
-        selectShapeById(shapeId, ctrlKey, shiftKey); // Pass ctrlKey and shiftKey
+        selectShapeById(shapeId, ctrlKey, shiftKey);
       } else {
-        selectShapeById(null, ctrlKey, shiftKey); // Deselect if clicked on empty space
+        selectShapeById(null, ctrlKey, shiftKey);
       }
     } else if (selectedShape && pointerPosition) {
       setIsDrawing(true);
@@ -52,6 +89,20 @@ const useKonvaMouseEvents = (
   };
 
   const handleMouseMove = () => {
+    const stage = stageRef.current;
+
+    if (isPanning && stage && startPos) {
+      // Perform panning
+      const pointerPos = stage.getPointerPosition();
+      if (pointerPos) {
+        const deltaX = pointerPos.x - startPos.x;
+        const deltaY = pointerPos.y - startPos.y;
+        stage.position({ x: deltaX, y: deltaY });
+        stage.batchDraw();
+      }
+      return;
+    }
+
     if (!isDrawing || !startPos || !currentShape) return;
 
     const pointerPosition = stageRef.current?.getPointerPosition();
@@ -95,6 +146,12 @@ const useKonvaMouseEvents = (
   };
 
   const handleMouseUp = () => {
+    if (isPanning) {
+      // Stop panning on mouse up
+      setStartPos(null);
+      return;
+    }
+
     if (isDrawing && currentShape) {
       const finalizedShape = addShape({
         type: currentShape.type,
@@ -107,13 +164,12 @@ const useKonvaMouseEvents = (
         layer: currentShape.layer,
       });
 
-      selectShapeById(finalizedShape.id, false, false); // Select the finalized shape
+      selectShapeById(finalizedShape.id, false, false);
 
       setIsDrawing(false);
       setStartPos(null);
       setCurrentShape(null);
 
-      console.log("Switching tool to select");
       setSelectedShape("select");
     }
   };
