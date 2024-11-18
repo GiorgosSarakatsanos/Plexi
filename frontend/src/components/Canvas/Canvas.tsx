@@ -49,7 +49,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [drawingShape, setDrawingShape] = useState<Shape | null>(null);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false); // New state for drawing
+  const [isDrawing, setIsDrawing] = useState(false); // State for drawing
+  const [isPanning, setIsPanning] = useState(false); // State for panning
 
   // Zoom area
 
@@ -82,20 +83,37 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     };
   }, [onZoomChange]);
 
-  const MIN_SIZE = 5; // Minimum size for shapes
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        setIsPanning(true);
+      }
+    };
 
-  const calculateDistance = (
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number
-  ) => {
-    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-  };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        setIsPanning(false);
+      }
+    };
 
-  // Mouse handlers
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   const handleMouseDown = () => {
+    if (isPanning) {
+      const stage = stageRef.current;
+      if (stage) {
+        stage.startDrag(); // Start panning
+      }
+      return;
+    }
+
     if (!selectedShape || selectedShape === "select") return;
 
     setIsDrawing(true); // Set drawing state to true
@@ -130,6 +148,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   const handleMouseMove = () => {
+    if (isPanning) return; // Skip shape movement during panning
+
     if (!drawingShape) return;
 
     const pointerPos = getPointerPosition();
@@ -155,8 +175,10 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   const handleMouseUp = () => {
+    if (isPanning) return; // Skip ending drawing during panning
+
     if (drawingShape) {
-      // Check for size validation
+      const MIN_SIZE = 5; // Minimum size for shapes
       if (drawingShape.type === "rect" || drawingShape.type === "ellipse") {
         const { width = 0, height = 0 } = drawingShape;
         if (Math.abs(width) < MIN_SIZE || Math.abs(height) < MIN_SIZE) {
@@ -180,22 +202,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setIsDrawing(false);
   };
 
-  useEffect(() => {
-    const transformer = transformerRef.current;
-    if (!transformer || !selectedShapeId) return;
-
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const selectedNode = stage.findOne(`#${selectedShapeId}`);
-    if (selectedNode) {
-      transformer.nodes([selectedNode]);
-      transformer.getLayer()?.batchDraw();
-    } else {
-      transformer.nodes([]);
-    }
-  }, [selectedShapeId, shapes]);
-
   const renderShape = (shape: Shape) => {
     const commonProps = {
       key: shape.id,
@@ -205,7 +211,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       fill: shape.fill,
       stroke: shape.stroke,
       strokeWidth: shape.strokeWidth,
-      draggable: !isDrawing, // Disable dragging while drawing
+      draggable: !isDrawing && !isPanning, // Disable dragging while drawing or panning
       strokeScaleEnabled: false,
       onClick: () => setSelectedShapeId(shape.id),
     };
@@ -241,6 +247,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      draggable={isPanning} // Enable canvas panning when spacebar is pressed
       ref={stageRef}
     >
       <Layer>
