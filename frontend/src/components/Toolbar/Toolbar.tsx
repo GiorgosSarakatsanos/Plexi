@@ -4,9 +4,9 @@ import {
   LuMousePointer2,
   LuSquare,
   LuCircle,
-  LuTriangle,
   LuMinus,
   LuType,
+  LuHexagon,
 } from "react-icons/lu";
 import { HStack, IconButton } from "@chakra-ui/react";
 import { Tooltip } from "../ui/tooltip";
@@ -66,17 +66,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <LuCircle />
           </IconButton>
         </Tooltip>
-        <Tooltip showArrow content={"Triangle"}>
+        <Tooltip showArrow content={"Hexagon"}>
           <IconButton
-            aria-label="Triangle"
-            onClick={() => handleShapeSelection("triangle")}
-            variant={selectedShape === "triangle" ? "solid" : "ghost"}
+            aria-label="Hexagon"
+            onClick={() => handleShapeSelection("hexagon")}
+            variant={selectedShape === "hexagon" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             borderColor="var(--chakra-colors-blue-500)"
             colorPalette="blue"
           >
-            <LuTriangle />
+            <LuHexagon />
           </IconButton>
         </Tooltip>
         <Tooltip showArrow content={"Line"}>

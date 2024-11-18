@@ -1,12 +1,13 @@
-import React, {
-  useRef,
-  useEffect,
-  useState,
-  useImperativeHandle,
-  useContext,
-} from "react";
-import { Stage, Layer, Transformer, Rect, Ellipse, Line } from "react-konva";
-import Konva from "konva";
+import React, { useRef, useEffect, useState, useImperativeHandle } from "react";
+import {
+  Stage,
+  Layer,
+  Transformer,
+  Rect,
+  Ellipse,
+  Line,
+  RegularPolygon,
+} from "react-konva";
 import {
   zoomIn,
   zoomOut,
@@ -14,9 +15,9 @@ import {
   enableMouseWheelZoom,
 } from "../Zoom/Zoom";
 import { generateId } from "../../utils/idGenerator";
-import { usePointerPosition } from "../Shape/usePointerPosition"; // Adjust the path as needed
-import { LayerContext } from "../Layer/LayerProvider"; // Import LayerContext
-import { useLayerContext } from "../Layer/useLayerContext"; // Adjust path as needed
+import { usePointerPosition } from "../Shape/usePointerPosition";
+import { useLayerContext } from "../Layer/useLayerContext";
+import Konva from "konva";
 
 interface CanvasProps {
   backgroundColor: string;
@@ -24,7 +25,7 @@ interface CanvasProps {
   width: string;
   height: string;
   onZoomChange: (zoomLevel: number) => void;
-  selectedShape: "rect" | "ellipse" | "line" | null;
+  selectedShape: "rect" | "ellipse" | "line" | "hexagon" | null;
 }
 
 export interface CanvasRef {
@@ -32,11 +33,12 @@ export interface CanvasRef {
   zoomOut: () => void;
   setZoomToPercentage: (percentage: number) => void;
   getStage: () => Konva.Stage | null;
+  selectShapeById: (shapeId: string) => void; // Add this line
 }
 
 interface Shape {
   id: string;
-  type: "rect" | "ellipse" | "line";
+  type: "rect" | "ellipse" | "line" | "hexagon";
   x: number;
   y: number;
   width?: number;
@@ -46,6 +48,7 @@ interface Shape {
   stroke: string;
   strokeWidth: number;
   layerId: string;
+  radius?: number; // For hexagon
 }
 
 const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
@@ -55,12 +58,21 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const transformerRef = useRef<Konva.Transformer>(null);
   const getPointerPosition = usePointerPosition(stageRef);
 
-  const { layers, addLayer, toggleVisibility } = useLayerContext(); // Use the custom hook
+  const { addLayer, setSelectedLayerIds } = useLayerContext();
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [drawingShape, setDrawingShape] = useState<Shape | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false); // State for drawing
-  const [isPanning, setIsPanning] = useState(false); // State for panning
+
+  // Function to select a shape by ID
+  const selectShapeById = (shapeId: string) => {
+    const shape = shapes.find((s) => s.id === shapeId);
+    if (shape) {
+      setSelectedShapeId(shape.id);
+      setSelectedLayerIds([shape.layerId]); // Highlight the related layer
+    }
+  };
 
   // Zoom area
   useImperativeHandle(ref, () => ({
@@ -77,6 +89,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       }
     },
     getStage: () => stageRef.current,
+    selectShapeById, // Expose the selection function
   }));
 
   useEffect(() => {
@@ -114,21 +127,37 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     };
   }, []);
 
-  const handleMouseDown = () => {
-    if (isPanning) {
-      const stage = stageRef.current;
-      if (stage) {
-        stage.startDrag(); // Start panning
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    const stage = stageRef.current;
+
+    if (!transformer || !stage || !selectedShapeId) return;
+
+    const selectedNode = stage.findOne(`#${selectedShapeId}`);
+    if (selectedNode) {
+      transformer.nodes([selectedNode]);
+      transformer.getLayer()?.batchDraw();
+    } else {
+      transformer.nodes([]);
+    }
+  }, [selectedShapeId, shapes]);
+
+  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (isPanning || !selectedShape) return;
+
+    // Check if a shape was clicked
+    const clickedShapeId = e.target?.id();
+    if (clickedShapeId) {
+      const clickedShape = shapes.find((shape) => shape.id === clickedShapeId);
+      if (clickedShape) {
+        setSelectedShapeId(clickedShape.id); // Select the clicked shape
+        setSelectedLayerIds([clickedShape.layerId]); // Set its associated layer ID
       }
-      return;
+      return; // Do not start drawing
     }
 
-    if (!selectedShape || selectedShape === "select") return;
-
-    setIsDrawing(true); // Set drawing state to true
-
+    setIsDrawing(true);
     const pointerPos = getPointerPosition();
-
     const id = generateId();
     const layerId = generateId();
     addLayer(selectedShape, layerId);
@@ -141,7 +170,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       fill: "transparent",
       stroke: "blue",
       strokeWidth: 1,
-      layerId, // Associate the shape with the newly created layer
+      layerId,
+      radius: 0, // For hexagon
     };
 
     if (selectedShape === "line") {
@@ -151,18 +181,13 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         pointerPos.x,
         pointerPos.y,
       ];
-    } else {
-      newShape.width = 0;
-      newShape.height = 0;
     }
 
     setDrawingShape(newShape);
-    setSelectedShapeId(null);
+    setSelectedLayerIds([layerId]); // Select the layer for the new shape
   };
 
   const handleMouseMove = () => {
-    if (isPanning) return; // Skip shape movement during panning
-
     if (!drawingShape) return;
 
     const pointerPos = getPointerPosition();
@@ -181,46 +206,28 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
           ...prev,
           points: [prev.x, prev.y, pointerPos.x, pointerPos.y],
         };
+      } else if (prev.type === "hexagon") {
+        const radius = Math.sqrt(
+          Math.pow(pointerPos.x - prev.x, 2) +
+            Math.pow(pointerPos.y - prev.y, 2)
+        );
+        return {
+          ...prev,
+          radius,
+        };
       }
 
       return prev;
     });
   };
 
-  const calculateDistance = (
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number
-  ): number => {
-    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-  };
-
   const handleMouseUp = () => {
-    if (isPanning) return; // Skip ending drawing during panning
+    if (!drawingShape) return;
 
-    if (drawingShape) {
-      const MIN_SIZE = 5; // Minimum size for shapes
-      if (drawingShape.type === "rect" || drawingShape.type === "ellipse") {
-        const { width = 0, height = 0 } = drawingShape;
-        if (Math.abs(width) < MIN_SIZE || Math.abs(height) < MIN_SIZE) {
-          setDrawingShape(null);
-          setIsDrawing(false);
-          return; // Discard the shape
-        }
-      } else if (drawingShape.type === "line") {
-        const [x1, y1, x2, y2] = drawingShape.points || [0, 0, 0, 0];
-        if (calculateDistance(x1, y1, x2, y2) < MIN_SIZE) {
-          setDrawingShape(null);
-          setIsDrawing(false);
-          return; // Discard the shape
-        }
-      }
+    setShapes((prevShapes) => [...prevShapes, drawingShape]);
+    setSelectedShapeId(drawingShape.id); // Select the created shape
 
-      setShapes((prevShapes) => [...prevShapes, drawingShape]);
-      setSelectedShapeId(drawingShape.id);
-      setDrawingShape(null);
-    }
+    setDrawingShape(null);
     setIsDrawing(false);
   };
 
@@ -233,9 +240,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       fill: shape.fill,
       stroke: shape.stroke,
       strokeWidth: shape.strokeWidth,
-      draggable: !isDrawing && !isPanning, // Disable dragging while drawing or panning
+      draggable: !isDrawing && !isPanning,
       strokeScaleEnabled: false,
-      onClick: () => setSelectedShapeId(shape.id),
+      onClick: () => {
+        setSelectedShapeId(shape.id); // Select the shape
+        setSelectedLayerIds([shape.layerId]); // Set the layer ID associated with the shape
+      },
     };
 
     switch (shape.type) {
@@ -257,6 +267,14 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         );
       case "line":
         return <Line {...commonProps} points={shape.points || []} />;
+      case "hexagon":
+        return (
+          <RegularPolygon
+            {...commonProps}
+            sides={6}
+            radius={shape.radius || 0}
+          />
+        );
       default:
         return null;
     }
@@ -269,7 +287,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      draggable={isPanning} // Enable canvas panning when spacebar is pressed
+      draggable={isPanning}
       ref={stageRef}
     >
       <Layer>

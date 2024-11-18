@@ -1,10 +1,4 @@
-import {
-  LuSquare,
-  LuCircle,
-  LuTriangle,
-  LuMinus,
-  LuType,
-} from "react-icons/lu";
+import { LuSquare, LuCircle, LuMinus, LuType, LuHexagon } from "react-icons/lu";
 import { IconType } from "react-icons";
 
 export const shapeTypeNames: {
@@ -13,7 +7,7 @@ export const shapeTypeNames: {
   rect: { name: "Rectangle", icon: LuSquare },
   ellipse: { name: "Ellipse", icon: LuCircle },
   line: { name: "Line", icon: LuMinus },
-  triangle: { name: "Triangle", icon: LuTriangle },
+  hexagon: { name: "Polygon", icon: LuHexagon },
   text: { name: "Text", icon: LuType },
   // Add more shape mappings here
 };
