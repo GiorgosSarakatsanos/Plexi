@@ -144,19 +144,26 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   }, [selectedShapeId, shapes]);
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (isPanning || !selectedShape) return;
-
-    // Check if a shape was clicked
-    const clickedShapeId = e.target?.id();
-    if (clickedShapeId) {
-      const clickedShape = shapes.find((shape) => shape.id === clickedShapeId);
-      if (clickedShape) {
-        setSelectedShapeId(clickedShape.id); // Select the clicked shape
-        setSelectedLayerIds([clickedShape.layerId]); // Set its associated layer ID
+    if (selectedShape === "select") {
+      const clickedShapeId = e.target?.id();
+      if (clickedShapeId) {
+        const clickedShape = shapes.find(
+          (shape) => shape.id === clickedShapeId
+        );
+        if (clickedShape) {
+          setSelectedShapeId(clickedShape.id);
+          setSelectedLayerIds([clickedShape.layerId]);
+        }
+      } else {
+        setSelectedShapeId(null); // Deselect if clicked on empty area
       }
-      return; // Do not start drawing
+      return;
     }
 
+    // If no shape is selected, return
+    if (!selectedShape) return;
+
+    // Otherwise, initialize drawing logic
     setIsDrawing(true);
     const pointerPos = getPointerPosition();
     const id = generateId();
@@ -185,7 +192,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     }
 
     setDrawingShape(newShape);
-    setSelectedLayerIds([layerId]); // Select the layer for the new shape
+    setSelectedLayerIds([layerId]);
   };
 
   const handleMouseMove = () => {
@@ -243,10 +250,13 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       strokeWidth: shape.strokeWidth,
       draggable: !isDrawing && !isPanning,
       strokeScaleEnabled: false,
-      onClick: () => {
-        setSelectedShapeId(shape.id); // Select the shape
-        setSelectedLayerIds([shape.layerId]); // Set the layer ID associated with the shape
-      },
+      onClick:
+        selectedShape === "select"
+          ? () => {
+              setSelectedShapeId(shape.id);
+              setSelectedLayerIds([shape.layerId]);
+            }
+          : undefined, // Disable click when not in "Select" mode
     };
 
     switch (shape.type) {
