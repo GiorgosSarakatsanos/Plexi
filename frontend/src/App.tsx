@@ -16,43 +16,32 @@ import {
 } from "./components/TopToolbar/menuItems";
 import Sidebar from "./components/Sidebar/Sidebar";
 import { useColor } from "./hooks/useColor";
-import Canvas from "./components/Canvas/Canvas";
+import Canvas, { CanvasRef } from "./components/Canvas/Canvas";
 import Toolbar from "./components/Toolbar/Toolbar";
-import Konva from "konva";
-
 import { LayerProvider } from "./components/Layer/LayerProvider";
 
-export interface CanvasRef {
-  zoomIn: () => void;
-  zoomOut: () => void;
-  setZoomToPercentage: (percentage: number) => void; // Include this method
-  getStage: () => Konva.Stage | null; // Include this method
-}
-
 const Layout: React.FC = () => {
-  const canvasRef = useRef<CanvasRef>(null); // Use the CanvasRef type
-  const [zoomLevel, setZoomLevel] = useState(100); // Default zoom level at 100%
-
-  const [selectedShape, setSelectedShape] = useState<string | null>("select");
+  const canvasRef = useRef<CanvasRef>(null);
+  const [zoomLevel, setZoomLevel] = useState(100);
 
   const { color: backgroundColor, handleColorChange } = useColor();
   const [canvasOpacity, setCanvasOpacity] = useState(100);
+
+  // Add selectedShape state
+  const [selectedShape, setSelectedShape] = useState<string | null>(null);
+
   const handleOpacityChange = (opacity: number) => {
-    setCanvasOpacity(opacity); // Update the canvas opacity
+    setCanvasOpacity(opacity);
   };
 
-  // Define barSize for the top bar height
   const barSize = "45px";
-
   const [sidebarWidth, setSidebarWidth] = useState("275px");
   const isSidebarCollapsed = sidebarWidth === barSize;
 
-  // Toggle sidebar width between expanded and collapsed
   const toggleSidebarWidth = () => {
     setSidebarWidth((prevWidth) => (prevWidth === "275px" ? barSize : "275px"));
   };
 
-  // Expand sidebar only if it's currently collapsed
   const expandSidebar = () => {
     if (sidebarWidth === barSize) {
       setSidebarWidth("275px");
@@ -66,16 +55,6 @@ const Layout: React.FC = () => {
     if (canvasRef.current) {
       canvasRef.current.setZoomToPercentage(percentage);
       setZoomLevel(percentage);
-    }
-  };
-
-  const updateZoomLevel = () => {
-    if (canvasRef.current) {
-      const stage = canvasRef.current.getStage(); // Access the exposed getStage method
-      if (stage) {
-        const scale = stage.scaleX();
-        setZoomLevel(Math.round(scale * 100)); // Convert scale to percentage
-      }
     }
   };
 
@@ -93,6 +72,16 @@ const Layout: React.FC = () => {
     }
   };
 
+  const updateZoomLevel = () => {
+    if (canvasRef.current) {
+      const stage = canvasRef.current.getStage();
+      if (stage) {
+        const scale = stage.scaleX();
+        setZoomLevel(Math.round(scale * 100));
+      }
+    }
+  };
+
   return (
     <LayerProvider>
       <Flex
@@ -106,14 +95,13 @@ const Layout: React.FC = () => {
         <HStack
           justify="space-between"
           className="top-bar"
-          h={barSize} // Use barSize here
+          h={barSize}
           width="100%"
           position="fixed"
           zIndex={2}
           background="bg.panel"
           borderBottomWidth={"1px"}
         >
-          {/* Area in top of the sidebar */}
           <HStack
             justifyContent="space-between"
             width="275px"
@@ -135,7 +123,6 @@ const Layout: React.FC = () => {
             </HStack>
           </HStack>
 
-          {/* Area on top of the canvas */}
           <VStack alignItems="right" p={2}>
             <TopToolbar
               zoomLevel={zoomLevel}
@@ -152,16 +139,16 @@ const Layout: React.FC = () => {
         <Stack
           className="side-bar"
           w={sidebarWidth}
-          height={`calc(100vh - ${barSize})`} // Use barSize here
+          height={`calc(100vh - ${barSize})`}
           position="fixed"
           p={2}
-          inset={`${barSize} 0px 0px 0px`} // Use barSize here
+          inset={`${barSize} 0px 0px 0px`}
           background="bg.panel"
           zIndex={4}
           transition="width 0.3s ease"
           borderRightWidth={"1px"}
           flexWrap={"nowrap"}
-          overflow="hidden" // Prevents content from wrapping
+          overflow="hidden"
         >
           <Sidebar
             handleColorChange={handleColorChange}
@@ -175,11 +162,11 @@ const Layout: React.FC = () => {
         {/* Canvas */}
         <Center
           className="canvas"
-          height={`calc(100vh - ${barSize})`} // Use barSize here
+          height={`calc(100vh - ${barSize})`}
           w="auto"
           position="absolute"
           background="bg.emphasized"
-          inset={`${barSize} 0px 0px ${sidebarWidth}`} // Use barSize and sidebarWidth here
+          inset={`${barSize} 0px 0px ${sidebarWidth}`}
           zIndex={1}
           overflow={"auto"}
           css={{
@@ -203,14 +190,13 @@ const Layout: React.FC = () => {
             width={`${calculatedWidth}`}
             height={`${calculatedHeight}`}
             backgroundColor={backgroundColor}
-            selectedShape={selectedShape}
             opacity={canvasOpacity}
-            setSelectedShape={setSelectedShape} // Pass the setter function
-            onZoomChange={setZoomLevel} // Pass the callback here
+            onZoomChange={setZoomLevel}
+            selectedShape={selectedShape} // Pass the selectedShape here
           />
         </Center>
 
-        {/* Tool bar */}
+        {/* Toolbar */}
         <Flex
           position={"fixed"}
           h="calc({barSize} + 4px)"

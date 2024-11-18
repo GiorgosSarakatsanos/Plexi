@@ -1,25 +1,22 @@
-import React, {
-  useRef,
-  useEffect,
-  useContext,
-  useImperativeHandle,
-} from "react";
-import { Stage, Layer, Transformer } from "react-konva";
-import ShapeRenderer from "../Shape/ShapeRenderer";
-import useKonvaMouseEvents from "../Shape/useKonvaMouseEvents";
-import { useShapeManagement } from "../Shape/useShapeManagement";
+import React, { useRef, useEffect, useState, useImperativeHandle } from "react";
+import { Stage, Layer, Transformer, Rect, Ellipse, Line } from "react-konva";
 import Konva from "konva";
-import { LayerContext } from "../Layer/LayerProvider";
-import { zoomIn, zoomOut, setZoomToPercentage } from "../Zoom/Zoom";
+import {
+  zoomIn,
+  zoomOut,
+  setZoomToPercentage,
+  enableMouseWheelZoom,
+} from "../Zoom/Zoom";
+import { generateId } from "../../utils/idGenerator";
+import { usePointerPosition } from "../Shape/usePointerPosition"; // Adjust the path as needed
 
 interface CanvasProps {
   backgroundColor: string;
-  selectedShape: string | null;
   opacity: number;
-  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
   width: string;
   height: string;
-  onZoomChange: (zoomLevel: number) => void; // Correct type
+  onZoomChange: (zoomLevel: number) => void;
+  selectedShape: "rect" | "ellipse" | "line" | null;
 }
 
 export interface CanvasRef {
@@ -29,14 +26,32 @@ export interface CanvasRef {
   getStage: () => Konva.Stage | null;
 }
 
-const Canvas = React.forwardRef((props: CanvasProps, ref) => {
-  const { selectedShape, setSelectedShape, width, height, onZoomChange } =
-    props;
+interface Shape {
+  id: string;
+  type: "rect" | "ellipse" | "line";
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  points?: number[];
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+}
+
+const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
+  const { width, height, onZoomChange, selectedShape } = props;
 
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const getPointerPosition = usePointerPosition(stageRef);
 
-  const { shapes, addShape, selectShapeById } = useShapeManagement();
+  const [shapes, setShapes] = useState<Shape[]>([]);
+  const [drawingShape, setDrawingShape] = useState<Shape | null>(null);
+  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false); // New state for drawing
+
+  // Zoom area
 
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
@@ -48,125 +63,176 @@ const Canvas = React.forwardRef((props: CanvasProps, ref) => {
     setZoomToPercentage: (percentage: number) => {
       if (stageRef.current) {
         setZoomToPercentage(stageRef.current, percentage);
-        if (onZoomChange) {
-          onZoomChange(percentage);
-        }
+        onZoomChange(Math.round(stageRef.current.scaleX() * 100));
       }
     },
-    getStage: () => stageRef.current, // Expose the Konva Stage
+    getStage: () => stageRef.current,
   }));
 
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
 
-    const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
-      e.evt.preventDefault();
-
-      const oldScale = stage.scaleX();
-      const pointer = stage.getPointerPosition();
-
-      if (!pointer) return;
-
-      const mousePointTo = {
-        x: (pointer.x - stage.x()) / oldScale,
-        y: (pointer.y - stage.y()) / oldScale,
-      };
-
-      // Invert zoom direction: scroll up to zoom in, scroll down to zoom out
-      const direction = e.evt.deltaY < 0 ? 1 : -1;
-
-      const newScale = Math.max(
-        0.01,
-        Math.min(oldScale * (direction > 0 ? 1.25 : 0.8), 250)
-      );
-
-      stage.scale({ x: newScale, y: newScale });
-
-      const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale,
-      };
-
-      stage.position(newPos);
-      stage.batchDraw();
-
-      if (onZoomChange) {
-        onZoomChange(Math.round(newScale * 100)); // Update zoom level
-      }
-    };
-
-    stage.on("wheel", handleWheel);
+    const cleanup = enableMouseWheelZoom(stage, 1.3, (zoomLevel) => {
+      onZoomChange(zoomLevel); // Update zoom level state
+    });
 
     return () => {
-      stage.off("wheel", handleWheel);
+      cleanup();
     };
   }, [onZoomChange]);
 
-  const layerContext = useContext(LayerContext);
-  if (!layerContext) {
-    throw new Error("Canvas must be wrapped in a LayerProvider");
-  }
-  const { layers, selectedLayerIds, setSelectedLayerIds } = layerContext;
+  const MIN_SIZE = 5; // Minimum size for shapes
 
-  const { handleMouseDown, handleMouseMove, handleMouseUp, currentShape } =
-    useKonvaMouseEvents(
-      selectedShape,
-      addShape,
-      (id: string | null, ctrlKey: boolean, shiftKey: boolean) => {
-        if (shiftKey && id !== null) {
-          const lastSelectedIndex = layers.findIndex(
-            (layer) =>
-              layer.id === selectedLayerIds[selectedLayerIds.length - 1]
-          );
-          const clickedIndex = layers.findIndex((layer) => layer.id === id);
+  const calculateDistance = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ) => {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+  };
 
-          if (lastSelectedIndex >= 0 && clickedIndex >= 0) {
-            const [start, end] = [
-              Math.min(lastSelectedIndex, clickedIndex),
-              Math.max(lastSelectedIndex, clickedIndex),
-            ];
-            const rangeIds = layers
-              .slice(start, end + 1)
-              .map((layer) => layer.id);
+  // Mouse handlers
 
-            setSelectedLayerIds((prev) =>
-              Array.from(new Set([...prev, ...rangeIds]))
-            );
-          }
-        } else if (ctrlKey && id !== null) {
-          setSelectedLayerIds((prev) =>
-            prev.includes(id)
-              ? prev.filter((layerId) => layerId !== id)
-              : [...prev, id]
-          );
-        } else if (id !== null) {
-          setSelectedLayerIds([id]);
-        } else {
-          setSelectedLayerIds([]);
+  const handleMouseDown = () => {
+    if (!selectedShape || selectedShape === "select") return;
+
+    setIsDrawing(true); // Set drawing state to true
+
+    const pointerPos = getPointerPosition();
+    const id = generateId();
+
+    const newShape: Shape = {
+      id: `shape-${id}`,
+      type: selectedShape,
+      x: pointerPos.x,
+      y: pointerPos.y,
+      fill: "transparent",
+      stroke: "blue",
+      strokeWidth: 1,
+    };
+
+    if (selectedShape === "line") {
+      newShape.points = [
+        pointerPos.x,
+        pointerPos.y,
+        pointerPos.x,
+        pointerPos.y,
+      ];
+    } else {
+      newShape.width = 0;
+      newShape.height = 0;
+    }
+
+    setDrawingShape(newShape);
+    setSelectedShapeId(null);
+  };
+
+  const handleMouseMove = () => {
+    if (!drawingShape) return;
+
+    const pointerPos = getPointerPosition();
+
+    setDrawingShape((prev) => {
+      if (!prev) return null;
+
+      if (prev.type === "rect" || prev.type === "ellipse") {
+        return {
+          ...prev,
+          width: pointerPos.x - prev.x,
+          height: pointerPos.y - prev.y,
+        };
+      } else if (prev.type === "line") {
+        return {
+          ...prev,
+          points: [prev.x, prev.y, pointerPos.x, pointerPos.y],
+        };
+      }
+
+      return prev;
+    });
+  };
+
+  const handleMouseUp = () => {
+    if (drawingShape) {
+      // Check for size validation
+      if (drawingShape.type === "rect" || drawingShape.type === "ellipse") {
+        const { width = 0, height = 0 } = drawingShape;
+        if (Math.abs(width) < MIN_SIZE || Math.abs(height) < MIN_SIZE) {
+          setDrawingShape(null);
+          setIsDrawing(false);
+          return; // Discard the shape
         }
+      } else if (drawingShape.type === "line") {
+        const [x1, y1, x2, y2] = drawingShape.points || [0, 0, 0, 0];
+        if (calculateDistance(x1, y1, x2, y2) < MIN_SIZE) {
+          setDrawingShape(null);
+          setIsDrawing(false);
+          return; // Discard the shape
+        }
+      }
 
-        selectShapeById(id);
-      },
-      stageRef,
-      setSelectedShape
-    );
+      setShapes((prevShapes) => [...prevShapes, drawingShape]);
+      setSelectedShapeId(drawingShape.id);
+      setDrawingShape(null);
+    }
+    setIsDrawing(false);
+  };
 
   useEffect(() => {
     const transformer = transformerRef.current;
-    if (!transformer) return;
+    if (!transformer || !selectedShapeId) return;
 
-    const selectedNodes = selectedLayerIds
-      .map((id) => stageRef.current?.findOne(`#shape-${id}`))
-      .filter(Boolean) as Konva.Node[];
+    const stage = stageRef.current;
+    if (!stage) return;
 
-    if (selectedNodes.length) {
-      transformer.nodes(selectedNodes);
+    const selectedNode = stage.findOne(`#${selectedShapeId}`);
+    if (selectedNode) {
+      transformer.nodes([selectedNode]);
       transformer.getLayer()?.batchDraw();
     } else {
       transformer.nodes([]);
     }
-  }, [selectedLayerIds, shapes, stageRef]);
+  }, [selectedShapeId, shapes]);
+
+  const renderShape = (shape: Shape) => {
+    const commonProps = {
+      key: shape.id,
+      id: shape.id,
+      x: shape.x,
+      y: shape.y,
+      fill: shape.fill,
+      stroke: shape.stroke,
+      strokeWidth: shape.strokeWidth,
+      draggable: !isDrawing, // Disable dragging while drawing
+      strokeScaleEnabled: false,
+      onClick: () => setSelectedShapeId(shape.id),
+    };
+
+    switch (shape.type) {
+      case "rect":
+        return (
+          <Rect
+            {...commonProps}
+            width={shape.width || 0}
+            height={shape.height || 0}
+          />
+        );
+      case "ellipse":
+        return (
+          <Ellipse
+            {...commonProps}
+            radiusX={(shape.width || 0) / 2}
+            radiusY={(shape.height || 0) / 2}
+          />
+        );
+      case "line":
+        return <Line {...commonProps} points={shape.points || []} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <Stage
@@ -177,9 +243,9 @@ const Canvas = React.forwardRef((props: CanvasProps, ref) => {
       onMouseUp={handleMouseUp}
       ref={stageRef}
     >
-      {/* Shape Layer */}
       <Layer>
-        <ShapeRenderer shapes={shapes} currentShape={currentShape} />
+        {shapes.map(renderShape)}
+        {drawingShape && renderShape({ ...drawingShape })}
         <Transformer ref={transformerRef} />
       </Layer>
     </Stage>
