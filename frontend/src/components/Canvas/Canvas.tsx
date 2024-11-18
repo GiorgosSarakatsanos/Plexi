@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useState, useImperativeHandle } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useImperativeHandle,
+  useContext,
+} from "react";
 import { Stage, Layer, Transformer, Rect, Ellipse, Line } from "react-konva";
 import Konva from "konva";
 import {
@@ -9,6 +15,8 @@ import {
 } from "../Zoom/Zoom";
 import { generateId } from "../../utils/idGenerator";
 import { usePointerPosition } from "../Shape/usePointerPosition"; // Adjust the path as needed
+import { LayerContext } from "../Layer/LayerProvider"; // Import LayerContext
+import { useLayerContext } from "../Layer/useLayerContext"; // Adjust path as needed
 
 interface CanvasProps {
   backgroundColor: string;
@@ -37,6 +45,7 @@ interface Shape {
   fill: string;
   stroke: string;
   strokeWidth: number;
+  layerId: string;
 }
 
 const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
@@ -46,6 +55,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const transformerRef = useRef<Konva.Transformer>(null);
   const getPointerPosition = usePointerPosition(stageRef);
 
+  const { layers, addLayer, toggleVisibility } = useLayerContext(); // Use the custom hook
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [drawingShape, setDrawingShape] = useState<Shape | null>(null);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
@@ -53,7 +63,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const [isPanning, setIsPanning] = useState(false); // State for panning
 
   // Zoom area
-
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
       if (stageRef.current) zoomIn(stageRef.current);
@@ -119,7 +128,10 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setIsDrawing(true); // Set drawing state to true
 
     const pointerPos = getPointerPosition();
+
     const id = generateId();
+    const layerId = generateId();
+    addLayer(selectedShape, layerId);
 
     const newShape: Shape = {
       id: `shape-${id}`,
@@ -129,6 +141,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       fill: "transparent",
       stroke: "blue",
       strokeWidth: 1,
+      layerId, // Associate the shape with the newly created layer
     };
 
     if (selectedShape === "line") {
@@ -172,6 +185,15 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
       return prev;
     });
+  };
+
+  const calculateDistance = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ): number => {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
   };
 
   const handleMouseUp = () => {
