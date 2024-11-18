@@ -75,6 +75,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   // Zoom area
+
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
       if (stageRef.current) zoomIn(stageRef.current);
