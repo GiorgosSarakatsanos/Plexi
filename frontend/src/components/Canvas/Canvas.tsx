@@ -166,7 +166,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
           const image = new window.Image();
           image.src = reader.result as string;
           image.onload = () => {
-            // Add image to shapes
+            // Calculate new dimensions to maintain aspect ratio
+            const targetHeight = 300;
+            const aspectRatio = image.width / image.height;
+            const targetWidth = targetHeight * aspectRatio;
+
+            // Add the scaled image to shapes
             const id = generateId();
             const layerId = generateId();
             const newImage: Shape = {
@@ -174,14 +179,15 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
               type: "image",
               x: 100,
               y: 100,
-              width: image.width,
-              height: image.height,
+              width: targetWidth,
+              height: targetHeight,
               layerId,
               fill: "transparent",
               stroke: "transparent",
               strokeWidth: 0,
               image, // Store the image element
             };
+
             props.setSelectedShape("select"); // Automatically switch back to select
             setShapes((prevShapes) => [...prevShapes, newImage]);
             setSelectedShapeId(newImage.id);
@@ -219,10 +225,25 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     handleUploadImage, // Expose this function to parent component
   }));
 
-  const handleMouseDown = () => {
+  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = stageRef.current;
+
     if (!selectedShape || selectedShape === "select") {
-      return; // Ignore non-drawable tools
+      if (e.target === stage) {
+        console.log("Clicked on empty stage");
+        setSelectedShapeId(null); // Deselect all shapes
+        setSelectedLayerIds([]); // Clear layer selection
+
+        // Reset the Transformer
+        const transformer = transformerRef.current;
+        if (transformer) {
+          transformer.nodes([]); // Clear all nodes from the Transformer
+          transformer.getLayer()?.batchDraw();
+        }
+      }
+      return;
     }
+
     if (selectedShape === "image") {
       fileInputRef.current?.click(); // Open the file dialog
       return; // Stop further drawing logic
@@ -233,7 +254,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const layerId = generateId();
 
     if (selectedShape === "text") {
-      // Create a text shape
       const newText: Shape = {
         id: `shape-${id}`,
         type: "text",
@@ -247,16 +267,14 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         fontFamily: "Arial",
         layerId,
       };
-      addLayer("text", layerId); // Add the text layer
+      addLayer("text", layerId);
 
-      // Add the text shape and immediately select it
       setShapes((prevShapes) => [...prevShapes, newText]);
-      setSelectedShapeId(newText.id); // Set the text shape as selected
-      setSelectedLayerIds([newText.layerId]); // Highlight its layer
+      setSelectedShapeId(newText.id);
+      setSelectedLayerIds([newText.layerId]);
       return;
     }
 
-    // Handle other shapes
     let newShape: Shape;
 
     if (selectedShape === "line") {
@@ -286,7 +304,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       };
     }
 
-    addLayer(selectedShape, layerId); // Add the layer for other shapes
+    addLayer(selectedShape, layerId);
     setDrawingShape(newShape);
     setSelectedLayerIds([layerId]);
     setIsDrawing(true);
