@@ -7,6 +7,7 @@ import {
   LuType,
   LuHexagon,
   LuImage,
+  LuFrame,
 } from "react-icons/lu";
 import { HStack, IconButton } from "@chakra-ui/react";
 import { Tooltip } from "../ui/tooltip";
@@ -121,6 +122,20 @@ const Toolbar: React.FC<ToolbarProps> = ({
             colorPalette="blue"
           >
             <LuImage />
+          </IconButton>
+        </Tooltip>
+        <Tooltip showArrow content={"Drawing area"}>
+          <IconButton
+            aria-label="Drawing area"
+            onClick={() => {
+              setSelectedShape("drawing-area");
+            }}
+            variant={selectedShape === "drawing-area" ? "solid" : "ghost"}
+            rounded="full"
+            size="xs"
+            colorPalette="blue"
+          >
+            <LuFrame />
           </IconButton>
         </Tooltip>
       </HStack>

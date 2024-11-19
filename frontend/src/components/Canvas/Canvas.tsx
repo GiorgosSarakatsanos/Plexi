@@ -21,6 +21,7 @@ import { usePointerPosition } from "../Shape/usePointerPosition";
 import { useLayerContext } from "../Layer/useLayerContext";
 import Konva from "konva";
 import { SelectedShape, DrawableShape } from "../Shape/ToolTypes";
+import DrawingArea from "./DrawingArea";
 
 interface CanvasProps {
   backgroundColor: string;
@@ -73,13 +74,22 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [drawingArea, setDrawingArea] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [drawingAreas, setDrawingAreas] = useState<
+    { x: number; y: number; width: number; height: number }[]
+  >([]);
 
   // Function to select a shape by ID
   const selectShapeById = (shapeId: string) => {
-    const shape = shapes.find((s) => s.id === shapeId);
-    if (shape) {
-      setSelectedShapeId(shape.id);
-      setSelectedLayerIds([shape.layerId]); // Highlight the related layer
+    const drawingShape = shapes.find((s) => s.id === shapeId);
+    if (drawingShape) {
+      setShapes((prevShapes) => [...prevShapes, drawingShape]);
+      setSelectedShapeId(drawingShape.id); // Select the created shape
     }
   };
 
@@ -231,15 +241,26 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     if (!selectedShape || selectedShape === "select") {
       if (e.target === stage) {
         console.log("Clicked on empty stage");
-        setSelectedShapeId(null); // Deselect all shapes
-        setSelectedLayerIds([]); // Clear layer selection
-
-        // Reset the Transformer
+        setSelectedShapeId(null);
+        setSelectedLayerIds([]);
         const transformer = transformerRef.current;
         if (transformer) {
-          transformer.nodes([]); // Clear all nodes from the Transformer
+          transformer.nodes([]);
           transformer.getLayer()?.batchDraw();
         }
+      }
+      return;
+    }
+
+    if (selectedShape === "drawing-area") {
+      const pointerPos = e.target.getStage()?.getPointerPosition();
+      if (pointerPos) {
+        setDrawingArea({
+          x: pointerPos.x,
+          y: pointerPos.y,
+          width: 0,
+          height: 0,
+        });
       }
       return;
     }
@@ -310,10 +331,28 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setIsDrawing(true);
   };
 
-  const handleMouseMove = () => {
+  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (selectedShape === "drawing-area" && drawingArea) {
+      const pointerPos = e.target.getStage()?.getPointerPosition();
+      if (pointerPos) {
+        // Update the dimensions of the current drawing area
+        setDrawingArea((prev) =>
+          prev
+            ? {
+                ...prev,
+                width: pointerPos.x - prev.x,
+                height: pointerPos.y - prev.y,
+              }
+            : null
+        );
+      }
+      return;
+    }
+
+    // Logic for other shapes
     if (!drawingShape) return;
 
-    const pointerPos = getPointerPosition(); // Get the pointer position
+    const pointerPos = getPointerPosition();
 
     setDrawingShape((prev) => {
       if (!prev) return null;
@@ -349,15 +388,24 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   const handleMouseUp = () => {
-    if (!drawingShape) return;
+    if (selectedShape === "drawing-area" && drawingArea) {
+      setDrawingAreas((prev) => [...prev, drawingArea]);
+      setDrawingArea(null);
 
-    setShapes((prevShapes) => [...prevShapes, drawingShape]);
-    setSelectedShapeId(drawingShape.id); // Select the created shape
-    setDrawingShape(null);
-    setIsDrawing(false);
+      // Automatically switch back to the "select" tool
+      props.setSelectedShape("select");
+      return;
+    }
 
-    // Automatically switch back to the "select" tool
-    props.setSelectedShape("select");
+    if (drawingShape) {
+      setShapes((prevShapes) => [...prevShapes, drawingShape]);
+      setSelectedShapeId(drawingShape.id); // Select the created shape
+      setDrawingShape(null);
+      setIsDrawing(false);
+
+      // Automatically switch back to the "select" tool
+      props.setSelectedShape("select");
+    }
   };
 
   const handleDoubleClick = (shapeId: string) => {
@@ -544,6 +592,25 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
           {shapes.map(renderShape)}
           {drawingShape && renderShape({ ...drawingShape })}
           <Transformer ref={transformerRef} />
+          {drawingAreas.map((area, index) => (
+            <DrawingArea
+              key={index}
+              x={area.x}
+              y={area.y}
+              width={area.width}
+              height={area.height}
+            />
+          ))}
+
+          {/* Render current drawing area */}
+          {drawingArea && (
+            <DrawingArea
+              x={drawingArea.x}
+              y={drawingArea.y}
+              width={drawingArea.width}
+              height={drawingArea.height}
+            />
+          )}
         </Layer>
       </Stage>
     </>

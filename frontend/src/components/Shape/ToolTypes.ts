@@ -5,7 +5,8 @@ export type SelectedShape =
   | "hexagon"
   | "text"
   | "select"
-  | "image" // Add image here
+  | "image"
+  | "drawing-area"
   | null;
 
 export type DrawableShape =
