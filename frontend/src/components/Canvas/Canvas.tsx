@@ -282,7 +282,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     }
 
     if (selectedShape === "drawing-area") {
-      const pointerPos = e.target.getStage()?.getPointerPosition();
+      const pointerPos = stageRef.current?.getPointerPosition();
       if (pointerPos) {
         setDrawingArea({
           x: pointerPos.x,
@@ -364,7 +364,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     if (selectedShape === "drawing-area" && drawingArea) {
       const pointerPos = e.target.getStage()?.getPointerPosition();
       if (pointerPos) {
-        // Update the dimensions of the current drawing area
         setDrawingArea((prev) =>
           prev
             ? {
@@ -375,41 +374,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             : null
         );
       }
-      return;
     }
-
-    if (!drawingShape) return;
-
-    const pointerPos = getPointerPosition();
-
-    setDrawingShape((prev) => {
-      if (!prev) return null;
-
-      if (prev.type === "line") {
-        const [startX, startY] = prev.points!;
-        return {
-          ...prev,
-          points: [startX, startY, pointerPos.x, pointerPos.y],
-        };
-      } else if (prev.type === "rect" || prev.type === "ellipse") {
-        return {
-          ...prev,
-          width: pointerPos.x - prev.x,
-          height: pointerPos.y - prev.y,
-        };
-      } else if (prev.type === "hexagon") {
-        const radius = Math.sqrt(
-          Math.pow(pointerPos.x - prev.x, 2) +
-            Math.pow(pointerPos.y - prev.y, 2)
-        );
-        return {
-          ...prev,
-          radius,
-        };
-      }
-
-      return prev;
-    });
   };
 
   const handleMouseUp = () => {
@@ -629,14 +594,18 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         ))}
 
         {/* Render the current drawing area */}
+        {/* Render the current drawing area */}
         {drawingArea && (
-          <Layer key="current-drawing-area">
-            <DrawingArea
+          <Layer key="drawing-area-layer">
+            <Rect
               x={drawingArea.x}
               y={drawingArea.y}
               width={drawingArea.width}
               height={drawingArea.height}
-              scale={stageRef.current?.scaleX() || 1}
+              fill="rgba(0, 0, 255, 0.1)" // Light background for visibility
+              stroke="blue"
+              strokeWidth={1}
+              dash={[10, 10]} // Dashed border for better UX
             />
           </Layer>
         )}

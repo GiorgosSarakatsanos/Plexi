@@ -105,10 +105,10 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
         divProps={{
           style: {
             position: "absolute",
-            top: `${adjustedY}px`,
+            top: `${adjustedY - 30}px`, // Position the header above the rectangle
             left: `${adjustedX}px`,
             width: `${adjustedWidth}px`,
-            height: `${adjustedHeight}px`,
+            height: `${adjustedHeight + 30}px`, // Allow for header height
             pointerEvents: "auto",
             zIndex: 10,
             display: "flex",
@@ -127,6 +127,7 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
             alignItems: "center",
             backgroundColor: "transparent",
             padding: "4px",
+            height: "30px", // Fixed height for the header
           }}
         >
           <div
@@ -183,10 +184,10 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
         >
           <Rect
             ref={rectRef}
-            x={0} // Positioned at top-left within the container
+            x={0}
             y={0}
             width={rectProps.width}
-            height={rectProps.height - 22} // Adjust height for header
+            height={rectProps.height} // Full height for the rectangle
             fill="white"
             stroke={isEditable ? "blue" : "lightgray"}
             strokeWidth={2 / scale}
