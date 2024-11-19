@@ -370,14 +370,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     if (!stage) return;
 
     const container = stage.container();
-    const scale = stage.scaleX(); // Assuming uniform scaling
-
-    // Find the shape in the stage and get its absolute position and scale
     const currentShape = stage.findOne(`#${shapeId}`);
     if (!currentShape) return;
 
+    // Get the absolute position of the text shape
     const shapePosition = currentShape.getAbsolutePosition();
-    const shapeScale = currentShape.scale() || { x: 1, y: 1 }; // Fallback to {x: 1, y: 1}
+    const shapeScale = currentShape.getAbsoluteScale(); // Includes scale transformations
 
     // Temporarily hide the text on the canvas
     setShapes((prevShapes) =>
@@ -391,39 +389,51 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       )
     );
 
-    // Create an input field
-    const input = document.createElement("input");
-    input.type = "text";
-    input.value = textShape.text || "";
-    input.style.position = "absolute";
+    // Create a textarea for multiline editing
+    const textarea = document.createElement("textarea");
+    textarea.value = textShape.text || "";
+    textarea.placeholder = "Edit text here..."; // Placeholder text
+    textarea.style.position = "absolute";
 
-    // Adjust position based on canvas transformations and text alignment
+    // Align textarea to the exact position and scale of the text on canvas
     const containerRect = container.getBoundingClientRect();
-    input.style.top = `${
+    textarea.style.top = `${
       containerRect.top +
-      shapePosition.y * scale -
+      shapePosition.y -
       (textShape.fontSize! * shapeScale.y) / 2
     }px`;
-    input.style.left = `${containerRect.left + shapePosition.x * scale}px`;
+    textarea.style.left = `${containerRect.left + shapePosition.x}px`;
 
-    // Style the input to match the text
-    input.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`; // Account for scaling
-    input.style.fontFamily = textShape.fontFamily || "Arial";
-    input.style.color = textShape.fill;
-    input.style.border = "none";
-    input.style.background = "transparent";
-    input.style.outline = "none";
-    input.style.padding = "0";
-    input.style.margin = "0";
-    input.style.zIndex = "1000";
+    // Style the textarea to match the text shape
+    textarea.style.width = `${(textShape.width || 200) * shapeScale.x}px`; // Adjust width
+    textarea.style.height = `${textShape.fontSize! * shapeScale.y * 1.5}px`; // Adjust height based on font size
+    textarea.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`;
+    textarea.style.fontFamily = textShape.fontFamily || "Arial";
+    textarea.style.color = textShape.fill;
+    textarea.style.border = "1px solid #ccc";
+    textarea.style.background = "rgba(255, 255, 255, 0.9)";
+    textarea.style.outline = "none";
+    textarea.style.padding = "4px";
+    textarea.style.margin = "0";
+    textarea.style.resize = "none";
+    textarea.style.zIndex = "1000";
 
-    // Append the input to the document body
-    document.body.appendChild(input);
-    input.focus();
+    // Append the textarea to the document body and focus it
+    document.body.appendChild(textarea);
+    textarea.focus();
 
-    // Restore the text and save changes when the input loses focus
-    input.addEventListener("blur", () => {
-      const newText = input.value;
+    // Adjust the height dynamically based on the content
+    const adjustHeight = () => {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+    textarea.addEventListener("input", adjustHeight);
+    adjustHeight(); // Initial adjustment
+
+    // Restore the text and save changes when the textarea loses focus
+    textarea.addEventListener("blur", () => {
+      const newText = textarea.value;
+
       setShapes((prevShapes) =>
         prevShapes.map((shape) =>
           shape.id === shapeId
@@ -436,13 +446,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         )
       );
 
-      // Apply the original scale back to the text shape
-      const updatedShape = stage.findOne(`#${shapeId}`);
-      if (updatedShape) {
-        updatedShape.scale(shapeScale); // Restore the scale
-      }
-
-      document.body.removeChild(input); // Clean up the input field
+      // Clean up the textarea
+      document.body.removeChild(textarea);
     });
   };
 
