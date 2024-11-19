@@ -154,16 +154,45 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const transformer = transformerRef.current;
     const stage = stageRef.current;
 
-    if (!transformer || !stage || !selectedShapeId) return;
+    if (!transformer || !stage) return;
 
-    const selectedNode = stage.findOne(`#${selectedShapeId}`);
-    if (selectedNode) {
-      transformer.nodes([selectedNode]);
-      transformer.getLayer()?.batchDraw();
+    if (selectedShapeId) {
+      // Find the currently selected shape
+      const selectedNode = stage.findOne(`#${selectedShapeId}`);
+      if (selectedNode) {
+        // Attach the transformer to the selected shape
+        transformer.nodes([selectedNode]);
+        transformer.getLayer()?.batchDraw();
+      } else {
+        // Deselect transformer if no node is found
+        transformer.nodes([]);
+        transformer.getLayer()?.batchDraw();
+      }
     } else {
-      transformer.nodes([]); // Deselect transformer if no node is found
+      // Deselect transformer
+      transformer.nodes([]);
+      transformer.getLayer()?.batchDraw();
     }
   }, [selectedShapeId, shapes]);
+
+  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    // Check if clicked on an empty area
+    if (e.target === stage) {
+      // Deselect shape
+      setSelectedShapeId(null);
+
+      // Disable dragging for all shapes
+      setShapes((prevShapes) =>
+        prevShapes.map((shape) => ({
+          ...shape,
+          draggable: false,
+        }))
+      );
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -576,7 +605,10 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       <Stage
         width={parseInt(width)}
         height={parseInt(height)}
-        onMouseDown={handleMouseDown}
+        onMouseDown={(e) => {
+          handleStageClick(e); // Detect clicks on empty space
+          handleMouseDown(e); // Existing logic for creating shapes
+        }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         draggable={isPanning}
@@ -590,7 +622,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
               y={area.y}
               width={area.width}
               height={area.height}
-              scale={stageRef.current?.scaleX() || 1} // Pass zoom level here
+              scale={stageRef.current?.scaleX() || 1}
+              onDeselect={() => setSelectedShapeId(null)} // Clear selection on canvas click
             />
           </Layer>
         ))}
@@ -603,7 +636,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
               y={drawingArea.y}
               width={drawingArea.width}
               height={drawingArea.height}
-              scale={stageRef.current?.scaleX() || 1} // Pass zoom level here
+              scale={stageRef.current?.scaleX() || 1}
             />
           </Layer>
         )}

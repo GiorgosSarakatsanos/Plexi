@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { Rect } from "react-konva";
+import React, { useState, useRef, useEffect } from "react";
+import { Rect, Transformer } from "react-konva";
 import { Html } from "react-konva-utils";
-import { LuPrinter } from "react-icons/lu";
+import { LuPrinter, LuPencil } from "react-icons/lu";
+import Konva from "konva";
 
 interface DrawingAreaProps {
   x: number;
@@ -9,6 +10,7 @@ interface DrawingAreaProps {
   width: number;
   height: number;
   scale: number; // Zoom level for scaling adjustments
+  onDeselect?: () => void; // Callback for deselection
 }
 
 const DrawingArea: React.FC<DrawingAreaProps> = ({
@@ -17,14 +19,90 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
   width,
   height,
   scale,
+  onDeselect,
 }) => {
   const [isPrinterHovered, setIsPrinterHovered] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isEditable, setIsEditable] = useState(false);
+  const [rectProps, setRectProps] = useState({ x, y, width, height });
 
-  const adjustedX = x * scale;
-  const adjustedY = y * scale;
-  const adjustedWidth = width * scale;
-  const adjustedHeight = height * scale;
+  const rectRef = useRef<Konva.Rect>(null); // Reference to the rectangle
+  const trRef = useRef<Konva.Transformer>(null); // Reference to the transformer
+
+  const handleEditClick = () => {
+    setIsEditable(true);
+
+    // Add null checks for rectRef and trRef
+    if (rectRef.current && trRef.current) {
+      const transformer = trRef.current;
+      const rectangle = rectRef.current;
+
+      transformer.nodes([rectangle]);
+      transformer.getLayer()?.batchDraw(); // Add optional chaining for safety
+    }
+  };
+
+  const handleDragMove = () => {
+    if (rectRef.current) {
+      const { x, y } = rectRef.current.position();
+      setRectProps((prev) => ({ ...prev, x, y }));
+    }
+  };
+
+  const handleTransform = () => {
+    if (rectRef.current) {
+      const node = rectRef.current;
+      const scaleX = node.scaleX();
+      const scaleY = node.scaleY();
+
+      const newWidth = node.width() * scaleX;
+      const newHeight = node.height() * scaleY;
+      const { x, y } = node.position();
+
+      // Reset scaling for future transformations
+      node.scaleX(1);
+      node.scaleY(1);
+
+      setRectProps({ x, y, width: newWidth, height: newHeight });
+    }
+  };
+
+  // Listen for clicks outside of the DrawingArea to deselect
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!rectRef.current) return;
+
+      const stage = rectRef.current.getStage();
+
+      if (!stage) return; // Ensure stage is not null
+
+      const target = e.target as HTMLElement;
+
+      // Check if the click is outside the Konva stage or shapes
+      const clickedOnStage = stage.content === target;
+
+      if (clickedOnStage && isEditable) {
+        setIsEditable(false);
+        if (trRef.current) {
+          trRef.current.nodes([]);
+          trRef.current.getLayer()?.batchDraw();
+        }
+        if (onDeselect) {
+          onDeselect();
+        }
+      }
+    };
+
+    window.addEventListener("click", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, [isEditable, onDeselect]);
+
+  const adjustedX = rectProps.x * scale;
+  const adjustedY = rectProps.y * scale;
+  const adjustedWidth = rectProps.width * scale;
 
   return (
     <>
@@ -36,14 +114,11 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
             top: `${adjustedY}px`,
             left: `${adjustedX}px`,
             width: `${adjustedWidth}px`,
-            height: `${adjustedHeight}px`,
             pointerEvents: "auto",
             zIndex: 10,
             display: "flex",
             flexDirection: "column",
             boxSizing: "border-box",
-            backgroundColor: "transparent", // Optional: Background for the container
-            border: `${2 / scale}px solid transparent`,
           },
         }}
       >
@@ -57,6 +132,17 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
             borderBottom: `${1 / scale}px solid lightgray`,
           }}
         >
+          <div
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              marginRight: `${10 / scale}px`,
+            }}
+            onClick={handleEditClick} // Toggle edit mode
+          >
+            <LuPencil size={12 / scale} color="gray" />
+          </div>
           <input
             type="text"
             placeholder="Drawing area"
@@ -90,29 +176,25 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
             />
           </div>
         </div>
-
-        {/* Drawing Area Section */}
-        <div
-          style={{
-            flex: 1,
-            position: "relative",
-            overflow: "hidden",
-            backgroundColor: "white",
-            border: "1px solid gray",
-            borderRadius: "2px",
-          }}
-        >
-          {/* Drawing Area Rectangle */}
-          <Rect
-            x={0}
-            y={0}
-            width={width}
-            height={height - 30 / scale} // Adjusted height for the drawing area
-            fill="white"
-            stroke="transparent"
-          />
-        </div>
       </Html>
+
+      {/* DrawingArea Rectangle */}
+      <Rect
+        ref={rectRef}
+        x={rectProps.x}
+        y={rectProps.y}
+        width={rectProps.width}
+        height={rectProps.height}
+        fill="white"
+        stroke={isEditable ? "blue" : "lightgray"}
+        strokeWidth={2 / scale}
+        draggable={isEditable} // Allow dragging when in edit mode
+        onDragMove={handleDragMove}
+        onTransform={handleTransform}
+      />
+
+      {/* Transformer for resizing and rotating */}
+      {isEditable && <Transformer ref={trRef} />}
     </>
   );
 };
