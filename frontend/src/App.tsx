@@ -28,7 +28,9 @@ const Layout: React.FC = () => {
   const [canvasOpacity, setCanvasOpacity] = useState(100);
 
   // Add selectedShape state
-  const [selectedShape, setSelectedShape] = useState<string | null>(null);
+  const [selectedShape, setSelectedShape] = useState<
+    "rect" | "ellipse" | "line" | "hexagon" | "text" | "select" | null
+  >(null);
 
   const handleOpacityChange = (opacity: number) => {
     setCanvasOpacity(opacity);
@@ -192,7 +194,7 @@ const Layout: React.FC = () => {
             backgroundColor={backgroundColor}
             opacity={canvasOpacity}
             onZoomChange={setZoomLevel}
-            selectedShape={selectedShape} // Pass the selectedShape here
+            selectedShape={selectedShape}
           />
         </Center>
 

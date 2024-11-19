@@ -1,4 +1,3 @@
-// src/components/Toolbar/Toolbar.tsx
 import React from "react";
 import {
   LuMousePointer2,
@@ -10,17 +9,18 @@ import {
 } from "react-icons/lu";
 import { HStack, IconButton } from "@chakra-ui/react";
 import { Tooltip } from "../ui/tooltip";
+import { SelectedShape } from "../Shape/ToolTypes";
 
 interface ToolbarProps {
-  selectedShape: string | null; // Add this
-  setSelectedShape: React.Dispatch<React.SetStateAction<string | null>>;
+  selectedShape: SelectedShape;
+  setSelectedShape: React.Dispatch<React.SetStateAction<SelectedShape>>;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
   selectedShape,
   setSelectedShape,
 }) => {
-  const handleShapeSelection = (shapeType: string) => {
+  const handleShapeSelection = (shapeType: SelectedShape) => {
     console.log("Selected shape:", shapeType); // Debugging
     setSelectedShape(shapeType);
   };

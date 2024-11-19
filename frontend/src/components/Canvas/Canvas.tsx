@@ -7,6 +7,7 @@ import {
   Ellipse,
   Line,
   RegularPolygon,
+  Text,
 } from "react-konva";
 import {
   zoomIn,
@@ -18,6 +19,7 @@ import { generateId } from "../../utils/idGenerator";
 import { usePointerPosition } from "../Shape/usePointerPosition";
 import { useLayerContext } from "../Layer/useLayerContext";
 import Konva from "konva";
+import { SelectedShape, DrawableShape } from "../Shape/ToolTypes";
 
 interface CanvasProps {
   backgroundColor: string;
@@ -25,7 +27,7 @@ interface CanvasProps {
   width: string;
   height: string;
   onZoomChange: (zoomLevel: number) => void;
-  selectedShape: "rect" | "ellipse" | "line" | "hexagon" | null;
+  selectedShape: SelectedShape;
 }
 
 export interface CanvasRef {
@@ -38,9 +40,10 @@ export interface CanvasRef {
 
 interface Shape {
   id: string;
-  type: "rect" | "ellipse" | "line" | "hexagon";
+  type: DrawableShape;
   x: number;
   y: number;
+  text?: string; // For text elements
   width?: number;
   height?: number;
   points?: number[];
@@ -48,6 +51,8 @@ interface Shape {
   stroke: string;
   strokeWidth: number;
   layerId: string;
+  fontSize?: number; // Text-specific properties
+  fontFamily?: string;
   radius?: number; // For hexagon
 }
 
@@ -139,42 +144,51 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       transformer.nodes([selectedNode]);
       transformer.getLayer()?.batchDraw();
     } else {
-      transformer.nodes([]);
+      transformer.nodes([]); // Deselect transformer if no node is found
     }
   }, [selectedShapeId, shapes]);
 
-  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (selectedShape === "select") {
-      const clickedShapeId = e.target?.id();
-      if (clickedShapeId) {
-        const clickedShape = shapes.find(
-          (shape) => shape.id === clickedShapeId
-        );
-        if (clickedShape) {
-          setSelectedShapeId(clickedShape.id);
-          setSelectedLayerIds([clickedShape.layerId]);
-        }
-      } else {
-        setSelectedShapeId(null); // Deselect if clicked on empty area
-      }
+  const handleMouseDown = () => {
+    if (!selectedShape || selectedShape === "select") {
+      return; // Ignore non-drawable tools
+    }
+
+    const pointerPos = getPointerPosition();
+    const id = generateId();
+    const layerId = generateId();
+
+    if (selectedShape === "text") {
+      // Create a text shape
+      const newText: Shape = {
+        id: `shape-${id}`,
+        type: "text",
+        x: pointerPos.x,
+        y: pointerPos.y,
+        text: "Double-click to edit",
+        fill: "black",
+        stroke: "transparent",
+        strokeWidth: 1,
+        fontSize: 16,
+        fontFamily: "Arial",
+        layerId,
+      };
+      addLayer("text", layerId); // Add the text layer
+
+      // Add the text shape and immediately select it
+      setShapes((prevShapes) => [...prevShapes, newText]);
+      setSelectedShapeId(newText.id); // Set the text shape as selected
+      setSelectedLayerIds([newText.layerId]); // Highlight its layer
       return;
     }
 
-    if (!selectedShape) return; // No shape selected
-
-    const pointerPos = getPointerPosition(); // Get the pointer position
-    const id = generateId();
-    const layerId = generateId();
-    addLayer(selectedShape, layerId);
-
+    // Handle other shapes
     let newShape: Shape;
 
     if (selectedShape === "line") {
-      // Line-specific initialization
       newShape = {
         id: `shape-${id}`,
         type: "line",
-        x: 0, // Not used for line but required for Shape interface
+        x: 0,
         y: 0,
         points: [pointerPos.x, pointerPos.y, pointerPos.x, pointerPos.y],
         fill: "transparent",
@@ -183,13 +197,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         layerId,
       };
     } else {
-      // General initialization for other shapes
       newShape = {
         id: `shape-${id}`,
         type: selectedShape,
         x: pointerPos.x,
         y: pointerPos.y,
-        width: 0, // Will be updated dynamically
+        width: 0,
         height: 0,
         fill: "transparent",
         stroke: "blue",
@@ -198,6 +211,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       };
     }
 
+    addLayer(selectedShape, layerId); // Add the layer for other shapes
     setDrawingShape(newShape);
     setSelectedLayerIds([layerId]);
     setIsDrawing(true);
@@ -250,6 +264,92 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setIsDrawing(false);
   };
 
+  const handleDoubleClick = (shapeId: string) => {
+    const textShape = shapes.find(
+      (shape) => shape.id === shapeId && shape.type === "text"
+    );
+    if (!textShape) return;
+
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const container = stage.container();
+    const scale = stage.scaleX(); // Assuming uniform scaling
+
+    // Find the shape in the stage and get its absolute position and scale
+    const currentShape = stage.findOne(`#${shapeId}`);
+    if (!currentShape) return;
+
+    const shapePosition = currentShape.getAbsolutePosition();
+    const shapeScale = currentShape.scale() || { x: 1, y: 1 }; // Fallback to {x: 1, y: 1}
+
+    // Temporarily hide the text on the canvas
+    setShapes((prevShapes) =>
+      prevShapes.map((shape) =>
+        shape.id === shapeId
+          ? {
+              ...shape,
+              fill: "transparent", // Make the text transparent
+            }
+          : shape
+      )
+    );
+
+    // Create an input field
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = textShape.text || "";
+    input.style.position = "absolute";
+
+    // Adjust position based on canvas transformations and text alignment
+    const containerRect = container.getBoundingClientRect();
+    input.style.top = `${
+      containerRect.top +
+      shapePosition.y * scale -
+      (textShape.fontSize! * shapeScale.y) / 2
+    }px`;
+    input.style.left = `${containerRect.left + shapePosition.x * scale}px`;
+
+    // Style the input to match the text
+    input.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`; // Account for scaling
+    input.style.fontFamily = textShape.fontFamily || "Arial";
+    input.style.color = textShape.fill;
+    input.style.border = "none";
+    input.style.background = "transparent";
+    input.style.outline = "none";
+    input.style.padding = "0";
+    input.style.margin = "0";
+    input.style.zIndex = "1000";
+
+    // Append the input to the document body
+    document.body.appendChild(input);
+    input.focus();
+
+    // Restore the text and save changes when the input loses focus
+    input.addEventListener("blur", () => {
+      const newText = input.value;
+      setShapes((prevShapes) =>
+        prevShapes.map((shape) =>
+          shape.id === shapeId
+            ? {
+                ...shape,
+                text: newText, // Update the text value
+                fill: "black", // Restore original color
+              }
+            : shape
+        )
+      );
+
+      // Apply the original scale back to the text shape
+      const updatedShape = stage.findOne(`#${shapeId}`);
+      if (updatedShape) {
+        updatedShape.scale(shapeScale); // Restore the scale
+      }
+
+      document.body.removeChild(input); // Clean up the input field
+    });
+  };
+
   const renderShape = (shape: Shape) => {
     const commonProps = {
       key: shape.id,
@@ -267,7 +367,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
               setSelectedShapeId(shape.id);
               setSelectedLayerIds([shape.layerId]);
             }
-          : undefined, // Disable click when not in "Select" mode
+          : undefined,
     };
 
     switch (shape.type) {
@@ -295,6 +395,16 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             {...commonProps}
             sides={6}
             radius={shape.radius || 0}
+          />
+        );
+      case "text":
+        return (
+          <Text
+            {...commonProps}
+            text={shape.text || ""}
+            fontSize={shape.fontSize}
+            fontFamily={shape.fontFamily}
+            onDblClick={() => handleDoubleClick(shape.id)}
           />
         );
       default:
