@@ -28,6 +28,7 @@ interface CanvasProps {
   height: string;
   onZoomChange: (zoomLevel: number) => void;
   selectedShape: SelectedShape;
+  setSelectedShape: React.Dispatch<React.SetStateAction<SelectedShape>>; // Add this
 }
 
 export interface CanvasRef {
@@ -262,6 +263,9 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setSelectedShapeId(drawingShape.id); // Select the created shape
     setDrawingShape(null);
     setIsDrawing(false);
+
+    // Automatically switch back to the "select" tool
+    props.setSelectedShape("select");
   };
 
   const handleDoubleClick = (shapeId: string) => {

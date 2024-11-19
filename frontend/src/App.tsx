@@ -195,6 +195,7 @@ const Layout: React.FC = () => {
             opacity={canvasOpacity}
             onZoomChange={setZoomLevel}
             selectedShape={selectedShape}
+            setSelectedShape={setSelectedShape} // Pass the state updater function
           />
         </Center>
 
