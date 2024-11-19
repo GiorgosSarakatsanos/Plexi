@@ -349,7 +349,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       return;
     }
 
-    // Logic for other shapes
     if (!drawingShape) return;
 
     const pointerPos = getPointerPosition();
@@ -358,21 +357,18 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       if (!prev) return null;
 
       if (prev.type === "line") {
-        // Update line's endpoint
         const [startX, startY] = prev.points!;
         return {
           ...prev,
           points: [startX, startY, pointerPos.x, pointerPos.y],
         };
       } else if (prev.type === "rect" || prev.type === "ellipse") {
-        // Update width and height for other shapes
         return {
           ...prev,
           width: pointerPos.x - prev.x,
           height: pointerPos.y - prev.y,
         };
       } else if (prev.type === "hexagon") {
-        // Update radius for hexagon
         const radius = Math.sqrt(
           Math.pow(pointerPos.x - prev.x, 2) +
             Math.pow(pointerPos.y - prev.y, 2)
@@ -389,11 +385,9 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
   const handleMouseUp = () => {
     if (selectedShape === "drawing-area" && drawingArea) {
-      setDrawingAreas((prev) => [...prev, drawingArea]);
-      setDrawingArea(null);
-
-      // Automatically switch back to the "select" tool
-      props.setSelectedShape("select");
+      setDrawingAreas((prev) => [...prev, drawingArea]); // Persist the drawing area
+      setDrawingArea(null); // Clear the temporary drawing area
+      props.setSelectedShape("select"); // Reset to select tool
       return;
     }
 
@@ -588,29 +582,37 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         draggable={isPanning}
         ref={stageRef}
       >
-        <Layer>
-          {shapes.map(renderShape)}
-          {drawingShape && renderShape({ ...drawingShape })}
-          <Transformer ref={transformerRef} />
-          {drawingAreas.map((area, index) => (
+        {/* Render all drawing areas */}
+        {drawingAreas.map((area, index) => (
+          <Layer key={`layer-${index}`}>
             <DrawingArea
-              key={index}
               x={area.x}
               y={area.y}
               width={area.width}
               height={area.height}
+              scale={stageRef.current?.scaleX() || 1} // Pass zoom level here
             />
-          ))}
+          </Layer>
+        ))}
 
-          {/* Render current drawing area */}
-          {drawingArea && (
+        {/* Render the current drawing area */}
+        {drawingArea && (
+          <Layer key="current-drawing-area">
             <DrawingArea
               x={drawingArea.x}
               y={drawingArea.y}
               width={drawingArea.width}
               height={drawingArea.height}
+              scale={stageRef.current?.scaleX() || 1} // Pass zoom level here
             />
-          )}
+          </Layer>
+        )}
+
+        {/* Main layer for other shapes */}
+        <Layer>
+          {shapes.map(renderShape)}
+          {drawingShape && renderShape({ ...drawingShape })}
+          <Transformer ref={transformerRef} />
         </Layer>
       </Stage>
     </>
