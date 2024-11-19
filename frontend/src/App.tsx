@@ -30,7 +30,7 @@ const Layout: React.FC = () => {
   // Add selectedShape state
   const [selectedShape, setSelectedShape] = useState<
     "rect" | "ellipse" | "line" | "hexagon" | "text" | "select" | null
-  >(null);
+  >("select");
 
   const handleOpacityChange = (opacity: number) => {
     setCanvasOpacity(opacity);
