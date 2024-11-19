@@ -12,6 +12,7 @@ export const usePointerPosition = (stageRef: React.RefObject<Konva.Stage>) => {
     const position = stage.position();
 
     return {
+      // Transform pointer position relative to the stage's scale and position
       x: (pointerPosition.x - position.x) / scale,
       y: (pointerPosition.y - position.y) / scale,
     };

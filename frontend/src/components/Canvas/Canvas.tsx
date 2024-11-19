@@ -160,61 +160,73 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       return;
     }
 
-    // If no shape is selected, return
-    if (!selectedShape) return;
+    if (!selectedShape) return; // No shape selected
 
-    // Otherwise, initialize drawing logic
-    setIsDrawing(true);
-    const pointerPos = getPointerPosition();
+    const pointerPos = getPointerPosition(); // Get the pointer position
     const id = generateId();
     const layerId = generateId();
     addLayer(selectedShape, layerId);
 
-    const newShape: Shape = {
-      id: `shape-${id}`,
-      type: selectedShape,
-      x: pointerPos.x,
-      y: pointerPos.y,
-      fill: "transparent",
-      stroke: "blue",
-      strokeWidth: 1,
-      layerId,
-      radius: 0, // For hexagon
-    };
+    let newShape: Shape;
 
     if (selectedShape === "line") {
-      newShape.points = [
-        pointerPos.x,
-        pointerPos.y,
-        pointerPos.x,
-        pointerPos.y,
-      ];
+      // Line-specific initialization
+      newShape = {
+        id: `shape-${id}`,
+        type: "line",
+        x: 0, // Not used for line but required for Shape interface
+        y: 0,
+        points: [pointerPos.x, pointerPos.y, pointerPos.x, pointerPos.y],
+        fill: "transparent",
+        stroke: "blue",
+        strokeWidth: 1,
+        layerId,
+      };
+    } else {
+      // General initialization for other shapes
+      newShape = {
+        id: `shape-${id}`,
+        type: selectedShape,
+        x: pointerPos.x,
+        y: pointerPos.y,
+        width: 0, // Will be updated dynamically
+        height: 0,
+        fill: "transparent",
+        stroke: "blue",
+        strokeWidth: 1,
+        layerId,
+      };
     }
 
     setDrawingShape(newShape);
     setSelectedLayerIds([layerId]);
+    setIsDrawing(true);
   };
 
   const handleMouseMove = () => {
     if (!drawingShape) return;
 
-    const pointerPos = getPointerPosition();
+    const pointerPos = getPointerPosition(); // Get the pointer position
 
     setDrawingShape((prev) => {
       if (!prev) return null;
 
-      if (prev.type === "rect" || prev.type === "ellipse") {
+      if (prev.type === "line") {
+        // Update line's endpoint
+        const [startX, startY] = prev.points!;
+        return {
+          ...prev,
+          points: [startX, startY, pointerPos.x, pointerPos.y],
+        };
+      } else if (prev.type === "rect" || prev.type === "ellipse") {
+        // Update width and height for other shapes
         return {
           ...prev,
           width: pointerPos.x - prev.x,
           height: pointerPos.y - prev.y,
         };
-      } else if (prev.type === "line") {
-        return {
-          ...prev,
-          points: [prev.x, prev.y, pointerPos.x, pointerPos.y],
-        };
       } else if (prev.type === "hexagon") {
+        // Update radius for hexagon
         const radius = Math.sqrt(
           Math.pow(pointerPos.x - prev.x, 2) +
             Math.pow(pointerPos.y - prev.y, 2)
@@ -234,7 +246,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
     setShapes((prevShapes) => [...prevShapes, drawingShape]);
     setSelectedShapeId(drawingShape.id); // Select the created shape
-
     setDrawingShape(null);
     setIsDrawing(false);
   };
