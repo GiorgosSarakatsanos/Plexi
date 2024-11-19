@@ -5,6 +5,13 @@ export type SelectedShape =
   | "hexagon"
   | "text"
   | "select"
+  | "image" // Add image here
   | null;
 
-export type DrawableShape = "rect" | "ellipse" | "line" | "hexagon" | "text";
+export type DrawableShape =
+  | "rect"
+  | "ellipse"
+  | "line"
+  | "hexagon"
+  | "text"
+  | "image";

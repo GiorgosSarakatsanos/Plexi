@@ -19,6 +19,7 @@ import { useColor } from "./hooks/useColor";
 import Canvas, { CanvasRef } from "./components/Canvas/Canvas";
 import Toolbar from "./components/Toolbar/Toolbar";
 import { LayerProvider } from "./components/Layer/LayerProvider";
+import { SelectedShape } from "./components/Shape/ToolTypes";
 
 const Layout: React.FC = () => {
   const canvasRef = useRef<CanvasRef>(null);
@@ -28,9 +29,7 @@ const Layout: React.FC = () => {
   const [canvasOpacity, setCanvasOpacity] = useState(100);
 
   // Add selectedShape state
-  const [selectedShape, setSelectedShape] = useState<
-    "rect" | "ellipse" | "line" | "hexagon" | "text" | "select" | null
-  >("select");
+  const [selectedShape, setSelectedShape] = useState<SelectedShape>("select");
 
   const handleOpacityChange = (opacity: number) => {
     setCanvasOpacity(opacity);
@@ -212,6 +211,7 @@ const Layout: React.FC = () => {
             <Toolbar
               selectedShape={selectedShape}
               setSelectedShape={setSelectedShape}
+              handleUploadImage={() => canvasRef.current?.handleUploadImage()}
             />
           </HStack>
         </Flex>

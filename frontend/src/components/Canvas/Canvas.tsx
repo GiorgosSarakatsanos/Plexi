@@ -8,6 +8,7 @@ import {
   Line,
   RegularPolygon,
   Text,
+  Image,
 } from "react-konva";
 import {
   zoomIn,
@@ -37,6 +38,7 @@ export interface CanvasRef {
   setZoomToPercentage: (percentage: number) => void;
   getStage: () => Konva.Stage | null;
   selectShapeById: (shapeId: string) => void; // Add this line
+  handleUploadImage: () => void; // Add this
 }
 
 interface Shape {
@@ -55,6 +57,7 @@ interface Shape {
   fontSize?: number; // Text-specific properties
   fontFamily?: string;
   radius?: number; // For hexagon
+  image?: HTMLImageElement; // Add this for image shapes
 }
 
 const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
@@ -97,6 +100,9 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     },
     getStage: () => stageRef.current,
     selectShapeById, // Expose the selection function
+    handleUploadImage: () => {
+      fileInputRef.current?.click(); // Trigger the file input
+    }, // Add this method to the return object
   }));
 
   useEffect(() => {
@@ -149,9 +155,77 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     }
   }, [selectedShapeId, shapes]);
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          const image = new window.Image();
+          image.src = reader.result as string;
+          image.onload = () => {
+            // Add image to shapes
+            const id = generateId();
+            const layerId = generateId();
+            const newImage: Shape = {
+              id: `shape-${id}`,
+              type: "image",
+              x: 100,
+              y: 100,
+              width: image.width,
+              height: image.height,
+              layerId,
+              fill: "transparent",
+              stroke: "transparent",
+              strokeWidth: 0,
+              image, // Store the image element
+            };
+            props.setSelectedShape("select"); // Automatically switch back to select
+            setShapes((prevShapes) => [...prevShapes, newImage]);
+            setSelectedShapeId(newImage.id);
+          };
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadImage = () => {
+    fileInputRef.current?.click(); // Trigger file input click
+  };
+
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => {
+      if (stageRef.current) zoomIn(stageRef.current);
+    },
+    zoomOut: () => {
+      if (stageRef.current) zoomOut(stageRef.current);
+    },
+    setZoomToPercentage: (percentage: number) => {
+      if (stageRef.current) {
+        setZoomToPercentage(stageRef.current, percentage);
+        onZoomChange(Math.round(stageRef.current.scaleX() * 100));
+      }
+    },
+    getStage: () => stageRef.current,
+    selectShapeById: (shapeId: string) => {
+      const shape = shapes.find((s) => s.id === shapeId);
+      if (shape) {
+        setSelectedShapeId(shape.id);
+      }
+    },
+    handleUploadImage, // Expose this function to parent component
+  }));
+
   const handleMouseDown = () => {
     if (!selectedShape || selectedShape === "select") {
       return; // Ignore non-drawable tools
+    }
+    if (selectedShape === "image") {
+      fileInputRef.current?.click(); // Open the file dialog
+      return; // Stop further drawing logic
     }
 
     const pointerPos = getPointerPosition();
@@ -411,27 +485,45 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             onDblClick={() => handleDoubleClick(shape.id)}
           />
         );
+      case "image":
+        return (
+          <Image
+            {...commonProps}
+            image={shape.image} // The HTMLImageElement
+            width={shape.width}
+            height={shape.height}
+          />
+        );
       default:
         return null;
     }
   };
 
   return (
-    <Stage
-      width={parseInt(width)}
-      height={parseInt(height)}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      draggable={isPanning}
-      ref={stageRef}
-    >
-      <Layer>
-        {shapes.map(renderShape)}
-        {drawingShape && renderShape({ ...drawingShape })}
-        <Transformer ref={transformerRef} />
-      </Layer>
-    </Stage>
+    <>
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        ref={fileInputRef}
+        onChange={handleFileChange}
+      />
+      <Stage
+        width={parseInt(width)}
+        height={parseInt(height)}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        draggable={isPanning}
+        ref={stageRef}
+      >
+        <Layer>
+          {shapes.map(renderShape)}
+          {drawingShape && renderShape({ ...drawingShape })}
+          <Transformer ref={transformerRef} />
+        </Layer>
+      </Stage>
+    </>
   );
 });
 

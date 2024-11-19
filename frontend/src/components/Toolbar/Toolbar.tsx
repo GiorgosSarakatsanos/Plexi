@@ -6,6 +6,7 @@ import {
   LuMinus,
   LuType,
   LuHexagon,
+  LuImage,
 } from "react-icons/lu";
 import { HStack, IconButton } from "@chakra-ui/react";
 import { Tooltip } from "../ui/tooltip";
@@ -14,11 +15,13 @@ import { SelectedShape } from "../Shape/ToolTypes";
 interface ToolbarProps {
   selectedShape: SelectedShape;
   setSelectedShape: React.Dispatch<React.SetStateAction<SelectedShape>>;
+  handleUploadImage: () => void; // Add this
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
   selectedShape,
   setSelectedShape,
+  handleUploadImage,
 }) => {
   const handleShapeSelection = (shapeType: SelectedShape) => {
     console.log("Selected shape:", shapeType); // Debugging
@@ -103,6 +106,21 @@ const Toolbar: React.FC<ToolbarProps> = ({
             colorPalette="blue"
           >
             <LuType />
+          </IconButton>
+        </Tooltip>
+        <Tooltip showArrow content={"Image"}>
+          <IconButton
+            aria-label="Image"
+            onClick={() => {
+              setSelectedShape("image");
+              handleUploadImage(); // Open the file dialog
+            }}
+            variant={selectedShape === "image" ? "solid" : "ghost"}
+            rounded="full"
+            size="xs"
+            colorPalette="blue"
+          >
+            <LuImage />
           </IconButton>
         </Tooltip>
       </HStack>
