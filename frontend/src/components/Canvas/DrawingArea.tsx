@@ -31,14 +31,9 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
 
   const handleEditClick = () => {
     setIsEditable(true);
-
-    // Add null checks for rectRef and trRef
     if (rectRef.current && trRef.current) {
-      const transformer = trRef.current;
-      const rectangle = rectRef.current;
-
-      transformer.nodes([rectangle]);
-      transformer.getLayer()?.batchDraw(); // Add optional chaining for safety
+      trRef.current.nodes([rectRef.current]);
+      trRef.current.getLayer()?.batchDraw();
     }
   };
 
@@ -67,18 +62,16 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
     }
   };
 
-  // Listen for clicks outside of the DrawingArea to deselect
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!rectRef.current) return;
 
       const stage = rectRef.current.getStage();
 
-      if (!stage) return; // Ensure stage is not null
+      if (!stage) return;
 
       const target = e.target as HTMLElement;
 
-      // Check if the click is outside the Konva stage or shapes
       const clickedOnStage = stage.content === target;
 
       if (clickedOnStage && isEditable) {
@@ -103,6 +96,7 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
   const adjustedX = rectProps.x * scale;
   const adjustedY = rectProps.y * scale;
   const adjustedWidth = rectProps.width * scale;
+  const adjustedHeight = rectProps.height * scale;
 
   return (
     <>
@@ -114,22 +108,25 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
             top: `${adjustedY}px`,
             left: `${adjustedX}px`,
             width: `${adjustedWidth}px`,
+            height: `${adjustedHeight}px`,
             pointerEvents: "auto",
             zIndex: 10,
             display: "flex",
             flexDirection: "column",
             boxSizing: "border-box",
+            backgroundColor: "transparent",
+            overflow: "hidden", // Hide excess elements
           },
         }}
       >
-        {/* Header Section */}
+        {/* Top Section: Header */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: `${4 / scale}px`,
-            borderBottom: `${1 / scale}px solid lightgray`,
+            backgroundColor: "transparent",
+            padding: "4px",
           }}
         >
           <div
@@ -137,23 +134,23 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              marginRight: `${10 / scale}px`,
+              marginRight: "10px",
             }}
-            onClick={handleEditClick} // Toggle edit mode
+            onClick={handleEditClick}
           >
-            <LuPencil size={12 / scale} color="gray" />
+            <LuPencil size={12} color="gray" />
           </div>
           <input
             type="text"
             placeholder="Drawing area"
             style={{
               flex: 1,
-              height: `${18 / scale}px`,
-              color: `rgba(128, 128, 128, ${isInputFocused ? 1 : 0.4})`,
-              padding: `${2 / scale}px`,
+              height: "22px",
               fontSize: `${9 / scale}px`,
-              background: "transparent",
-              marginRight: `${10 / scale}px`,
+              color: `rgba(128, 128, 128, ${isInputFocused ? 1 : 0.4})`,
+              padding: "2px",
+              backgroundColor: "transparent",
+              marginRight: "10px",
             }}
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
@@ -166,32 +163,39 @@ const DrawingArea: React.FC<DrawingAreaProps> = ({
             }}
             onMouseEnter={() => setIsPrinterHovered(true)}
             onMouseLeave={() => setIsPrinterHovered(false)}
-            onClick={() => {
-              console.log("Printing this area...");
-            }}
+            onClick={() => console.log("Printing this area...")}
           >
             <LuPrinter
-              size={12 / scale}
+              size={12}
               color={`rgba(128, 128, 128, ${isPrinterHovered ? 1 : 0.4})`}
             />
           </div>
         </div>
-      </Html>
 
-      {/* DrawingArea Rectangle */}
-      <Rect
-        ref={rectRef}
-        x={rectProps.x}
-        y={rectProps.y}
-        width={rectProps.width}
-        height={rectProps.height}
-        fill="white"
-        stroke={isEditable ? "blue" : "lightgray"}
-        strokeWidth={2 / scale}
-        draggable={isEditable} // Allow dragging when in edit mode
-        onDragMove={handleDragMove}
-        onTransform={handleTransform}
-      />
+        {/* Bottom Section: Drawing Area */}
+        <div
+          style={{
+            flex: 1,
+            backgroundColor: "white", // White background for drawing area
+            border: "1px solid lightgray",
+            overflow: "hidden",
+          }}
+        >
+          <Rect
+            ref={rectRef}
+            x={0} // Positioned at top-left within the container
+            y={0}
+            width={rectProps.width}
+            height={rectProps.height - 22} // Adjust height for header
+            fill="white"
+            stroke={isEditable ? "blue" : "lightgray"}
+            strokeWidth={2 / scale}
+            draggable={isEditable}
+            onDragMove={handleDragMove}
+            onTransform={handleTransform}
+          />
+        </div>
+      </Html>
 
       {/* Transformer for resizing and rotating */}
       {isEditable && <Transformer ref={trRef} />}
