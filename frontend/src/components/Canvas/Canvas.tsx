@@ -235,7 +235,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
     if (!selectedShape || selectedShape === "select") {
       if (e.target === stage) {
-        console.log("Clicked on empty stage");
         setSelectedShapeId(null); // Deselect all shapes
         setSelectedLayerIds([]); // Clear layer selection
 
@@ -343,6 +342,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       );
     } else {
       console.log("Adding shape globally (no group)");
+      addLayer(selectedShape, layerId); // Ensure layerId is added here
       setShapes((prevShapes) => [...prevShapes, newShape]);
     }
 
@@ -408,7 +408,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
     if (selectedShape === "drawing-area") {
       // Finalize the drawing area rectangle
-      console.log("Finalizing drawing area:", drawingShape);
       setDrawingGroups((prev) =>
         prev.map((group) =>
           group.rect.id === drawingShape.id
@@ -434,7 +433,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     );
 
     if (activeGroup) {
-      console.log("Finalizing shape inside group:", activeGroup.groupId);
       setDrawingGroups((prev) =>
         prev.map((group) =>
           group.groupId === activeGroup.groupId
@@ -443,7 +441,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         )
       );
     } else {
-      console.log("Finalizing shape on stage:", drawingShape);
       // Add the shape to the global shapes array
       setShapes((prevShapes) => [...prevShapes, drawingShape]);
     }
@@ -549,7 +546,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     shapes: Shape[];
     rect: Shape;
   }) => {
-    console.log("Rendering group:", group.groupId);
     return (
       <Group
         key={group.groupId}
@@ -583,8 +579,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   const renderShape = (shape: Shape) => {
-    console.log("Rendering shape:", shape);
-
     const { id, type, ...restProps } = shape;
 
     const commonProps = {
