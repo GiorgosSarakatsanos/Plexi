@@ -9,6 +9,7 @@ import {
   RegularPolygon,
   Text,
   Image,
+  Group,
 } from "react-konva";
 import {
   zoomIn,
@@ -157,6 +158,10 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [drawingGroups, setDrawingGroups] = useState<
+    { groupId: string; shapes: Shape[]; rect: Shape }[]
+  >([]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -246,16 +251,29 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
     const pointerPos = getPointerPosition();
 
+    // Detect if pointer is inside any drawing area
+    const activeGroup = drawingGroups.find(
+      (group) =>
+        pointerPos.x >= group.rect.x &&
+        pointerPos.x <= group.rect.x + group.rect.width &&
+        pointerPos.y >= group.rect.y &&
+        pointerPos.y <= group.rect.y + group.rect.height
+    );
+
+    if (activeGroup) {
+      console.log("Drawing inside group:", activeGroup.groupId);
+    } else {
+      console.log("Drawing on the stage (no group)");
+    }
+
+    // Handle creation of the drawing area itself
     if (selectedShape === "drawing-area") {
       const id = generateId();
       const layerId = generateId();
+      const groupId = `group-${id}`;
 
-      // Create a new layer for the drawing area
-      const newDrawingAreaLayer = new Konva.Layer({ id: layerId });
-      stage?.add(newDrawingAreaLayer);
-
-      // Create a rectangle as the drawing area
-      const newDrawingArea: Shape = {
+      // Create a rectangle for the drawing area
+      const newRect: Shape = {
         id: `shape-${id}`,
         type: "rect",
         x: pointerPos.x,
@@ -268,44 +286,22 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         layerId,
       };
 
-      // Add the layer to the state and set the new drawing shape
-      addLayer("drawingArea", layerId);
-      setDrawingShape(newDrawingArea);
-      setIsDrawing(true);
+      // Create a new drawing group
+      const newGroup = {
+        groupId,
+        shapes: [], // Shapes inside this group
+        rect: newRect, // The rectangle representing the area
+      };
 
+      setDrawingGroups((prev) => [...prev, newGroup]);
+      setDrawingShape(newRect);
+      setIsDrawing(true);
       return;
     }
 
-    if (selectedShape === "image") {
-      fileInputRef.current?.click(); // Open the file dialog
-      return; // Stop further drawing logic
-    }
-
+    // Create a new shape (e.g., line or rect)
     const id = generateId();
     const layerId = generateId();
-
-    if (selectedShape === "text") {
-      const newText: Shape = {
-        id: `shape-${id}`,
-        type: "text",
-        x: pointerPos.x,
-        y: pointerPos.y,
-        text: "Double-click to edit",
-        fill: "black",
-        stroke: "transparent",
-        strokeWidth: 1,
-        fontSize: 16,
-        fontFamily: "Arial",
-        layerId,
-      };
-      addLayer("text", layerId);
-
-      setShapes((prevShapes) => [...prevShapes, newText]);
-      setSelectedShapeId(newText.id);
-      setSelectedLayerIds([newText.layerId]);
-      return;
-    }
-
     let newShape: Shape;
 
     if (selectedShape === "line") {
@@ -335,9 +331,22 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       };
     }
 
-    addLayer(selectedShape, layerId);
+    // Add the shape to the appropriate group or globally
+    if (activeGroup) {
+      console.log("Adding shape to group:", activeGroup.groupId);
+      setDrawingGroups((prev) =>
+        prev.map((group) =>
+          group.groupId === activeGroup.groupId
+            ? { ...group, shapes: [...group.shapes, newShape] }
+            : group
+        )
+      );
+    } else {
+      console.log("Adding shape globally (no group)");
+      setShapes((prevShapes) => [...prevShapes, newShape]);
+    }
+
     setDrawingShape(newShape);
-    setSelectedLayerIds([layerId]);
     setIsDrawing(true);
   };
 
@@ -377,17 +386,70 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
       return prev;
     });
+
+    setDrawingGroups((prev) =>
+      prev.map((group) =>
+        group.rect.id === drawingShape.id
+          ? {
+              ...group,
+              rect: {
+                ...group.rect,
+                width: drawingShape.width,
+                height: drawingShape.height,
+              },
+            }
+          : group
+      )
+    );
   };
 
   const handleMouseUp = () => {
     if (!drawingShape) return;
 
-    setShapes((prevShapes) => [...prevShapes, drawingShape]);
-    setSelectedShapeId(drawingShape.id); // Select the created shape
+    if (selectedShape === "drawing-area") {
+      // Finalize the drawing area rectangle
+      console.log("Finalizing drawing area:", drawingShape);
+      setDrawingGroups((prev) =>
+        prev.map((group) =>
+          group.rect.id === drawingShape.id
+            ? { ...group, rect: drawingShape }
+            : group
+        )
+      );
+
+      setDrawingShape(null);
+      setIsDrawing(false);
+      props.setSelectedShape("select");
+      return;
+    }
+
+    // If a shape is being drawn inside a group
+    const pointerPos = getPointerPosition();
+    const activeGroup = drawingGroups.find(
+      (group) =>
+        pointerPos.x >= group.rect.x &&
+        pointerPos.x <= group.rect.x + group.rect.width &&
+        pointerPos.y >= group.rect.y &&
+        pointerPos.y <= group.rect.y + group.rect.height
+    );
+
+    if (activeGroup) {
+      console.log("Finalizing shape inside group:", activeGroup.groupId);
+      setDrawingGroups((prev) =>
+        prev.map((group) =>
+          group.groupId === activeGroup.groupId
+            ? { ...group, shapes: [...group.shapes, drawingShape] }
+            : group
+        )
+      );
+    } else {
+      console.log("Finalizing shape on stage:", drawingShape);
+      // Add the shape to the global shapes array
+      setShapes((prevShapes) => [...prevShapes, drawingShape]);
+    }
+
     setDrawingShape(null);
     setIsDrawing(false);
-
-    // Automatically switch back to the "select" tool
     props.setSelectedShape("select");
   };
 
@@ -482,7 +544,47 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     });
   };
 
+  const renderGroup = (group: {
+    groupId: string;
+    shapes: Shape[];
+    rect: Shape;
+  }) => {
+    console.log("Rendering group:", group.groupId);
+    return (
+      <Group
+        key={group.groupId}
+        id={group.groupId}
+        draggable
+        onDragMove={(e) => {
+          const { x, y } = e.target.position();
+          setDrawingGroups((prev) =>
+            prev.map((g) =>
+              g.groupId === group.groupId
+                ? {
+                    ...g,
+                    rect: { ...g.rect, x, y },
+                    shapes: g.shapes.map((shape) => ({
+                      ...shape,
+                      x: shape.x + (x - g.rect.x),
+                      y: shape.y + (y - g.rect.y),
+                    })),
+                  }
+                : g
+            )
+          );
+        }}
+      >
+        {/* Render the rectangle for the drawing area */}
+        {renderShape(group.rect)}
+        {/* Render the shapes inside the group */}
+        {group.shapes.map((shape) => renderShape(shape))}
+      </Group>
+    );
+  };
+
   const renderShape = (shape: Shape) => {
+    console.log("Rendering shape:", shape);
+
     const { id, type, ...restProps } = shape;
 
     const commonProps = {
@@ -586,8 +688,16 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         ref={stageRef}
       >
         <Layer>
+          {/* Render all drawing groups */}
+          {drawingGroups.map(renderGroup)}
+
+          {/* Render global shapes */}
           {shapes.map(renderShape)}
-          {drawingShape && renderShape({ ...drawingShape })}
+
+          {/* Render in-progress drawing shape */}
+          {drawingShape && renderShape(drawingShape)}
+
+          {/* Transformer */}
           <Transformer ref={transformerRef} />
         </Layer>
       </Stage>
