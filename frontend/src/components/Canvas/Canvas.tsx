@@ -21,7 +21,6 @@ import { usePointerPosition } from "../Shape/usePointerPosition";
 import { useLayerContext } from "../Layer/useLayerContext";
 import Konva from "konva";
 import { SelectedShape, DrawableShape } from "../Shape/ToolTypes";
-import DrawingArea from "./DrawingArea";
 
 interface CanvasProps {
   backgroundColor: string;
@@ -74,22 +73,13 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const [drawingArea, setDrawingArea] = useState<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null>(null);
-  const [drawingAreas, setDrawingAreas] = useState<
-    { x: number; y: number; width: number; height: number }[]
-  >([]);
 
   // Function to select a shape by ID
   const selectShapeById = (shapeId: string) => {
-    const drawingShape = shapes.find((s) => s.id === shapeId);
-    if (drawingShape) {
-      setShapes((prevShapes) => [...prevShapes, drawingShape]);
-      setSelectedShapeId(drawingShape.id); // Select the created shape
+    const shape = shapes.find((s) => s.id === shapeId);
+    if (shape) {
+      setSelectedShapeId(shape.id);
+      setSelectedLayerIds([shape.layerId]); // Highlight the related layer
     }
   };
 
@@ -154,45 +144,16 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const transformer = transformerRef.current;
     const stage = stageRef.current;
 
-    if (!transformer || !stage) return;
+    if (!transformer || !stage || !selectedShapeId) return;
 
-    if (selectedShapeId) {
-      // Find the currently selected shape
-      const selectedNode = stage.findOne(`#${selectedShapeId}`);
-      if (selectedNode) {
-        // Attach the transformer to the selected shape
-        transformer.nodes([selectedNode]);
-        transformer.getLayer()?.batchDraw();
-      } else {
-        // Deselect transformer if no node is found
-        transformer.nodes([]);
-        transformer.getLayer()?.batchDraw();
-      }
-    } else {
-      // Deselect transformer
-      transformer.nodes([]);
+    const selectedNode = stage.findOne(`#${selectedShapeId}`);
+    if (selectedNode) {
+      transformer.nodes([selectedNode]);
       transformer.getLayer()?.batchDraw();
+    } else {
+      transformer.nodes([]); // Deselect transformer if no node is found
     }
   }, [selectedShapeId, shapes]);
-
-  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    // Check if clicked on an empty area
-    if (e.target === stage) {
-      // Deselect shape
-      setSelectedShapeId(null);
-
-      // Disable dragging for all shapes
-      setShapes((prevShapes) =>
-        prevShapes.map((shape) => ({
-          ...shape,
-          draggable: false,
-        }))
-      );
-    }
-  };
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -270,27 +231,48 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     if (!selectedShape || selectedShape === "select") {
       if (e.target === stage) {
         console.log("Clicked on empty stage");
-        setSelectedShapeId(null);
-        setSelectedLayerIds([]);
+        setSelectedShapeId(null); // Deselect all shapes
+        setSelectedLayerIds([]); // Clear layer selection
+
+        // Reset the Transformer
         const transformer = transformerRef.current;
         if (transformer) {
-          transformer.nodes([]);
+          transformer.nodes([]); // Clear all nodes from the Transformer
           transformer.getLayer()?.batchDraw();
         }
       }
       return;
     }
 
+    const pointerPos = getPointerPosition();
+
     if (selectedShape === "drawing-area") {
-      const pointerPos = stageRef.current?.getPointerPosition();
-      if (pointerPos) {
-        setDrawingArea({
-          x: pointerPos.x,
-          y: pointerPos.y,
-          width: 0,
-          height: 0,
-        });
-      }
+      const id = generateId();
+      const layerId = generateId();
+
+      // Create a new layer for the drawing area
+      const newDrawingAreaLayer = new Konva.Layer({ id: layerId });
+      stage?.add(newDrawingAreaLayer);
+
+      // Create a rectangle as the drawing area
+      const newDrawingArea: Shape = {
+        id: `shape-${id}`,
+        type: "rect",
+        x: pointerPos.x,
+        y: pointerPos.y,
+        width: 0,
+        height: 0,
+        fill: "white",
+        stroke: "lightgray",
+        strokeWidth: 1,
+        layerId,
+      };
+
+      // Add the layer to the state and set the new drawing shape
+      addLayer("drawingArea", layerId);
+      setDrawingShape(newDrawingArea);
+      setIsDrawing(true);
+
       return;
     }
 
@@ -299,7 +281,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       return; // Stop further drawing logic
     }
 
-    const pointerPos = getPointerPosition();
     const id = generateId();
     const layerId = generateId();
 
@@ -360,40 +341,54 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setIsDrawing(true);
   };
 
-  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (selectedShape === "drawing-area" && drawingArea) {
-      const pointerPos = e.target.getStage()?.getPointerPosition();
-      if (pointerPos) {
-        setDrawingArea((prev) =>
-          prev
-            ? {
-                ...prev,
-                width: pointerPos.x - prev.x,
-                height: pointerPos.y - prev.y,
-              }
-            : null
+  const handleMouseMove = () => {
+    if (!drawingShape) return;
+
+    const pointerPos = getPointerPosition(); // Get the pointer position
+
+    setDrawingShape((prev) => {
+      if (!prev) return null;
+
+      if (prev.type === "line") {
+        // Update line's endpoint
+        const [startX, startY] = prev.points!;
+        return {
+          ...prev,
+          points: [startX, startY, pointerPos.x, pointerPos.y],
+        };
+      } else if (prev.type === "rect" || prev.type === "ellipse") {
+        // Update width and height for other shapes
+        return {
+          ...prev,
+          width: pointerPos.x - prev.x,
+          height: pointerPos.y - prev.y,
+        };
+      } else if (prev.type === "hexagon") {
+        // Update radius for hexagon
+        const radius = Math.sqrt(
+          Math.pow(pointerPos.x - prev.x, 2) +
+            Math.pow(pointerPos.y - prev.y, 2)
         );
+        return {
+          ...prev,
+          radius,
+        };
       }
-    }
+
+      return prev;
+    });
   };
 
   const handleMouseUp = () => {
-    if (selectedShape === "drawing-area" && drawingArea) {
-      setDrawingAreas((prev) => [...prev, drawingArea]); // Persist the drawing area
-      setDrawingArea(null); // Clear the temporary drawing area
-      props.setSelectedShape("select"); // Reset to select tool
-      return;
-    }
+    if (!drawingShape) return;
 
-    if (drawingShape) {
-      setShapes((prevShapes) => [...prevShapes, drawingShape]);
-      setSelectedShapeId(drawingShape.id); // Select the created shape
-      setDrawingShape(null);
-      setIsDrawing(false);
+    setShapes((prevShapes) => [...prevShapes, drawingShape]);
+    setSelectedShapeId(drawingShape.id); // Select the created shape
+    setDrawingShape(null);
+    setIsDrawing(false);
 
-      // Automatically switch back to the "select" tool
-      props.setSelectedShape("select");
-    }
+    // Automatically switch back to the "select" tool
+    props.setSelectedShape("select");
   };
 
   const handleDoubleClick = (shapeId: string) => {
@@ -488,29 +483,39 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   const renderShape = (shape: Shape) => {
+    const { id, type, ...restProps } = shape;
+
     const commonProps = {
-      key: shape.id,
-      id: shape.id,
-      x: shape.x,
-      y: shape.y,
-      fill: shape.fill,
-      stroke: shape.stroke,
-      strokeWidth: shape.strokeWidth,
+      id,
+      ...restProps,
       draggable: !isDrawing && !isPanning,
       strokeScaleEnabled: false,
+      onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
+        const { x, y } = e.target.position();
+        setShapes((prevShapes) =>
+          prevShapes.map((s) => (s.id === id ? { ...s, x, y } : s))
+        );
+      },
+      onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
+        const { x, y } = e.target.position();
+        setShapes((prevShapes) =>
+          prevShapes.map((s) => (s.id === id ? { ...s, x, y } : s))
+        );
+      },
       onClick:
         selectedShape === "select"
           ? () => {
-              setSelectedShapeId(shape.id);
+              setSelectedShapeId(id);
               setSelectedLayerIds([shape.layerId]);
             }
           : undefined,
     };
 
-    switch (shape.type) {
+    switch (type) {
       case "rect":
         return (
           <Rect
+            key={id} // Pass key explicitly
             {...commonProps}
             width={shape.width || 0}
             height={shape.height || 0}
@@ -519,16 +524,18 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       case "ellipse":
         return (
           <Ellipse
+            key={id}
             {...commonProps}
             radiusX={(shape.width || 0) / 2}
             radiusY={(shape.height || 0) / 2}
           />
         );
       case "line":
-        return <Line {...commonProps} points={shape.points || []} />;
+        return <Line key={id} {...commonProps} points={shape.points || []} />;
       case "hexagon":
         return (
           <RegularPolygon
+            key={id}
             {...commonProps}
             sides={6}
             radius={shape.radius || 0}
@@ -537,18 +544,20 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       case "text":
         return (
           <Text
+            key={id}
             {...commonProps}
             text={shape.text || ""}
             fontSize={shape.fontSize}
             fontFamily={shape.fontFamily}
-            onDblClick={() => handleDoubleClick(shape.id)}
+            onDblClick={() => handleDoubleClick(id)}
           />
         );
       case "image":
         return (
           <Image
+            key={id}
             {...commonProps}
-            image={shape.image} // The HTMLImageElement
+            image={shape.image}
             width={shape.width}
             height={shape.height}
           />
@@ -570,47 +579,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       <Stage
         width={parseInt(width)}
         height={parseInt(height)}
-        onMouseDown={(e) => {
-          handleStageClick(e); // Detect clicks on empty space
-          handleMouseDown(e); // Existing logic for creating shapes
-        }}
+        onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         draggable={isPanning}
         ref={stageRef}
       >
-        {/* Render all drawing areas */}
-        {drawingAreas.map((area, index) => (
-          <Layer key={`layer-${index}`}>
-            <DrawingArea
-              x={area.x}
-              y={area.y}
-              width={area.width}
-              height={area.height}
-              scale={stageRef.current?.scaleX() || 1}
-              onDeselect={() => setSelectedShapeId(null)} // Clear selection on canvas click
-            />
-          </Layer>
-        ))}
-
-        {/* Render the current drawing area */}
-        {/* Render the current drawing area */}
-        {drawingArea && (
-          <Layer key="drawing-area-layer">
-            <Rect
-              x={drawingArea.x}
-              y={drawingArea.y}
-              width={drawingArea.width}
-              height={drawingArea.height}
-              fill="rgba(0, 0, 255, 0.1)" // Light background for visibility
-              stroke="blue"
-              strokeWidth={1}
-              dash={[10, 10]} // Dashed border for better UX
-            />
-          </Layer>
-        )}
-
-        {/* Main layer for other shapes */}
         <Layer>
           {shapes.map(renderShape)}
           {drawingShape && renderShape({ ...drawingShape })}

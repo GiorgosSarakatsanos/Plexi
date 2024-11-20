@@ -15,4 +15,5 @@ export type DrawableShape =
   | "line"
   | "hexagon"
   | "text"
-  | "image";
+  | "image"
+  | "drawing-area";
