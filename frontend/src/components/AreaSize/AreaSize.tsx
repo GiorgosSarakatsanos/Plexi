@@ -1,179 +1,78 @@
 import React, { useState } from "react";
 
 interface AreaSizeProps {
-  onSizeChange: (width: number, height: number, unit: string) => void; // Callback for size change
+  selectedAreaId: string | null; // The ID of the currently selected area
+  onResize: (areaId: string, width: number, height: number) => void; // Callback to resize the area
 }
 
-const AreaSize: React.FC<AreaSizeProps> = ({ onSizeChange }) => {
-  const [unit, setUnit] = useState("px");
-  const [selectedSize, setSelectedSize] = useState("");
+const predefinedSizes = [
+  { label: "Small (200x200)", width: 200, height: 200 },
+  { label: "Medium (400x400)", width: 400, height: 400 },
+  { label: "Large (600x600)", width: 600, height: 600 },
+  { label: "Wide (800x400)", width: 800, height: 400 },
+  { label: "Tall (400x800)", width: 400, height: 800 },
+  { label: "Extra Large (1000x1000)", width: 1000, height: 1000 },
+  { label: "Banner (1200x300)", width: 1200, height: 300 },
+  { label: "Square (500x500)", width: 500, height: 500 },
+  { label: "Portrait (300x600)", width: 300, height: 600 },
+  { label: "Landscape (600x300)", width: 600, height: 300 },
+];
 
-  // Predefined sizes with width, height, and description
-  const sizes = [
-    { id: "web", label: "Web (1920x1080)", width: 1920, height: 1080 },
-    { id: "page-a4", label: "A4 (210x297 mm)", width: 210, height: 297 },
-    { id: "page-letter", label: "Letter (8.5x11 in)", width: 8.5, height: 11 },
-    {
-      id: "business-card",
-      label: "Business Card (85x55 mm)",
-      width: 85,
-      height: 55,
-    },
-    { id: "brochure", label: "Brochure (297x420 mm)", width: 297, height: 420 },
-    { id: "banner", label: "Banner (1600x400 px)", width: 1600, height: 400 },
-    {
-      id: "square-small",
-      label: "Square (300x300 px)",
-      width: 300,
-      height: 300,
-    },
-    {
-      id: "poster-a1",
-      label: "Poster A1 (594x841 mm)",
-      width: 594,
-      height: 841,
-    },
-    {
-      id: "poster-a2",
-      label: "Poster A2 (420x594 mm)",
-      width: 420,
-      height: 594,
-    },
-    {
-      id: "poster-a3",
-      label: "Poster A3 (297x420 mm)",
-      width: 297,
-      height: 420,
-    },
-    {
-      id: "social-post",
-      label: "Social Post (1080x1080 px)",
-      width: 1080,
-      height: 1080,
-    },
-    { id: "flyer", label: "Flyer (148x210 mm)", width: 148, height: 210 },
-    {
-      id: "tablet-screen",
-      label: "Tablet Screen (1024x768 px)",
-      width: 1024,
-      height: 768,
-    },
-    {
-      id: "mobile-screen",
-      label: "Mobile Screen (375x667 px)",
-      width: 375,
-      height: 667,
-    },
-    {
-      id: "web-banner",
-      label: "Web Banner (728x90 px)",
-      width: 728,
-      height: 90,
-    },
-    {
-      id: "square-large",
-      label: "Square Large (800x800 px)",
-      width: 800,
-      height: 800,
-    },
-    {
-      id: "presentation-slide",
-      label: "Presentation Slide (1920x1080 px)",
-      width: 1920,
-      height: 1080,
-    },
-    {
-      id: "wide-banner",
-      label: "Wide Banner (2560x400 px)",
-      width: 2560,
-      height: 400,
-    },
-    {
-      id: "book-cover",
-      label: "Book Cover (174x248 mm)",
-      width: 174,
-      height: 248,
-    },
-    { id: "photo-5x7", label: "Photo (5x7 in)", width: 5, height: 7 },
-  ];
+const AreaSize: React.FC<AreaSizeProps> = ({ selectedAreaId, onResize }) => {
+  const [customWidth, setCustomWidth] = useState<number>(200);
+  const [customHeight, setCustomHeight] = useState<number>(200);
 
-  const handleSizeSelect = (sizeId: string) => {
-    const selected = sizes.find((size) => size.id === sizeId);
-    if (selected) {
-      setSelectedSize(sizeId);
-      onSizeChange(selected.width, selected.height, unit);
+  const handleSizeChange = (width: number, height: number) => {
+    if (selectedAreaId) {
+      onResize(selectedAreaId, width, height);
     }
   };
 
-  const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setUnit(e.target.value);
-
-    // Adjust sizes when the unit changes
-    const selected = sizes.find((size) => size.id === selectedSize);
-    if (selected) {
-      let width = selected.width;
-      let height = selected.height;
-
-      if (e.target.value === "mm") {
-        width *= 0.264583; // px to mm conversion
-        height *= 0.264583;
-      } else if (e.target.value === "m") {
-        width *= 0.000264583; // px to meters conversion
-        height *= 0.000264583;
-      } else if (e.target.value === "in") {
-        width *= 0.0104167; // px to inches conversion
-        height *= 0.0104167;
-      } else {
-        // Default back to px
-        width = selected.width;
-        height = selected.height;
-      }
-
-      onSizeChange(width, height, e.target.value);
+  const handleCustomSizeApply = () => {
+    if (selectedAreaId) {
+      onResize(selectedAreaId, customWidth, customHeight);
     }
   };
 
   return (
-    <div
-      style={{
-        padding: "10px",
-        border: "1px solid lightgray",
-        borderRadius: "5px",
-      }}
-    >
-      <div style={{ marginBottom: "10px" }}>
-        <label htmlFor="unit-selector" style={{ marginRight: "5px" }}>
-          Unit:
-        </label>
-        <select
-          id="unit-selector"
-          value={unit}
-          onChange={handleUnitChange}
-          style={{ padding: "5px", borderRadius: "3px" }}
-        >
-          <option value="px">Pixels (px)</option>
-          <option value="mm">Millimeters (mm)</option>
-          <option value="m">Meters (m)</option>
-          <option value="in">Inches (in)</option>
-        </select>
-      </div>
-      <div>
-        <label htmlFor="size-selector" style={{ marginRight: "5px" }}>
-          Size:
-        </label>
-        <select
-          id="size-selector"
-          value={selectedSize}
-          onChange={(e) => handleSizeSelect(e.target.value)}
-          style={{ padding: "5px", borderRadius: "3px", width: "100%" }}
-        >
-          <option value="">Select a size</option>
-          {sizes.map((size) => (
-            <option key={size.id} value={size.id}>
-              {size.label}
-            </option>
-          ))}
-        </select>
+    <div>
+      <h3>Resize Area</h3>
+      <select
+        onChange={(e) => {
+          const [width, height] = e.target.value.split("x").map(Number);
+          handleSizeChange(width, height);
+        }}
+        disabled={!selectedAreaId}
+        defaultValue=""
+      >
+        <option value="" disabled>
+          Select Size
+        </option>
+        {predefinedSizes.map((size) => (
+          <option key={size.label} value={`${size.width}x${size.height}`}>
+            {size.label}
+          </option>
+        ))}
+      </select>
+      <div style={{ marginTop: "10px" }}>
+        <h4>Custom Size</h4>
+        <input
+          type="number"
+          placeholder="Width"
+          value={customWidth}
+          onChange={(e) => setCustomWidth(Number(e.target.value))}
+          disabled={!selectedAreaId}
+        />
+        <input
+          type="number"
+          placeholder="Height"
+          value={customHeight}
+          onChange={(e) => setCustomHeight(Number(e.target.value))}
+          disabled={!selectedAreaId}
+        />
+        <button onClick={handleCustomSizeApply} disabled={!selectedAreaId}>
+          Apply
+        </button>
       </div>
     </div>
   );

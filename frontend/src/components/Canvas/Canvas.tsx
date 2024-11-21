@@ -66,6 +66,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const groupTransformerRef = useRef<Konva.Transformer>(null);
+
   const getPointerPosition = usePointerPosition(stageRef);
 
   const { addLayer, setSelectedLayerIds } = useLayerContext();
@@ -74,13 +76,15 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   // Function to select a shape by ID
   const selectShapeById = (shapeId: string) => {
     const shape = shapes.find((s) => s.id === shapeId);
     if (shape) {
       setSelectedShapeId(shape.id);
-      setSelectedLayerIds([shape.layerId]); // Highlight the related layer
+      setSelectedLayerIds([shape.layerId]);
+      setSelectedGroupId(null); // Deselect group if a shape is selected
     }
   };
 
@@ -141,26 +145,37 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     };
   }, []);
 
-  useEffect(() => {
-    const transformer = transformerRef.current;
-    const stage = stageRef.current;
-
-    if (!transformer || !stage || !selectedShapeId) return;
-
-    const selectedNode = stage.findOne(`#${selectedShapeId}`);
-    if (selectedNode) {
-      transformer.nodes([selectedNode]);
-      transformer.getLayer()?.batchDraw();
-    } else {
-      transformer.nodes([]); // Deselect transformer if no node is found
-    }
-  }, [selectedShapeId, shapes]);
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const [drawingGroups, setDrawingGroups] = useState<
     { groupId: string; shapes: Shape[]; rect: Shape }[]
   >([]);
+
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    const groupTransformer = groupTransformerRef.current;
+    const stage = stageRef.current;
+
+    if (!stage) return;
+
+    if (selectedGroupId) {
+      const group = stage.findOne(`#${selectedGroupId}`);
+      if (group && groupTransformer) {
+        groupTransformer.nodes([group]);
+        groupTransformer.getLayer()?.batchDraw();
+      }
+    } else if (selectedShapeId) {
+      const shape = stage.findOne(`#${selectedShapeId}`);
+      if (shape && transformer) {
+        transformer.nodes([shape]);
+        transformer.getLayer()?.batchDraw();
+      }
+    } else {
+      // Deselect both transformers
+      if (transformer) transformer.nodes([]);
+      if (groupTransformer) groupTransformer.nodes([]);
+    }
+  }, [selectedShapeId, selectedGroupId, shapes]);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -231,26 +246,37 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   }));
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (isDrawing) {
+      return; // Prevent creating multiple shapes at once
+    }
+
     const stage = stageRef.current;
 
     if (!selectedShape || selectedShape === "select") {
       if (e.target === stage) {
-        setSelectedShapeId(null); // Deselect all shapes
-        setSelectedLayerIds([]); // Clear layer selection
+        setSelectedShapeId(null);
+        setSelectedGroupId(null);
+        setSelectedLayerIds([]);
 
-        // Reset the Transformer
         const transformer = transformerRef.current;
         if (transformer) {
-          transformer.nodes([]); // Clear all nodes from the Transformer
+          transformer.nodes([]);
           transformer.getLayer()?.batchDraw();
         }
+
+        const groupTransformer = groupTransformerRef.current;
+        if (groupTransformer) {
+          groupTransformer.nodes([]);
+          groupTransformer.getLayer()?.batchDraw();
+        }
+      } else if (e.target?.hasName("group")) {
+        setSelectedGroupId(e.target.id());
+        setSelectedShapeId(null);
       }
       return;
     }
 
     const pointerPos = getPointerPosition();
-
-    // Detect if pointer is inside any drawing area
     const activeGroup = drawingGroups.find(
       (group) =>
         pointerPos.x >= group.rect.x &&
@@ -321,8 +347,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         type: selectedShape,
         x: pointerPos.x,
         y: pointerPos.y,
-        width: 0,
-        height: 0,
+        width: 1,
+        height: 1,
         fill: "transparent",
         stroke: "blue",
         strokeWidth: 1,
@@ -332,7 +358,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
     // Add the shape to the appropriate group or globally
     if (activeGroup) {
-      console.log("Adding shape to group:", activeGroup.groupId);
       setDrawingGroups((prev) =>
         prev.map((group) =>
           group.groupId === activeGroup.groupId
@@ -341,9 +366,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         )
       );
     } else {
-      console.log("Adding shape globally (no group)");
-      addLayer(selectedShape, layerId); // Ensure layerId is added here
-      setShapes((prevShapes) => [...prevShapes, newShape]);
+      // Do not add the shape to `shapes` here
+      setDrawingShape(newShape);
     }
 
     setDrawingShape(newShape);
@@ -406,8 +430,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const handleMouseUp = () => {
     if (!drawingShape) return;
 
+    // Finalize the drawing area if selectedShape is "drawing-area"
     if (selectedShape === "drawing-area") {
-      // Finalize the drawing area rectangle
       setDrawingGroups((prev) =>
         prev.map((group) =>
           group.rect.id === drawingShape.id
@@ -415,14 +439,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             : group
         )
       );
-
       setDrawingShape(null);
       setIsDrawing(false);
       props.setSelectedShape("select");
       return;
     }
 
-    // If a shape is being drawn inside a group
     const pointerPos = getPointerPosition();
     const activeGroup = drawingGroups.find(
       (group) =>
@@ -441,8 +463,14 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         )
       );
     } else {
-      // Add the shape to the global shapes array
+      // Add the drawing shape to the shapes array
       setShapes((prevShapes) => [...prevShapes, drawingShape]);
+
+      // Add a new layer for the drawing shape
+      addLayer(drawingShape.type, drawingShape.layerId);
+
+      // Set the transformer for the new shape
+      setSelectedShapeId(drawingShape.id);
     }
 
     setDrawingShape(null);
@@ -682,17 +710,11 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         ref={stageRef}
       >
         <Layer>
-          {/* Render all drawing groups */}
           {drawingGroups.map(renderGroup)}
-
-          {/* Render global shapes */}
           {shapes.map(renderShape)}
-
-          {/* Render in-progress drawing shape */}
           {drawingShape && renderShape(drawingShape)}
-
-          {/* Transformer */}
           <Transformer ref={transformerRef} />
+          <Transformer ref={groupTransformerRef} />
         </Layer>
       </Stage>
     </>
