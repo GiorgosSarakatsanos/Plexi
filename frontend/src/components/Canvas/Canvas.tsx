@@ -149,31 +149,64 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     { groupId: string; shapes: Shape[]; rect: Shape }[]
   >([]);
 
-  useEffect(() => {
-    const transformer = transformerRef.current;
-    const groupTransformer = groupTransformerRef.current;
-    const stage = stageRef.current;
+ useEffect(() => {
+   const transformer = transformerRef.current;
+   const groupTransformer = groupTransformerRef.current;
+   const stage = stageRef.current;
 
-    if (!stage) return;
+   if (!stage) return;
 
-    if (selectedGroupId) {
-      const group = stage.findOne(`#${selectedGroupId}`);
-      if (group && groupTransformer) {
-        groupTransformer.nodes([group]);
-        groupTransformer.getLayer()?.batchDraw();
-      }
-    } else if (selectedShapeId) {
-      const shape = stage.findOne(`#${selectedShapeId}`);
-      if (shape && transformer) {
-        transformer.nodes([shape]);
-        transformer.getLayer()?.batchDraw();
-      }
-    } else {
-      // Deselect both transformers
-      if (transformer) transformer.nodes([]);
-      if (groupTransformer) groupTransformer.nodes([]);
-    }
-  }, [selectedShapeId, selectedGroupId, shapes]);
+   if (selectedGroupId) {
+     const group = stage.findOne(`#${selectedGroupId}`);
+     if (group && groupTransformer) {
+       groupTransformer.nodes([group]);
+       groupTransformer.getLayer()?.batchDraw();
+     }
+   } else if (selectedShapeId) {
+     const shape = stage.findOne(`#${selectedShapeId}`);
+     if (shape && transformer) {
+       // Apply settings specifically for text shapes
+       if (shape.getClassName() === "Text") {
+         transformer.enabledAnchors([
+           "top-left",
+           "top-right",
+           "bottom-left",
+           "bottom-right",
+         ]); // Only allow corner anchors
+         transformer.boundBoxFunc((oldBox, newBox) => {
+           // Prevent scaling when resizing horizontally or vertically
+           if (
+             newBox.width !== oldBox.width &&
+             newBox.height === oldBox.height
+           ) {
+             // Horizontal dragging: allow movement only
+             return oldBox;
+           }
+           if (
+             newBox.height !== oldBox.height &&
+             newBox.width === oldBox.width
+           ) {
+             // Vertical dragging: allow movement only
+             return oldBox;
+           }
+           return newBox; // Allow resizing from corners
+         });
+       } else {
+         // Reset for other shape types
+         transformer.enabledAnchors(null);
+         transformer.boundBoxFunc(null);
+       }
+
+       transformer.nodes([shape]);
+       transformer.getLayer()?.batchDraw();
+     }
+   } else {
+     // Deselect both transformers
+     if (transformer) transformer.nodes([]);
+     if (groupTransformer) groupTransformer.nodes([]);
+   }
+ }, [selectedShapeId, selectedGroupId, shapes]);
+
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -362,9 +395,9 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         type: "text",
         x: pointerPos.x,
         y: pointerPos.y,
-        text: "Edit me", // Default text
+        text: "Double-click to edit", // Default text
         fill: "black",
-        fontSize: 16,
+        fontSize: 18,
         fontFamily: "Arial",
         stroke: "transparent",
         strokeWidth: 0,
@@ -537,7 +570,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       container.getBoundingClientRect().left + shapePosition.x
     }px`;
     div.style.width = `${(textShape.width || 200) * shapeScale.x}px`; // Set div width to match the text
-    div.style.height = `${textShape.fontSize! * shapeScale.y * 1.2}px`; // Set height based on font size
+    div.style.height = "auto"; // Automatically grow with text
+    div.style.minHeight = `${textShape.fontSize! * shapeScale.y * 1.2}px`; // Set initial height based on font size
     div.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`;
     div.style.fontFamily = textShape.fontFamily || "Arial";
     div.style.color = "black";
@@ -549,12 +583,24 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     div.style.resize = "none";
     div.style.zIndex = "1000";
     div.style.cursor = "text";
+    div.style.whiteSpace = "pre-wrap"; // Enable multiline support
+    div.style.overflow = "hidden"; // Avoid scrollbars
+
+    // Append the div to the document body
+    const styleElement = document.createElement("style");
+    styleElement.innerHTML = `
+    div[contenteditable="true"]::selection {
+      background: rgba(0, 123, 255, 0.5); /* Blue highlight */
+      color: white; /* White text on blue */
+    }
+  `;
+    document.head.appendChild(styleElement);
 
     // Append the div to the document body
     document.body.appendChild(div);
     div.focus();
 
-    // Save changes on blur or Enter key press
+    // Save changes on blur
     const saveChanges = () => {
       const newText = div.innerText.trim();
 
@@ -574,11 +620,14 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       document.body.removeChild(div);
     };
 
+    // Handle blur event to save text
     div.addEventListener("blur", saveChanges);
+
+    // Prevent default Enter behavior (to avoid submitting forms, etc.)
     div.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        saveChanges();
+        document.execCommand("insertHTML", false, "\n"); // Insert a newline
       }
     });
   };
@@ -683,11 +732,13 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       case "text":
         return (
           <Text
+            key={id}
             {...commonProps}
             text={shape.text || ""}
             fontSize={shape.fontSize}
             fontFamily={shape.fontFamily}
-            onDblClick={() => handleDoubleClick(shape.id)}
+            fill={shape.fill}
+            onDblClick={() => handleDoubleClick(shape.id)} // Enable editing on double-click
           />
         );
       case "image":
