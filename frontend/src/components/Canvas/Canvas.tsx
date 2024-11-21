@@ -347,11 +347,27 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         type: selectedShape,
         x: pointerPos.x,
         y: pointerPos.y,
-        width: 1,
+        width: 0,
         height: 1,
         fill: "transparent",
         stroke: "blue",
         strokeWidth: 1,
+        layerId,
+      };
+    }
+
+    if (selectedShape === "text") {
+      newShape = {
+        id: `shape-${id}`,
+        type: "text",
+        x: pointerPos.x,
+        y: pointerPos.y,
+        text: "Edit me", // Default text
+        fill: "black",
+        fontSize: 16,
+        fontFamily: "Arial",
+        stroke: "transparent",
+        strokeWidth: 0,
         layerId,
       };
     }
@@ -491,81 +507,79 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const currentShape = stage.findOne(`#${shapeId}`);
     if (!currentShape) return;
 
-    // Get the absolute position of the text shape
+    // Get the absolute position and scale of the text shape
     const shapePosition = currentShape.getAbsolutePosition();
-    const shapeScale = currentShape.getAbsoluteScale(); // Includes scale transformations
+    const shapeScale = currentShape.getAbsoluteScale();
 
-    // Temporarily hide the text on the canvas
+    // Temporarily hide the text by reducing opacity
     setShapes((prevShapes) =>
       prevShapes.map((shape) =>
         shape.id === shapeId
           ? {
               ...shape,
-              fill: "transparent", // Make the text transparent
+              opacity: 0, // Make the text invisible
             }
           : shape
       )
     );
 
-    // Create a textarea for multiline editing
-    const textarea = document.createElement("textarea");
-    textarea.value = textShape.text || "";
-    textarea.placeholder = "Edit text here..."; // Placeholder text
-    textarea.style.position = "absolute";
-
-    // Align textarea to the exact position and scale of the text on canvas
-    const containerRect = container.getBoundingClientRect();
-    textarea.style.top = `${
-      containerRect.top +
+    // Create a contentEditable div overlay
+    const div = document.createElement("div");
+    div.contentEditable = "true";
+    div.innerText = textShape.text || ""; // Set the current text
+    div.style.position = "absolute";
+    div.style.top = `${
+      container.getBoundingClientRect().top +
       shapePosition.y -
-      (textShape.fontSize! * shapeScale.y) / 2
+      textShape.fontSize! * shapeScale.y * 0.5
     }px`;
-    textarea.style.left = `${containerRect.left + shapePosition.x}px`;
+    div.style.left = `${
+      container.getBoundingClientRect().left + shapePosition.x
+    }px`;
+    div.style.width = `${(textShape.width || 200) * shapeScale.x}px`; // Set div width to match the text
+    div.style.height = `${textShape.fontSize! * shapeScale.y * 1.2}px`; // Set height based on font size
+    div.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`;
+    div.style.fontFamily = textShape.fontFamily || "Arial";
+    div.style.color = "black";
+    div.style.background = "transparent";
+    div.style.outline = "none";
+    div.style.border = "none";
+    div.style.padding = "0";
+    div.style.margin = "0";
+    div.style.resize = "none";
+    div.style.zIndex = "1000";
+    div.style.cursor = "text";
 
-    // Style the textarea to match the text shape
-    textarea.style.width = `${(textShape.width || 200) * shapeScale.x}px`; // Adjust width
-    textarea.style.height = `${textShape.fontSize! * shapeScale.y * 1.5}px`; // Adjust height based on font size
-    textarea.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`;
-    textarea.style.fontFamily = textShape.fontFamily || "Arial";
-    textarea.style.color = textShape.fill;
-    textarea.style.border = "1px solid #ccc";
-    textarea.style.background = "rgba(255, 255, 255, 0.9)";
-    textarea.style.outline = "none";
-    textarea.style.padding = "4px";
-    textarea.style.margin = "0";
-    textarea.style.resize = "none";
-    textarea.style.zIndex = "1000";
+    // Append the div to the document body
+    document.body.appendChild(div);
+    div.focus();
 
-    // Append the textarea to the document body and focus it
-    document.body.appendChild(textarea);
-    textarea.focus();
-
-    // Adjust the height dynamically based on the content
-    const adjustHeight = () => {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    };
-    textarea.addEventListener("input", adjustHeight);
-    adjustHeight(); // Initial adjustment
-
-    // Restore the text and save changes when the textarea loses focus
-    textarea.addEventListener("blur", () => {
-      const newText = textarea.value;
+    // Save changes on blur or Enter key press
+    const saveChanges = () => {
+      const newText = div.innerText.trim();
 
       setShapes((prevShapes) =>
         prevShapes.map((shape) =>
           shape.id === shapeId
             ? {
                 ...shape,
-                text: newText, // Update the text value
-                fill: "black", // Restore original color
+                text: newText || "Double-click to edit", // Save edited text
+                opacity: 1, // Restore opacity
               }
             : shape
         )
       );
 
-      // Clean up the textarea
-      document.body.removeChild(textarea);
+      // Clean up the div
+      document.body.removeChild(div);
+    };
+
+    div.addEventListener("blur", saveChanges);
+    div.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveChanges();
+      }
     });
   };
 
@@ -654,6 +668,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             radiusY={(shape.height || 0) / 2}
           />
         );
+
       case "line":
         return <Line key={id} {...commonProps} points={shape.points || []} />;
       case "hexagon":
@@ -668,12 +683,11 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       case "text":
         return (
           <Text
-            key={id}
             {...commonProps}
             text={shape.text || ""}
             fontSize={shape.fontSize}
             fontFamily={shape.fontFamily}
-            onDblClick={() => handleDoubleClick(id)}
+            onDblClick={() => handleDoubleClick(shape.id)}
           />
         );
       case "image":
