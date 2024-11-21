@@ -149,64 +149,63 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     { groupId: string; shapes: Shape[]; rect: Shape }[]
   >([]);
 
- useEffect(() => {
-   const transformer = transformerRef.current;
-   const groupTransformer = groupTransformerRef.current;
-   const stage = stageRef.current;
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    const groupTransformer = groupTransformerRef.current;
+    const stage = stageRef.current;
 
-   if (!stage) return;
+    if (!stage) return;
 
-   if (selectedGroupId) {
-     const group = stage.findOne(`#${selectedGroupId}`);
-     if (group && groupTransformer) {
-       groupTransformer.nodes([group]);
-       groupTransformer.getLayer()?.batchDraw();
-     }
-   } else if (selectedShapeId) {
-     const shape = stage.findOne(`#${selectedShapeId}`);
-     if (shape && transformer) {
-       // Apply settings specifically for text shapes
-       if (shape.getClassName() === "Text") {
-         transformer.enabledAnchors([
-           "top-left",
-           "top-right",
-           "bottom-left",
-           "bottom-right",
-         ]); // Only allow corner anchors
-         transformer.boundBoxFunc((oldBox, newBox) => {
-           // Prevent scaling when resizing horizontally or vertically
-           if (
-             newBox.width !== oldBox.width &&
-             newBox.height === oldBox.height
-           ) {
-             // Horizontal dragging: allow movement only
-             return oldBox;
-           }
-           if (
-             newBox.height !== oldBox.height &&
-             newBox.width === oldBox.width
-           ) {
-             // Vertical dragging: allow movement only
-             return oldBox;
-           }
-           return newBox; // Allow resizing from corners
-         });
-       } else {
-         // Reset for other shape types
-         transformer.enabledAnchors(null);
-         transformer.boundBoxFunc(null);
-       }
+    if (selectedGroupId) {
+      const group = stage.findOne(`#${selectedGroupId}`);
+      if (group && groupTransformer) {
+        groupTransformer.nodes([group]);
+        groupTransformer.getLayer()?.batchDraw();
+      }
+    } else if (selectedShapeId) {
+      const shape = stage.findOne(`#${selectedShapeId}`);
+      if (shape && transformer) {
+        // Apply settings specifically for text shapes
+        if (shape.getClassName() === "Text") {
+          transformer.enabledAnchors([
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+          ]); // Only allow corner anchors
+          transformer.boundBoxFunc((oldBox, newBox) => {
+            // Prevent scaling when resizing horizontally or vertically
+            if (
+              newBox.width !== oldBox.width &&
+              newBox.height === oldBox.height
+            ) {
+              // Horizontal dragging: allow movement only
+              return oldBox;
+            }
+            if (
+              newBox.height !== oldBox.height &&
+              newBox.width === oldBox.width
+            ) {
+              // Vertical dragging: allow movement only
+              return oldBox;
+            }
+            return newBox; // Allow resizing from corners
+          });
+        } else {
+          // Reset for other shape types
+          transformer.enabledAnchors();
+          transformer.boundBoxFunc((_oldBox, newBox) => newBox);
+        }
 
-       transformer.nodes([shape]);
-       transformer.getLayer()?.batchDraw();
-     }
-   } else {
-     // Deselect both transformers
-     if (transformer) transformer.nodes([]);
-     if (groupTransformer) groupTransformer.nodes([]);
-   }
- }, [selectedShapeId, selectedGroupId, shapes]);
-
+        transformer.nodes([shape]);
+        transformer.getLayer()?.batchDraw();
+      }
+    } else {
+      // Deselect both transformers
+      if (transformer) transformer.nodes([]);
+      if (groupTransformer) groupTransformer.nodes([]);
+    }
+  }, [selectedShapeId, selectedGroupId, shapes]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -313,9 +312,9 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const activeGroup = drawingGroups.find(
       (group) =>
         pointerPos.x >= group.rect.x &&
-        pointerPos.x <= group.rect.x + group.rect.width &&
+        pointerPos.x <= group.rect.x + (group.rect.width ?? 0) &&
         pointerPos.y >= group.rect.y &&
-        pointerPos.y <= group.rect.y + group.rect.height
+        pointerPos.y <= group.rect.y + (group.rect.height ?? 0)
     );
 
     if (activeGroup) {
@@ -497,10 +496,11 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const pointerPos = getPointerPosition();
     const activeGroup = drawingGroups.find(
       (group) =>
+        group.rect &&
         pointerPos.x >= group.rect.x &&
-        pointerPos.x <= group.rect.x + group.rect.width &&
+        pointerPos.x <= group.rect.x + (group.rect.width ?? 0) &&
         pointerPos.y >= group.rect.y &&
-        pointerPos.y <= group.rect.y + group.rect.height
+        pointerPos.y <= group.rect.y + (group.rect.height ?? 0)
     );
 
     if (activeGroup) {
@@ -704,8 +704,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
           <Rect
             key={id} // Pass key explicitly
             {...commonProps}
-            width={shape.width || 0}
-            height={shape.height || 0}
+            width={shape.width ?? 0}
+            height={shape.height ?? 0}
           />
         );
       case "ellipse":
