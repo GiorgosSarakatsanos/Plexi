@@ -249,7 +249,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
     const pointerPos = getPointerPosition();
 
-    if (selectedShape === "drawing-area") {
+    if (selectedShape === "area") {
       const groupId = generateId();
       const id = generateId();
       const layerId = generateId();
@@ -281,10 +281,11 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       };
 
       // Add the layer to the state and set the new drawing shape
-      addLayer("drawingArea", layerId);
+      addLayer("area", layerId);
       setDrawingShape(newDrawingArea);
       setIsDrawing(true);
 
+      console.log(`Created a new group with ID: ${groupId}`);
       return;
     }
 
@@ -366,6 +367,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setDrawingShape(newShape);
     setSelectedLayerIds([layerId]);
     setIsDrawing(true);
+
+    console.log(
+      `Created a new ${
+        groupId ? "grouped" : "standalone"
+      } shape with ID: ${id}, Group ID: ${groupId || "none"}`
+    );
   };
 
   const handleMouseMove = () => {
@@ -557,6 +564,68 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     );
   };
 
+  const handleDragEnd = (shapeId: string, newX: number, newY: number) => {
+    const shapeToMove = shapes.find((s) => s.id === shapeId);
+
+    if (!shapeToMove) return;
+
+    const group = groups.find((group) =>
+      group.shapes.some(
+        (areaShape) =>
+          areaShape.type === "rect" &&
+          newX >= areaShape.x &&
+          newX <= areaShape.x + (areaShape.width || 0) &&
+          newY >= areaShape.y &&
+          newY <= areaShape.y + (areaShape.height || 0)
+      )
+    );
+
+    if (group) {
+      // Add shape to the group if it's not already in it
+      setGroups((prevGroups) =>
+        prevGroups.map((g) =>
+          g.id === group.id
+            ? {
+                ...g,
+                shapes: [
+                  ...g.shapes.filter((s) => s.id !== shapeId),
+                  shapeToMove,
+                ],
+              }
+            : {
+                ...g,
+                shapes: g.shapes.filter((s) => s.id !== shapeId), // Ensure it's removed from other groups
+              }
+        )
+      );
+      // Update the shape's groupId
+      setShapes((prevShapes) =>
+        prevShapes.map((s) =>
+          s.id === shapeId ? { ...s, groupId: group.id } : s
+        )
+      );
+      console.log(`Shape ID: ${shapeId} added to group ID: ${group.id}`);
+    } else {
+      // Remove shape from its group if dropped outside
+      const previousGroupId = shapeToMove.groupId;
+      setGroups((prevGroups) =>
+        prevGroups.map((g) => ({
+          ...g,
+          shapes: g.shapes.filter((s) => s.id !== shapeId),
+        }))
+      );
+      // Clear the shape's groupId
+      setShapes((prevShapes) =>
+        prevShapes.map((s) =>
+          s.id === shapeId ? { ...s, groupId: undefined } : s
+        )
+      );
+      console.log(
+        `Shape ID: ${shapeId} removed from group ID: ${previousGroupId}`
+      );
+    }
+  };
+
   const renderShape = (shape: Shape) => {
     if (!shape) return null;
 
@@ -575,61 +644,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       },
       onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
         const { x, y } = e.target.position();
-        const shapeToMove = shapes.find((s) => s.id === id);
-
-        if (!shapeToMove) return;
-
-        // Check if the shape is inside any group (drawing area)
-        const group = groups.find((group) =>
-          group.shapes.some(
-            (areaShape) =>
-              areaShape.type === "rect" &&
-              x >= areaShape.x &&
-              x <= areaShape.x + (areaShape.width || 0) &&
-              y >= areaShape.y &&
-              y <= areaShape.y + (areaShape.height || 0)
-          )
-        );
-
-        if (group) {
-          // Add shape to the group if it's not already in it
-          setGroups((prevGroups) =>
-            prevGroups.map((g) =>
-              g.id === group.id
-                ? {
-                    ...g,
-                    shapes: [
-                      ...g.shapes.filter((s) => s.id !== id),
-                      shapeToMove,
-                    ],
-                  }
-                : {
-                    ...g,
-                    shapes: g.shapes.filter((s) => s.id !== id), // Ensure it's removed from other groups
-                  }
-            )
-          );
-          // Update the shape's groupId
-          setShapes((prevShapes) =>
-            prevShapes.map((s) =>
-              s.id === id ? { ...s, groupId: group.id } : s
-            )
-          );
-        } else {
-          // Remove shape from its group if dropped outside
-          setGroups((prevGroups) =>
-            prevGroups.map((g) => ({
-              ...g,
-              shapes: g.shapes.filter((s) => s.id !== id),
-            }))
-          );
-          // Clear the shape's groupId
-          setShapes((prevShapes) =>
-            prevShapes.map((s) =>
-              s.id === id ? { ...s, groupId: undefined } : s
-            )
-          );
-        }
+        handleDragEnd(id, x, y); // Call the handleDragEnd function
       },
       onClick:
         selectedShape === "select"

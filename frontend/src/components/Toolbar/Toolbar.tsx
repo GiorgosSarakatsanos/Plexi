@@ -128,9 +128,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
           <IconButton
             aria-label="Drawing area"
             onClick={() => {
-              setSelectedShape("drawing-area");
+              setSelectedShape("area");
             }}
-            variant={selectedShape === "drawing-area" ? "solid" : "ghost"}
+            variant={selectedShape === "area" ? "solid" : "ghost"}
             rounded="full"
             size="xs"
             colorPalette="blue"
