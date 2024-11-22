@@ -575,9 +575,61 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       },
       onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
         const { x, y } = e.target.position();
-        setShapes((prevShapes) =>
-          prevShapes.map((s) => (s.id === id ? { ...s, x, y } : s))
+        const shapeToMove = shapes.find((s) => s.id === id);
+
+        if (!shapeToMove) return;
+
+        // Check if the shape is inside any group (drawing area)
+        const group = groups.find((group) =>
+          group.shapes.some(
+            (areaShape) =>
+              areaShape.type === "rect" &&
+              x >= areaShape.x &&
+              x <= areaShape.x + (areaShape.width || 0) &&
+              y >= areaShape.y &&
+              y <= areaShape.y + (areaShape.height || 0)
+          )
         );
+
+        if (group) {
+          // Add shape to the group if it's not already in it
+          setGroups((prevGroups) =>
+            prevGroups.map((g) =>
+              g.id === group.id
+                ? {
+                    ...g,
+                    shapes: [
+                      ...g.shapes.filter((s) => s.id !== id),
+                      shapeToMove,
+                    ],
+                  }
+                : {
+                    ...g,
+                    shapes: g.shapes.filter((s) => s.id !== id), // Ensure it's removed from other groups
+                  }
+            )
+          );
+          // Update the shape's groupId
+          setShapes((prevShapes) =>
+            prevShapes.map((s) =>
+              s.id === id ? { ...s, groupId: group.id } : s
+            )
+          );
+        } else {
+          // Remove shape from its group if dropped outside
+          setGroups((prevGroups) =>
+            prevGroups.map((g) => ({
+              ...g,
+              shapes: g.shapes.filter((s) => s.id !== id),
+            }))
+          );
+          // Clear the shape's groupId
+          setShapes((prevShapes) =>
+            prevShapes.map((s) =>
+              s.id === id ? { ...s, groupId: undefined } : s
+            )
+          );
+        }
       },
       onClick:
         selectedShape === "select"
@@ -664,7 +716,9 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       >
         <Layer>
           {groups.map((group) => renderGroup(group.id, group.shapes))}
-          {shapes.map(renderShape)}
+          {shapes
+            .filter((shape) => !shape.groupId) // Render only standalone shapes
+            .map(renderShape)}
           {drawingShape && renderShape({ ...drawingShape })}
           <Transformer ref={transformerRef} />
         </Layer>
