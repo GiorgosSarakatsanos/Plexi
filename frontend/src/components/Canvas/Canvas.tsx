@@ -201,6 +201,12 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     }
   };
 
+  const { setLayers } = useLayerContext();
+
+  if (!setLayers) {
+    throw new Error("setLayers is not defined in the LayerContext");
+  }
+
   const handleUploadImage = () => {
     fileInputRef.current?.click(); // Trigger file input click
   };
@@ -363,9 +369,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       };
     }
 
-    addLayer(selectedShape, layerId);
     setDrawingShape(newShape);
-    setSelectedLayerIds([layerId]);
     setIsDrawing(true);
 
     console.log(
@@ -425,9 +429,11 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             : group
         )
       );
+      addLayer(drawingShape.type, drawingShape.id, drawingShape.groupId); // Pass groupId here
     } else {
       // Add the shape to standalone shapes if no groupId
       setShapes((prevShapes) => [...prevShapes, { ...drawingShape }]);
+      addLayer(drawingShape.type, drawingShape.id, drawingShape.groupId); // Standalone layer
     }
 
     // Clear the drawingShape and reset state
@@ -580,8 +586,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       )
     );
 
+    // Handle adding to a group
     if (group) {
-      // Add shape to the group if it's not already in it
       setGroups((prevGroups) =>
         prevGroups.map((g) =>
           g.id === group.id
@@ -592,37 +598,54 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
                   shapeToMove,
                 ],
               }
-            : {
-                ...g,
-                shapes: g.shapes.filter((s) => s.id !== shapeId), // Ensure it's removed from other groups
-              }
+            : g
         )
       );
-      // Update the shape's groupId
+
       setShapes((prevShapes) =>
         prevShapes.map((s) =>
           s.id === shapeId ? { ...s, groupId: group.id } : s
         )
       );
-      console.log(`Shape ID: ${shapeId} added to group ID: ${group.id}`);
-    } else {
-      // Remove shape from its group if dropped outside
-      const previousGroupId = shapeToMove.groupId;
+
+      setLayers((prevLayers) =>
+        prevLayers.map((layer) =>
+          layer.id === shapeId
+            ? { ...layer, isGrouped: true, groupId: group.id }
+            : layer
+        )
+      );
+
+      console.log(`Shape ${shapeId} moved to group ${group.id}`);
+      return; // Exit early to avoid further processing
+    }
+
+    // Handle removing from a group
+    const previousGroupId = shapeToMove.groupId;
+
+    if (previousGroupId) {
       setGroups((prevGroups) =>
         prevGroups.map((g) => ({
           ...g,
           shapes: g.shapes.filter((s) => s.id !== shapeId),
         }))
       );
-      // Clear the shape's groupId
+
       setShapes((prevShapes) =>
         prevShapes.map((s) =>
           s.id === shapeId ? { ...s, groupId: undefined } : s
         )
       );
-      console.log(
-        `Shape ID: ${shapeId} removed from group ID: ${previousGroupId}`
+
+      setLayers((prevLayers) =>
+        prevLayers.map((layer) =>
+          layer.id === shapeId
+            ? { ...layer, isGrouped: false, groupId: undefined }
+            : layer
+        )
       );
+
+      console.log(`Shape ${shapeId} removed from group ${previousGroupId}`);
     }
   };
 

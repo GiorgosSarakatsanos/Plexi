@@ -3,5 +3,7 @@ export interface Layer {
   id: string;
   name: string;
   isVisible: boolean;
-  shapeType: string; // Add shapeType here
+  shapeType: string;
+  isGrouped: boolean; // To identify if the layer is part of a group
+  groupId?: string; // Optional group ID
 }

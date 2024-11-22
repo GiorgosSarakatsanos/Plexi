@@ -5,9 +5,12 @@ import { shapeTypeNames } from "./ShapeTypeNames";
 
 interface LayerContextProps {
   layers: Layer[];
-  addLayer: (shapeType: string, id?: string) => void;
+  groupedLayers: Layer[];
+  standaloneLayers: Layer[];
+  setLayers: React.Dispatch<React.SetStateAction<Layer[]>>; // Expose setLayers
+  addLayer: (shapeType: string, id?: string, groupId?: string) => void;
   toggleVisibility: (id: string) => void;
-  selectLayer: (id: string, ctrlKey?: boolean, shiftKey?: boolean) => void; // Updated to accept shiftKey
+  selectLayer: (id: string, ctrlKey?: boolean, shiftKey?: boolean) => void;
   deselectLayer: (id?: string) => void;
   setSelectedLayerIds: React.Dispatch<React.SetStateAction<string[]>>;
   selectedLayerIds: string[];
@@ -25,11 +28,14 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [layers, setLayers] = useState<Layer[]>([]);
   const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
 
+  const groupedLayers = layers.filter((layer) => layer.isGrouped);
+  const standaloneLayers = layers.filter((layer) => !layer.isGrouped);
+
   useEffect(() => {
     console.log("Layers updated:", layers);
   }, [layers]);
 
-  const addLayer = (shapeType: string, id?: string) => {
+  const addLayer = (shapeType: string, id?: string, groupId?: string) => {
     if (!shapeTypeCounters[shapeType]) {
       shapeTypeCounters[shapeType] = 1;
     } else {
@@ -45,10 +51,14 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
       name: layerName,
       isVisible: true,
       shapeType,
+      isGrouped: !!groupId, // Mark as grouped if a groupId is provided
+      groupId, // Store groupId if available
     };
 
     setLayers((prevLayers) => [...prevLayers, newLayer]);
-    console.log(`Layer created with name: ${layerName} and ID: ${layerId}`);
+    console.log(
+      `Layer created with name: ${layerName}, ID: ${layerId}, Grouped: ${!!groupId}`
+    );
   };
 
   const toggleVisibility = (id: string) => {
@@ -62,7 +72,6 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const selectLayer = (id: string, ctrlKey = false, shiftKey = false) => {
     setSelectedLayerIds((prevSelected) => {
       if (shiftKey) {
-        // Range selection logic
         const lastSelectedId = prevSelected[prevSelected.length - 1];
         const lastSelectedIndex = layers.findIndex(
           (layer) => layer.id === lastSelectedId
@@ -70,7 +79,6 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
         const clickedIndex = layers.findIndex((layer) => layer.id === id);
 
         if (lastSelectedIndex >= 0 && clickedIndex >= 0) {
-          // Calculate range
           const [start, end] = [
             Math.min(lastSelectedIndex, clickedIndex),
             Math.max(lastSelectedIndex, clickedIndex),
@@ -78,40 +86,33 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
           const rangeIds = layers
             .slice(start, end + 1)
             .map((layer) => layer.id);
-
-          // Merge range into the current selection
           return Array.from(new Set([...prevSelected, ...rangeIds]));
         }
       }
 
       if (ctrlKey) {
-        // Toggle selection when Ctrl key is held
-        if (prevSelected.includes(id)) {
-          return prevSelected.filter((layerId) => layerId !== id);
-        } else {
-          return [...prevSelected, id];
-        }
+        return prevSelected.includes(id)
+          ? prevSelected.filter((layerId) => layerId !== id)
+          : [...prevSelected, id];
       }
 
-      // Default: Single selection
       return [id];
     });
   };
 
   const deselectLayer = (id?: string) => {
-    setSelectedLayerIds((prevSelected) => {
-      if (id) {
-        return prevSelected.filter((layerId) => layerId !== id);
-      } else {
-        return [];
-      }
-    });
+    setSelectedLayerIds((prevSelected) =>
+      id ? prevSelected.filter((layerId) => layerId !== id) : []
+    );
   };
 
   return (
     <LayerContext.Provider
       value={{
         layers,
+        groupedLayers,
+        standaloneLayers,
+        setLayers, // Include setLayers here
         addLayer,
         toggleVisibility,
         selectLayer,
