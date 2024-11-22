@@ -47,7 +47,7 @@ interface Shape {
   type: DrawableShape;
   x: number;
   y: number;
-  text?: string; // For text elements
+  text?: string;
   width?: number;
   height?: number;
   points?: number[];
@@ -55,10 +55,11 @@ interface Shape {
   stroke: string;
   strokeWidth: number;
   layerId: string;
-  fontSize?: number; // Text-specific properties
+  fontSize?: number;
   fontFamily?: string;
-  radius?: number; // For hexagon
-  image?: HTMLImageElement; // Add this for image shapes
+  radius?: number;
+  image?: HTMLImageElement;
+  groupId?: string; // Add this for grouping
 }
 
 const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
@@ -66,8 +67,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
-  const groupTransformerRef = useRef<Konva.Transformer>(null);
-
   const getPointerPosition = usePointerPosition(stageRef);
 
   const { addLayer, setSelectedLayerIds } = useLayerContext();
@@ -76,15 +75,14 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [groups, setGroups] = useState<{ id: string; shapes: Shape[] }[]>([]);
 
   // Function to select a shape by ID
   const selectShapeById = (shapeId: string) => {
     const shape = shapes.find((s) => s.id === shapeId);
     if (shape) {
       setSelectedShapeId(shape.id);
-      setSelectedLayerIds([shape.layerId]);
-      setSelectedGroupId(null); // Deselect group if a shape is selected
+      setSelectedLayerIds([shape.layerId]); // Highlight the related layer
     }
   };
 
@@ -145,67 +143,20 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     };
   }, []);
 
-  const [drawingGroups, setDrawingGroups] = useState<
-    { groupId: string; shapes: Shape[]; rect: Shape }[]
-  >([]);
-
   useEffect(() => {
     const transformer = transformerRef.current;
-    const groupTransformer = groupTransformerRef.current;
     const stage = stageRef.current;
 
-    if (!stage) return;
+    if (!transformer || !stage || !selectedShapeId) return;
 
-    if (selectedGroupId) {
-      const group = stage.findOne(`#${selectedGroupId}`);
-      if (group && groupTransformer) {
-        groupTransformer.nodes([group]);
-        groupTransformer.getLayer()?.batchDraw();
-      }
-    } else if (selectedShapeId) {
-      const shape = stage.findOne(`#${selectedShapeId}`);
-      if (shape && transformer) {
-        // Apply settings specifically for text shapes
-        if (shape.getClassName() === "Text") {
-          transformer.enabledAnchors([
-            "top-left",
-            "top-right",
-            "bottom-left",
-            "bottom-right",
-          ]); // Only allow corner anchors
-          transformer.boundBoxFunc((oldBox, newBox) => {
-            // Prevent scaling when resizing horizontally or vertically
-            if (
-              newBox.width !== oldBox.width &&
-              newBox.height === oldBox.height
-            ) {
-              // Horizontal dragging: allow movement only
-              return oldBox;
-            }
-            if (
-              newBox.height !== oldBox.height &&
-              newBox.width === oldBox.width
-            ) {
-              // Vertical dragging: allow movement only
-              return oldBox;
-            }
-            return newBox; // Allow resizing from corners
-          });
-        } else {
-          // Reset for other shape types
-          transformer.enabledAnchors();
-          transformer.boundBoxFunc((_oldBox, newBox) => newBox);
-        }
-
-        transformer.nodes([shape]);
-        transformer.getLayer()?.batchDraw();
-      }
+    const selectedNode = stage.findOne(`#${selectedShapeId}`);
+    if (selectedNode) {
+      transformer.nodes([selectedNode]);
+      transformer.getLayer()?.batchDraw();
     } else {
-      // Deselect both transformers
-      if (transformer) transformer.nodes([]);
-      if (groupTransformer) groupTransformer.nodes([]);
+      transformer.nodes([]); // Deselect transformer if no node is found
     }
-  }, [selectedShapeId, selectedGroupId, shapes]);
+  }, [selectedShapeId, shapes]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -278,59 +229,44 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   }));
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (isDrawing) {
-      return; // Prevent creating multiple shapes at once
-    }
-
     const stage = stageRef.current;
 
     if (!selectedShape || selectedShape === "select") {
       if (e.target === stage) {
-        setSelectedShapeId(null);
-        setSelectedGroupId(null);
-        setSelectedLayerIds([]);
+        console.log("Clicked on empty stage");
+        setSelectedShapeId(null); // Deselect all shapes
+        setSelectedLayerIds([]); // Clear layer selection
 
+        // Reset the Transformer
         const transformer = transformerRef.current;
         if (transformer) {
-          transformer.nodes([]);
+          transformer.nodes([]); // Clear all nodes from the Transformer
           transformer.getLayer()?.batchDraw();
         }
-
-        const groupTransformer = groupTransformerRef.current;
-        if (groupTransformer) {
-          groupTransformer.nodes([]);
-          groupTransformer.getLayer()?.batchDraw();
-        }
-      } else if (e.target?.hasName("group")) {
-        setSelectedGroupId(e.target.id());
-        setSelectedShapeId(null);
       }
       return;
     }
 
     const pointerPos = getPointerPosition();
-    const activeGroup = drawingGroups.find(
-      (group) =>
-        pointerPos.x >= group.rect.x &&
-        pointerPos.x <= group.rect.x + (group.rect.width ?? 0) &&
-        pointerPos.y >= group.rect.y &&
-        pointerPos.y <= group.rect.y + (group.rect.height ?? 0)
-    );
 
-    if (activeGroup) {
-      console.log("Drawing inside group:", activeGroup.groupId);
-    } else {
-      console.log("Drawing on the stage (no group)");
-    }
-
-    // Handle creation of the drawing area itself
     if (selectedShape === "drawing-area") {
+      const groupId = generateId();
       const id = generateId();
       const layerId = generateId();
-      const groupId = `group-${id}`;
 
-      // Create a rectangle for the drawing area
-      const newRect: Shape = {
+      const newGroup = {
+        id: groupId,
+        shapes: [],
+      };
+
+      setGroups((prevGroups) => [...prevGroups, newGroup]);
+
+      // Create a new layer for the drawing area
+      const newDrawingAreaLayer = new Konva.Layer({ id: layerId });
+      stage?.add(newDrawingAreaLayer);
+
+      // Create a rectangle as the drawing area
+      const newDrawingArea: Shape = {
         id: `shape-${id}`,
         type: "rect",
         x: pointerPos.x,
@@ -341,24 +277,60 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         stroke: "lightgray",
         strokeWidth: 1,
         layerId,
-      };
-
-      // Create a new drawing group
-      const newGroup = {
         groupId,
-        shapes: [], // Shapes inside this group
-        rect: newRect, // The rectangle representing the area
       };
 
-      setDrawingGroups((prev) => [...prev, newGroup]);
-      setDrawingShape(newRect);
+      // Add the layer to the state and set the new drawing shape
+      addLayer("drawingArea", layerId);
+      setDrawingShape(newDrawingArea);
       setIsDrawing(true);
+
       return;
     }
 
-    // Create a new shape (e.g., line or rect)
+    if (selectedShape === "image") {
+      fileInputRef.current?.click(); // Open the file dialog
+      return; // Stop further drawing logic
+    }
+
     const id = generateId();
     const layerId = generateId();
+
+    if (selectedShape === "text") {
+      const newText: Shape = {
+        id: `shape-${id}`,
+        type: "text",
+        x: pointerPos.x,
+        y: pointerPos.y,
+        text: "Double-click to edit",
+        fill: "black",
+        stroke: "transparent",
+        strokeWidth: 1,
+        fontSize: 16,
+        fontFamily: "Arial",
+        layerId,
+      };
+      addLayer("text", layerId);
+
+      setShapes((prevShapes) => [...prevShapes, newText]);
+      setSelectedShapeId(newText.id);
+      setSelectedLayerIds([newText.layerId]);
+      return;
+    }
+
+    const group = groups.find((group) =>
+      group.shapes.some(
+        (shape) =>
+          shape.type === "rect" &&
+          pointerPos.x >= shape.x &&
+          pointerPos.x <= shape.x + (shape.width || 0) &&
+          pointerPos.y >= shape.y &&
+          pointerPos.y <= shape.y + (shape.height || 0)
+      )
+    );
+
+    const groupId = group?.id || undefined;
+
     let newShape: Shape;
 
     if (selectedShape === "line") {
@@ -372,6 +344,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         stroke: "blue",
         strokeWidth: 1,
         layerId,
+        groupId,
       };
     } else {
       newShape = {
@@ -380,45 +353,18 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         x: pointerPos.x,
         y: pointerPos.y,
         width: 0,
-        height: 1,
+        height: 0,
         fill: "transparent",
         stroke: "blue",
         strokeWidth: 1,
         layerId,
+        groupId,
       };
     }
 
-    if (selectedShape === "text") {
-      newShape = {
-        id: `shape-${id}`,
-        type: "text",
-        x: pointerPos.x,
-        y: pointerPos.y,
-        text: "Double-click to edit", // Default text
-        fill: "black",
-        fontSize: 18,
-        fontFamily: "Arial",
-        stroke: "transparent",
-        strokeWidth: 0,
-        layerId,
-      };
-    }
-
-    // Add the shape to the appropriate group or globally
-    if (activeGroup) {
-      setDrawingGroups((prev) =>
-        prev.map((group) =>
-          group.groupId === activeGroup.groupId
-            ? { ...group, shapes: [...group.shapes, newShape] }
-            : group
-        )
-      );
-    } else {
-      // Do not add the shape to `shapes` here
-      setDrawingShape(newShape);
-    }
-
+    addLayer(selectedShape, layerId);
     setDrawingShape(newShape);
+    setSelectedLayerIds([layerId]);
     setIsDrawing(true);
   };
 
@@ -458,72 +404,30 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
       return prev;
     });
-
-    setDrawingGroups((prev) =>
-      prev.map((group) =>
-        group.rect.id === drawingShape.id
-          ? {
-              ...group,
-              rect: {
-                ...group.rect,
-                width: drawingShape.width,
-                height: drawingShape.height,
-              },
-            }
-          : group
-      )
-    );
   };
 
   const handleMouseUp = () => {
     if (!drawingShape) return;
 
-    // Finalize the drawing area if selectedShape is "drawing-area"
-    if (selectedShape === "drawing-area") {
-      setDrawingGroups((prev) =>
-        prev.map((group) =>
-          group.rect.id === drawingShape.id
-            ? { ...group, rect: drawingShape }
-            : group
-        )
-      );
-      setDrawingShape(null);
-      setIsDrawing(false);
-      props.setSelectedShape("select");
-      return;
-    }
-
-    const pointerPos = getPointerPosition();
-    const activeGroup = drawingGroups.find(
-      (group) =>
-        group.rect &&
-        pointerPos.x >= group.rect.x &&
-        pointerPos.x <= group.rect.x + (group.rect.width ?? 0) &&
-        pointerPos.y >= group.rect.y &&
-        pointerPos.y <= group.rect.y + (group.rect.height ?? 0)
-    );
-
-    if (activeGroup) {
-      setDrawingGroups((prev) =>
-        prev.map((group) =>
-          group.groupId === activeGroup.groupId
-            ? { ...group, shapes: [...group.shapes, drawingShape] }
+    if (drawingShape.groupId) {
+      // Add the shape to its group
+      setGroups((prevGroups) =>
+        prevGroups.map((group) =>
+          group.id === drawingShape.groupId
+            ? { ...group, shapes: [...group.shapes, { ...drawingShape }] }
             : group
         )
       );
     } else {
-      // Add the drawing shape to the shapes array
-      setShapes((prevShapes) => [...prevShapes, drawingShape]);
-
-      // Add a new layer for the drawing shape
-      addLayer(drawingShape.type, drawingShape.layerId);
-
-      // Set the transformer for the new shape
-      setSelectedShapeId(drawingShape.id);
+      // Add the shape to standalone shapes if no groupId
+      setShapes((prevShapes) => [...prevShapes, { ...drawingShape }]);
     }
 
+    // Clear the drawingShape and reset state
     setDrawingShape(null);
     setIsDrawing(false);
+
+    // Automatically switch back to the "select" tool
     props.setSelectedShape("select");
   };
 
@@ -540,136 +444,122 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const currentShape = stage.findOne(`#${shapeId}`);
     if (!currentShape) return;
 
-    // Get the absolute position and scale of the text shape
+    // Get the absolute position of the text shape
     const shapePosition = currentShape.getAbsolutePosition();
-    const shapeScale = currentShape.getAbsoluteScale();
+    const shapeScale = currentShape.getAbsoluteScale(); // Includes scale transformations
 
-    // Temporarily hide the text by reducing opacity
+    // Temporarily hide the text on the canvas
     setShapes((prevShapes) =>
       prevShapes.map((shape) =>
         shape.id === shapeId
           ? {
               ...shape,
-              opacity: 0, // Make the text invisible
+              fill: "transparent", // Make the text transparent
             }
           : shape
       )
     );
 
-    // Create a contentEditable div overlay
-    const div = document.createElement("div");
-    div.contentEditable = "true";
-    div.innerText = textShape.text || ""; // Set the current text
-    div.style.position = "absolute";
-    div.style.top = `${
-      container.getBoundingClientRect().top +
+    // Create a textarea for multiline editing
+    const textarea = document.createElement("textarea");
+    textarea.value = textShape.text || "";
+    textarea.placeholder = "Edit text here..."; // Placeholder text
+    textarea.style.position = "absolute";
+
+    // Align textarea to the exact position and scale of the text on canvas
+    const containerRect = container.getBoundingClientRect();
+    textarea.style.top = `${
+      containerRect.top +
       shapePosition.y -
-      textShape.fontSize! * shapeScale.y * 0.5
+      (textShape.fontSize! * shapeScale.y) / 2
     }px`;
-    div.style.left = `${
-      container.getBoundingClientRect().left + shapePosition.x
-    }px`;
-    div.style.width = `${(textShape.width || 200) * shapeScale.x}px`; // Set div width to match the text
-    div.style.height = "auto"; // Automatically grow with text
-    div.style.minHeight = `${textShape.fontSize! * shapeScale.y * 1.2}px`; // Set initial height based on font size
-    div.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`;
-    div.style.fontFamily = textShape.fontFamily || "Arial";
-    div.style.color = "black";
-    div.style.background = "transparent";
-    div.style.outline = "none";
-    div.style.border = "none";
-    div.style.padding = "0";
-    div.style.margin = "0";
-    div.style.resize = "none";
-    div.style.zIndex = "1000";
-    div.style.cursor = "text";
-    div.style.whiteSpace = "pre-wrap"; // Enable multiline support
-    div.style.overflow = "hidden"; // Avoid scrollbars
+    textarea.style.left = `${containerRect.left + shapePosition.x}px`;
 
-    // Append the div to the document body
-    const styleElement = document.createElement("style");
-    styleElement.innerHTML = `
-    div[contenteditable="true"]::selection {
-      background: rgba(0, 123, 255, 0.5); /* Blue highlight */
-      color: white; /* White text on blue */
-    }
-  `;
-    document.head.appendChild(styleElement);
+    // Style the textarea to match the text shape
+    textarea.style.width = `${(textShape.width || 200) * shapeScale.x}px`; // Adjust width
+    textarea.style.height = `${textShape.fontSize! * shapeScale.y * 1.5}px`; // Adjust height based on font size
+    textarea.style.fontSize = `${textShape.fontSize! * shapeScale.y}px`;
+    textarea.style.fontFamily = textShape.fontFamily || "Arial";
+    textarea.style.color = textShape.fill;
+    textarea.style.border = "1px solid #ccc";
+    textarea.style.background = "rgba(255, 255, 255, 0.9)";
+    textarea.style.outline = "none";
+    textarea.style.padding = "4px";
+    textarea.style.margin = "0";
+    textarea.style.resize = "none";
+    textarea.style.zIndex = "1000";
 
-    // Append the div to the document body
-    document.body.appendChild(div);
-    div.focus();
+    // Append the textarea to the document body and focus it
+    document.body.appendChild(textarea);
+    textarea.focus();
 
-    // Save changes on blur
-    const saveChanges = () => {
-      const newText = div.innerText.trim();
+    // Adjust the height dynamically based on the content
+    const adjustHeight = () => {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+    textarea.addEventListener("input", adjustHeight);
+    adjustHeight(); // Initial adjustment
+
+    // Restore the text and save changes when the textarea loses focus
+    textarea.addEventListener("blur", () => {
+      const newText = textarea.value;
 
       setShapes((prevShapes) =>
         prevShapes.map((shape) =>
           shape.id === shapeId
             ? {
                 ...shape,
-                text: newText || "Double-click to edit", // Save edited text
-                opacity: 1, // Restore opacity
+                text: newText, // Update the text value
+                fill: "black", // Restore original color
               }
             : shape
         )
       );
 
-      // Clean up the div
-      document.body.removeChild(div);
-    };
-
-    // Handle blur event to save text
-    div.addEventListener("blur", saveChanges);
-
-    // Prevent default Enter behavior (to avoid submitting forms, etc.)
-    div.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        document.execCommand("insertHTML", false, "\n"); // Insert a newline
-      }
+      // Clean up the textarea
+      document.body.removeChild(textarea);
     });
   };
 
-  const renderGroup = (group: {
-    groupId: string;
-    shapes: Shape[];
-    rect: Shape;
-  }) => {
+  const renderGroup = (groupId: string, shapes: Shape[]) => {
     return (
       <Group
-        key={group.groupId}
-        id={group.groupId}
+        key={groupId}
         draggable
         onDragMove={(e) => {
           const { x, y } = e.target.position();
-          setDrawingGroups((prev) =>
-            prev.map((g) =>
-              g.groupId === group.groupId
-                ? {
-                    ...g,
-                    rect: { ...g.rect, x, y },
-                    shapes: g.shapes.map((shape) => ({
-                      ...shape,
-                      x: shape.x + (x - g.rect.x),
-                      y: shape.y + (y - g.rect.y),
-                    })),
-                  }
-                : g
-            )
-          );
+          const group = groups.find((g) => g.id === groupId);
+
+          if (group) {
+            const dx = x - (group.shapes[0]?.x || 0); // Calculate delta movement
+            const dy = y - (group.shapes[0]?.y || 0);
+
+            setGroups((prevGroups) =>
+              prevGroups.map((g) =>
+                g.id === groupId
+                  ? {
+                      ...g,
+                      shapes: g.shapes.map((shape) => ({
+                        ...shape,
+                        x: shape.x + dx,
+                        y: shape.y + dy,
+                      })),
+                    }
+                  : g
+              )
+            );
+          }
         }}
       >
-        {/* Render the rectangle for the drawing area */}
-        {renderShape(group.rect)}
-        {/* Render the shapes inside the group */}
-        {group.shapes.map((shape) => renderShape(shape))}
+        {shapes.map(renderShape)}
       </Group>
     );
   };
 
   const renderShape = (shape: Shape) => {
+    if (!shape) return null;
+
     const { id, type, ...restProps } = shape;
 
     const commonProps = {
@@ -702,10 +592,10 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       case "rect":
         return (
           <Rect
-            key={id} // Pass key explicitly
+            key={id}
             {...commonProps}
-            width={shape.width ?? 0}
-            height={shape.height ?? 0}
+            width={shape.width || 0}
+            height={shape.height || 0}
           />
         );
       case "ellipse":
@@ -717,7 +607,6 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             radiusY={(shape.height || 0) / 2}
           />
         );
-
       case "line":
         return <Line key={id} {...commonProps} points={shape.points || []} />;
       case "hexagon":
@@ -737,8 +626,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             text={shape.text || ""}
             fontSize={shape.fontSize}
             fontFamily={shape.fontFamily}
-            fill={shape.fill}
-            onDblClick={() => handleDoubleClick(shape.id)} // Enable editing on double-click
+            onDblClick={() => handleDoubleClick(id)}
           />
         );
       case "image":
@@ -775,11 +663,10 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         ref={stageRef}
       >
         <Layer>
-          {drawingGroups.map(renderGroup)}
+          {groups.map((group) => renderGroup(group.id, group.shapes))}
           {shapes.map(renderShape)}
-          {drawingShape && renderShape(drawingShape)}
+          {drawingShape && renderShape({ ...drawingShape })}
           <Transformer ref={transformerRef} />
-          <Transformer ref={groupTransformerRef} />
         </Layer>
       </Stage>
     </>
