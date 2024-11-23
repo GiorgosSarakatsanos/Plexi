@@ -174,14 +174,29 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             const aspectRatio = image.width / image.height;
             const targetWidth = targetHeight * aspectRatio;
 
+            const pointerPos = getPointerPosition();
+
+            // Find group based on pointer position
+            const group = groups.find((group) =>
+              group.shapes.some(
+                (areaShape) =>
+                  areaShape.type === "rect" &&
+                  pointerPos.x >= areaShape.x &&
+                  pointerPos.x <= areaShape.x + (areaShape.width || 0) &&
+                  pointerPos.y >= areaShape.y &&
+                  pointerPos.y <= areaShape.y + (areaShape.height || 0)
+              )
+            );
+            const groupId = group?.id || undefined;
+
             // Add the scaled image to shapes
             const id = generateId();
             const layerId = generateId();
             const newImage: Shape = {
               id: `shape-${id}`,
               type: "image",
-              x: 100,
-              y: 100,
+              x: pointerPos.x,
+              y: pointerPos.y,
               width: targetWidth,
               height: targetHeight,
               layerId,
@@ -189,11 +204,23 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
               stroke: "transparent",
               strokeWidth: 0,
               image, // Store the image element
+              groupId, // Assign the groupId
             };
 
-            props.setSelectedShape("select"); // Automatically switch back to select
+            if (groupId) {
+              // Add image to group
+              setGroups((prevGroups) =>
+                prevGroups.map((g) =>
+                  g.id === groupId
+                    ? { ...g, shapes: [...g.shapes, newImage] }
+                    : g
+                )
+              );
+            }
+
             setShapes((prevShapes) => [...prevShapes, newImage]);
             setSelectedShapeId(newImage.id);
+            props.setSelectedShape("select"); // Automatically switch back to select
           };
         }
       };
@@ -304,6 +331,21 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     const layerId = generateId();
 
     if (selectedShape === "text") {
+      const pointerPos = getPointerPosition();
+
+      // Find group based on pointer position
+      const group = groups.find((group) =>
+        group.shapes.some(
+          (areaShape) =>
+            areaShape.type === "rect" &&
+            pointerPos.x >= areaShape.x &&
+            pointerPos.x <= areaShape.x + (areaShape.width || 0) &&
+            pointerPos.y >= areaShape.y &&
+            pointerPos.y <= areaShape.y + (areaShape.height || 0)
+        )
+      );
+      const groupId = group?.id || undefined;
+
       const newText: Shape = {
         id: `shape-${id}`,
         type: "text",
@@ -316,9 +358,19 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         fontSize: 16,
         fontFamily: "Arial",
         layerId,
+        groupId, // Assign the groupId
       };
-      addLayer("text", layerId);
 
+      if (groupId) {
+        // Add text to group
+        setGroups((prevGroups) =>
+          prevGroups.map((g) =>
+            g.id === groupId ? { ...g, shapes: [...g.shapes, newText] } : g
+          )
+        );
+      }
+
+      addLayer("text", layerId);
       setShapes((prevShapes) => [...prevShapes, newText]);
       setSelectedShapeId(newText.id);
       setSelectedLayerIds([newText.layerId]);

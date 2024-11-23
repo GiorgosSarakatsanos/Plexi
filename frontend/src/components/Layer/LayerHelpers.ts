@@ -6,4 +6,5 @@ export interface Layer {
   shapeType: string;
   isGrouped: boolean; // To identify if the layer is part of a group
   groupId?: string; // Optional group ID
+  isGroupArea?: boolean;
 }

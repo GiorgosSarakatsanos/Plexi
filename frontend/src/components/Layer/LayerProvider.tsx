@@ -53,6 +53,7 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
       shapeType,
       isGrouped: !!groupId, // Mark as grouped if a groupId is provided
       groupId, // Store groupId if available
+      isGroupArea: shapeType === "area",
     };
 
     setLayers((prevLayers) => [...prevLayers, newLayer]);
