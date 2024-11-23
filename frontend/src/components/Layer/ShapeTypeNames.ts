@@ -5,6 +5,7 @@ import {
   LuType,
   LuHexagon,
   LuFrame,
+  LuImage,
 } from "react-icons/lu";
 import { IconType } from "react-icons";
 
@@ -17,6 +18,7 @@ export const shapeTypeNames: {
   hexagon: { name: "Polygon", icon: LuHexagon },
   text: { name: "Text", icon: LuType },
   area: { name: "Area", icon: LuFrame },
+  image: { name: "Image", icon: LuImage },
 
   // Add more shape mappings here
 };

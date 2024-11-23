@@ -86,6 +86,25 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     }
   };
 
+  const renderPreviewImage = () => {
+    if (!previewImage || !isPreviewVisible) return null;
+
+    const aspectRatio = previewImage.width / previewImage.height;
+    const previewHeight = 50; // Small preview size
+    const previewWidth = previewHeight * aspectRatio;
+
+    return (
+      <Image
+        image={previewImage}
+        x={previewPosition.x - previewWidth / 2}
+        y={previewPosition.y - previewHeight / 2}
+        width={previewWidth}
+        height={previewHeight}
+        opacity={0.5} // Semi-transparent
+      />
+    );
+  };
+
   // Zoom area
 
   useImperativeHandle(ref, () => ({
@@ -160,6 +179,15 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [previewImage, setPreviewImage] = useState<HTMLImageElement | null>(
+    null
+  );
+  const [previewPosition, setPreviewPosition] = useState<{
+    x: number;
+    y: number;
+  }>({ x: 0, y: 0 });
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -169,58 +197,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
           const image = new window.Image();
           image.src = reader.result as string;
           image.onload = () => {
-            // Calculate new dimensions to maintain aspect ratio
-            const targetHeight = 300;
-            const aspectRatio = image.width / image.height;
-            const targetWidth = targetHeight * aspectRatio;
-
-            const pointerPos = getPointerPosition();
-
-            // Find group based on pointer position
-            const group = groups.find((group) =>
-              group.shapes.some(
-                (areaShape) =>
-                  areaShape.type === "rect" &&
-                  pointerPos.x >= areaShape.x &&
-                  pointerPos.x <= areaShape.x + (areaShape.width || 0) &&
-                  pointerPos.y >= areaShape.y &&
-                  pointerPos.y <= areaShape.y + (areaShape.height || 0)
-              )
-            );
-            const groupId = group?.id || undefined;
-
-            // Add the scaled image to shapes
-            const id = generateId();
-            const layerId = generateId();
-            const newImage: Shape = {
-              id: `shape-${id}`,
-              type: "image",
-              x: pointerPos.x,
-              y: pointerPos.y,
-              width: targetWidth,
-              height: targetHeight,
-              layerId,
-              fill: "transparent",
-              stroke: "transparent",
-              strokeWidth: 0,
-              image, // Store the image element
-              groupId, // Assign the groupId
-            };
-
-            if (groupId) {
-              // Add image to group
-              setGroups((prevGroups) =>
-                prevGroups.map((g) =>
-                  g.id === groupId
-                    ? { ...g, shapes: [...g.shapes, newImage] }
-                    : g
-                )
-              );
-            }
-
-            setShapes((prevShapes) => [...prevShapes, newImage]);
-            setSelectedShapeId(newImage.id);
-            props.setSelectedShape("select"); // Automatically switch back to select
+            setPreviewImage(image);
+            setIsPreviewVisible(true);
           };
         }
       };
@@ -322,9 +300,37 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       return;
     }
 
-    if (selectedShape === "image") {
-      fileInputRef.current?.click(); // Open the file dialog
-      return; // Stop further drawing logic
+    if (isPreviewVisible && previewImage) {
+      const pointerPos = getPointerPosition();
+      const targetHeight = 300;
+      const aspectRatio = previewImage.width / previewImage.height;
+      const targetWidth = targetHeight * aspectRatio;
+
+      const id = generateId();
+      const layerId = generateId();
+
+      const newImage: Shape = {
+        id: `shape-${id}`,
+        type: "image",
+        x: pointerPos.x,
+        y: pointerPos.y,
+        width: targetWidth,
+        height: targetHeight,
+        layerId,
+        fill: "transparent",
+        stroke: "transparent",
+        strokeWidth: 0,
+        image: previewImage,
+      };
+
+      setShapes((prevShapes) => [...prevShapes, newImage]);
+      addLayer("image", newImage.id);
+      setSelectedShapeId(newImage.id);
+
+      // Reset the preview
+      setPreviewImage(null);
+      setIsPreviewVisible(false);
+      return;
     }
 
     const id = generateId();
@@ -432,6 +438,15 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   const handleMouseMove = () => {
+    if (previewImage && isPreviewVisible) {
+      const stage = stageRef.current;
+      if (stage) {
+        const pointerPos = stage.getPointerPosition(); // Get the pointer position
+        if (pointerPos) {
+          setPreviewPosition({ x: pointerPos.x, y: pointerPos.y }); // Update preview position
+        }
+      }
+    }
     if (!drawingShape) return;
 
     const pointerPos = getPointerPosition(); // Get the pointer position
@@ -811,6 +826,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             .filter((shape) => !shape.groupId) // Render only standalone shapes
             .map(renderShape)}
           {drawingShape && renderShape({ ...drawingShape })}
+          {renderPreviewImage()}
           <Transformer ref={transformerRef} />
         </Layer>
       </Stage>
