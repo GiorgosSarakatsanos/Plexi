@@ -586,22 +586,26 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       )
     );
 
-    // Handle adding to a group
     if (group) {
+      // Check if the shape is already in the group
+      if (shapeToMove.groupId === group.id) return;
+
+      // Add the shape to the group
       setGroups((prevGroups) =>
         prevGroups.map((g) =>
           g.id === group.id
             ? {
                 ...g,
-                shapes: [
-                  ...g.shapes.filter((s) => s.id !== shapeId),
-                  shapeToMove,
-                ],
+                shapes: [...g.shapes, shapeToMove],
               }
-            : g
+            : {
+                ...g,
+                shapes: g.shapes.filter((s) => s.id !== shapeId),
+              }
         )
       );
 
+      // Update the shape to belong to the group
       setShapes((prevShapes) =>
         prevShapes.map((s) =>
           s.id === shapeId ? { ...s, groupId: group.id } : s
@@ -617,35 +621,32 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       );
 
       console.log(`Shape ${shapeId} moved to group ${group.id}`);
-      return; // Exit early to avoid further processing
-    }
+    } else {
+      // Handle removing from a group (if applicable)
+      if (shapeToMove.groupId) {
+        setGroups((prevGroups) =>
+          prevGroups.map((g) => ({
+            ...g,
+            shapes: g.shapes.filter((s) => s.id !== shapeId),
+          }))
+        );
 
-    // Handle removing from a group
-    const previousGroupId = shapeToMove.groupId;
+        setShapes((prevShapes) =>
+          prevShapes.map((s) =>
+            s.id === shapeId ? { ...s, groupId: undefined } : s
+          )
+        );
 
-    if (previousGroupId) {
-      setGroups((prevGroups) =>
-        prevGroups.map((g) => ({
-          ...g,
-          shapes: g.shapes.filter((s) => s.id !== shapeId),
-        }))
-      );
+        setLayers((prevLayers) =>
+          prevLayers.map((layer) =>
+            layer.id === shapeId
+              ? { ...layer, isGrouped: false, groupId: undefined }
+              : layer
+          )
+        );
 
-      setShapes((prevShapes) =>
-        prevShapes.map((s) =>
-          s.id === shapeId ? { ...s, groupId: undefined } : s
-        )
-      );
-
-      setLayers((prevLayers) =>
-        prevLayers.map((layer) =>
-          layer.id === shapeId
-            ? { ...layer, isGrouped: false, groupId: undefined }
-            : layer
-        )
-      );
-
-      console.log(`Shape ${shapeId} removed from group ${previousGroupId}`);
+        console.log(`Shape ${shapeId} removed from its group`);
+      }
     }
   };
 

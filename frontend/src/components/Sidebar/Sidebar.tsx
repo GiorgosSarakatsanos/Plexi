@@ -23,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // State for each section's open status
   const [isColorOpen, setIsColorOpen] = useState(false);
   const [isGridOpen, setIsGridOpen] = useState(false);
-  const [isLayersOpen, setIsLayersOpen] = useState(false);
+  const [isLayersOpen, setIsLayersOpen] = useState(true);
 
   // Close all sections when the sidebar is collapsed
   useEffect(() => {

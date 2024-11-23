@@ -16,7 +16,7 @@ export const shapeTypeNames: {
   line: { name: "Line", icon: LuMinus },
   hexagon: { name: "Polygon", icon: LuHexagon },
   text: { name: "Text", icon: LuType },
-  area: { name: "Drawing area", icon: LuFrame },
+  area: { name: "Area", icon: LuFrame },
 
   // Add more shape mappings here
 };
