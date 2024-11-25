@@ -86,20 +86,33 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     }
   };
 
+  const [imageHolder, setImageHolder] = useState<Shape | null>(null);
   const renderPreviewImage = () => {
     if (!previewImage || !isPreviewVisible) return null;
 
-    const aspectRatio = previewImage.width / previewImage.height;
-    const previewHeight = 50; // Small preview size
-    const previewWidth = previewHeight * aspectRatio;
+    const stage = stageRef.current;
+    if (!stage) return null;
+
+    // Get the current scale of the stage
+    const scale = stage.scaleX(); // Assuming uniform scaling (scaleX === scaleY)
+    const previewScreenHeight = 50; // Desired preview size in screen pixels
+    const previewScreenWidth =
+      previewScreenHeight * (previewImage.width / previewImage.height);
+
+    // Adjust the size for zoom level
+    const previewCanvasHeight = previewScreenHeight / scale;
+    const previewCanvasWidth = previewScreenWidth / scale;
+
+    // Calculate offset adjusted for scale
+    const offsetCanvas = 10 / scale; // 10px screen offset converted to canvas coordinates
 
     return (
       <Image
         image={previewImage}
-        x={previewPosition.x - previewWidth / 2}
-        y={previewPosition.y - previewHeight / 2}
-        width={previewWidth}
-        height={previewHeight}
+        x={previewPosition.x + offsetCanvas} // Apply scaled offset
+        y={previewPosition.y + offsetCanvas} // Apply scaled offset
+        width={previewCanvasWidth}
+        height={previewCanvasHeight}
         opacity={0.5} // Semi-transparent
       />
     );
@@ -301,35 +314,19 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     }
 
     if (isPreviewVisible && previewImage) {
-      const pointerPos = getPointerPosition();
-      const targetHeight = 300;
-      const aspectRatio = previewImage.width / previewImage.height;
-      const targetWidth = targetHeight * aspectRatio;
-
-      const id = generateId();
-      const layerId = generateId();
-
-      const newImage: Shape = {
-        id: `shape-${id}`,
-        type: "image",
+      setImageHolder({
+        id: generateId(),
+        type: "rect",
         x: pointerPos.x,
         y: pointerPos.y,
-        width: targetWidth,
-        height: targetHeight,
-        layerId,
-        fill: "transparent",
-        stroke: "transparent",
-        strokeWidth: 0,
-        image: previewImage,
-      };
-
-      setShapes((prevShapes) => [...prevShapes, newImage]);
-      addLayer("image", newImage.id);
-      setSelectedShapeId(newImage.id);
-
-      // Reset the preview
-      setPreviewImage(null);
-      setIsPreviewVisible(false);
+        width: 0,
+        height: 0,
+        fill: "rgba(0, 0, 0, 0.1)", // Placeholder fill
+        stroke: "blue",
+        strokeWidth: 1,
+        layerId: generateId(),
+      });
+      setIsDrawing(true); // Start drawing the image holder
       return;
     }
 
@@ -380,6 +377,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       setShapes((prevShapes) => [...prevShapes, newText]);
       setSelectedShapeId(newText.id);
       setSelectedLayerIds([newText.layerId]);
+
+      props.setSelectedShape("select");
       return;
     }
 
@@ -430,6 +429,8 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
     setDrawingShape(newShape);
     setIsDrawing(true);
 
+    props.setSelectedShape("select");
+
     console.log(
       `Created a new ${
         groupId ? "grouped" : "standalone"
@@ -438,77 +439,156 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
   };
 
   const handleMouseMove = () => {
-    if (previewImage && isPreviewVisible) {
-      const stage = stageRef.current;
-      if (stage) {
-        const pointerPos = stage.getPointerPosition(); // Get the pointer position
-        if (pointerPos) {
-          setPreviewPosition({ x: pointerPos.x, y: pointerPos.y }); // Update preview position
-        }
-      }
-    }
-    if (!drawingShape) return;
-
-    const pointerPos = getPointerPosition(); // Get the pointer position
-
-    setDrawingShape((prev) => {
-      if (!prev) return null;
-
-      if (prev.type === "line") {
-        // Update line's endpoint
-        const [startX, startY] = prev.points!;
-        return {
-          ...prev,
-          points: [startX, startY, pointerPos.x, pointerPos.y],
-        };
-      } else if (prev.type === "rect" || prev.type === "ellipse") {
-        // Update width and height for other shapes
+    if (isDrawing && imageHolder) {
+      // Update the dimensions of the image holder
+      const pointerPos = getPointerPosition();
+      setImageHolder((prev) => {
+        if (!prev) return null;
         return {
           ...prev,
           width: pointerPos.x - prev.x,
           height: pointerPos.y - prev.y,
         };
-      } else if (prev.type === "hexagon") {
-        // Update radius for hexagon
-        const radius = Math.sqrt(
-          Math.pow(pointerPos.x - prev.x, 2) +
-            Math.pow(pointerPos.y - prev.y, 2)
-        );
+      });
+      return;
+    }
+
+    if (isDrawing && drawingShape) {
+      const pointerPos = getPointerPosition();
+      setDrawingShape((prev) => {
+        if (!prev) return null;
+
+        if (prev.type === "line") {
+          const [startX, startY] = prev.points!;
+          return {
+            ...prev,
+            points: [startX, startY, pointerPos.x, pointerPos.y],
+          };
+        } else if (prev.type === "hexagon") {
+          // Calculate radius based on the distance from the initial point
+          const radius = Math.sqrt(
+            Math.pow(pointerPos.x - prev.x, 2) +
+              Math.pow(pointerPos.y - prev.y, 2)
+          );
+          return {
+            ...prev,
+            radius,
+          };
+        }
+
         return {
           ...prev,
-          radius,
+          width: pointerPos.x - prev.x,
+          height: pointerPos.y - prev.y,
         };
-      }
+      });
+    }
 
-      return prev;
-    });
+    // Update the position of the preview image
+    if (previewImage && isPreviewVisible) {
+      const stage = stageRef.current;
+      if (stage) {
+        const pointerPos = stage.getPointerPosition();
+        if (pointerPos) {
+          const transform = stage.getAbsoluteTransform().copy();
+          transform.invert();
+          const transformedPos = transform.point(pointerPos);
+
+          setPreviewPosition({ x: transformedPos.x, y: transformedPos.y });
+        }
+      }
+    }
   };
 
   const handleMouseUp = () => {
-    if (!drawingShape) return;
+    if (!drawingShape && !imageHolder) return;
 
-    if (drawingShape.groupId) {
-      // Add the shape to its group
-      setGroups((prevGroups) =>
-        prevGroups.map((group) =>
-          group.id === drawingShape.groupId
-            ? { ...group, shapes: [...group.shapes, { ...drawingShape }] }
-            : group
-        )
-      );
-      addLayer(drawingShape.type, drawingShape.id, drawingShape.groupId); // Pass groupId here
-    } else {
-      // Add the shape to standalone shapes if no groupId
-      setShapes((prevShapes) => [...prevShapes, { ...drawingShape }]);
-      addLayer(drawingShape.type, drawingShape.id, drawingShape.groupId); // Standalone layer
+    // Finalize the image holder for preview images
+    if (imageHolder && previewImage) {
+      const { width = 0, height = 0, x, y } = imageHolder;
+
+      if (Math.abs(width) < 5 || Math.abs(height) < 5) {
+        setImageHolder(null);
+        setIsDrawing(false);
+        return;
+      }
+
+      const aspectRatio = previewImage.width / previewImage.height;
+      const rectAspectRatio = Math.abs(width / height);
+
+      let imageWidth, imageHeight;
+
+      if (aspectRatio > rectAspectRatio) {
+        imageWidth = Math.abs(width);
+        imageHeight = imageWidth / aspectRatio;
+      } else {
+        imageHeight = Math.abs(height);
+        imageWidth = imageHeight * aspectRatio;
+      }
+
+      const adjustedX = x + (Math.abs(width) - imageWidth) / 2;
+      const adjustedY = y + (Math.abs(height) - imageHeight) / 2;
+
+      const id = generateId();
+      const layerId = generateId();
+
+      const newImage: Shape = {
+        id,
+        type: "image",
+        x: adjustedX,
+        y: adjustedY,
+        width: imageWidth,
+        height: imageHeight,
+        layerId,
+        fill: "transparent",
+        stroke: "transparent",
+        strokeWidth: 0,
+        image: previewImage,
+      };
+
+      setShapes((prevShapes) => [...prevShapes, newImage]);
+      addLayer("image", newImage.id);
+
+      setSelectedShapeId(id);
+
+      // Reset image holder and preview
+      setImageHolder(null);
+      setPreviewImage(null);
+      setIsPreviewVisible(false);
+      setIsDrawing(false);
+      return;
     }
 
-    // Clear the drawingShape and reset state
-    setDrawingShape(null);
-    setIsDrawing(false);
+    // Finalize drawing shapes (e.g., drawing area, polygons)
+    if (drawingShape) {
+      const newShape = { ...drawingShape };
 
-    // Automatically switch back to the "select" tool
-    props.setSelectedShape("select");
+      if (newShape.groupId) {
+        // Add shape to its group
+        setGroups((prevGroups) =>
+          prevGroups.map((group) =>
+            group.id === newShape.groupId
+              ? { ...group, shapes: [...group.shapes, newShape] }
+              : group
+          )
+        );
+        addLayer(newShape.type, newShape.id, newShape.groupId); // Add to group layer
+      } else {
+        // Add standalone shapes
+        setShapes((prevShapes) => [...prevShapes, newShape]);
+        addLayer(newShape.type, newShape.id); // Add to standalone layer
+      }
+
+      // Automatically select the new shape and apply Transformer
+      setSelectedShapeId(newShape.id);
+
+      // Clear the drawing shape and reset the state
+      setDrawingShape(null);
+      setIsDrawing(false);
+
+      // Automatically switch back to the "select" tool
+      props.setSelectedShape("select");
+    }
   };
 
   const handleDoubleClick = (shapeId: string) => {
@@ -600,6 +680,21 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
       // Clean up the textarea
       document.body.removeChild(textarea);
     });
+  };
+
+  const renderImageHolder = () => {
+    if (!imageHolder) return null;
+    return (
+      <Rect
+        x={imageHolder.x}
+        y={imageHolder.y}
+        width={imageHolder.width}
+        height={imageHolder.height}
+        fill={imageHolder.fill}
+        stroke={imageHolder.stroke}
+        strokeWidth={imageHolder.strokeWidth}
+      />
+    );
   };
 
   const renderGroup = (groupId: string, shapes: Shape[]) => {
@@ -819,6 +914,9 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
         onMouseUp={handleMouseUp}
         draggable={isPanning}
         ref={stageRef}
+        style={{
+          cursor: isPreviewVisible ? "crosshair" : "default", // Change cursor dynamically
+        }}
       >
         <Layer>
           {groups.map((group) => renderGroup(group.id, group.shapes))}
@@ -827,6 +925,7 @@ const Canvas = React.forwardRef<CanvasRef, CanvasProps>((props, ref) => {
             .map(renderShape)}
           {drawingShape && renderShape({ ...drawingShape })}
           {renderPreviewImage()}
+          {renderImageHolder()}
           <Transformer ref={transformerRef} />
         </Layer>
       </Stage>
