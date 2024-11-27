@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { VStack, Text, Box, IconButton } from "@chakra-ui/react";
 import { LuChevronLeft, LuLayers, LuLayout, LuPalette } from "react-icons/lu";
-import ColorPickerButton from "../ColorPickerButton/ColorPickerButton";
 import CollapsibleSection from "./CollapsibleSection";
 import LayerPanel from "../Layer/LayerList";
 
 interface SidebarProps {
-  handleColorChange: (color: string) => void;
-  handleOpacityChange: (opacity: number) => void;
   toggleSidebarWidth: () => void;
   expandSidebar: () => void;
   isSidebarCollapsed: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
-  handleColorChange,
-  handleOpacityChange,
   toggleSidebarWidth,
   expandSidebar, // Expand-only function
   isSidebarCollapsed,
@@ -45,10 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           isSidebarCollapsed={isSidebarCollapsed}
           onToggle={() => setIsColorOpen((prev) => !prev)} // Toggle this section
         >
-          <ColorPickerButton
-            onChangeColor={handleColorChange}
-            onOpacityChange={handleOpacityChange}
-          />
+          <Text />
         </CollapsibleSection>
         <CollapsibleSection
           icon={<LuLayout />}

@@ -8,10 +8,11 @@ import {
   LuHexagon,
   LuImage,
   LuFrame,
+  LuPencil,
 } from "react-icons/lu";
 import { HStack, IconButton } from "@chakra-ui/react";
 import { Tooltip } from "../ui/tooltip";
-import { SelectedShape } from "../Shape/ToolTypes";
+import { SelectedShape } from "../Tools/ToolTypes";
 
 interface ToolbarProps {
   selectedShape: SelectedShape;
@@ -94,6 +95,19 @@ const Toolbar: React.FC<ToolbarProps> = ({
             colorPalette="blue"
           >
             <LuMinus />
+          </IconButton>
+        </Tooltip>
+        <Tooltip showArrow content={"Pen"}>
+          <IconButton
+            aria-label="Pen"
+            onClick={() => handleShapeSelection("pen")}
+            variant={selectedShape === "pen" ? "solid" : "ghost"}
+            rounded="full"
+            size="xs"
+            borderColor="var(--chakra-colors-blue-500)"
+            colorPalette="blue"
+          >
+            <LuPencil />
           </IconButton>
         </Tooltip>
         <Tooltip showArrow content={"Text"}>

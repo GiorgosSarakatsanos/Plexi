@@ -8,32 +8,16 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { LuAtom } from "react-icons/lu";
-import { useState, useRef } from "react";
-import TopToolbar from "./components/TopToolbar/TopToolbar";
-import {
-  horizontalMenuItems,
-  verticalMenuItems,
-} from "./components/TopToolbar/menuItems";
+import { useState } from "react";
 import Sidebar from "./components/Sidebar/Sidebar";
-import { useColor } from "./hooks/useColor";
-import Canvas, { CanvasRef } from "./components/Canvas/Canvas";
 import Toolbar from "./components/Toolbar/Toolbar";
 import { LayerProvider } from "./components/Layer/LayerProvider";
-import { SelectedShape } from "./components/Shape/ToolTypes";
+import Canvas from "./components/Canvas/Canvas";
+import { SelectedShape } from "./components/Tools/ToolTypes";
 
 const Layout: React.FC = () => {
-  const canvasRef = useRef<CanvasRef>(null);
-  const [zoomLevel, setZoomLevel] = useState(100);
-
-  const { color: backgroundColor, handleColorChange } = useColor();
-  const [canvasOpacity, setCanvasOpacity] = useState(100);
-
   // Add selectedShape state
   const [selectedShape, setSelectedShape] = useState<SelectedShape>("select");
-
-  const handleOpacityChange = (opacity: number) => {
-    setCanvasOpacity(opacity);
-  };
 
   const barSize = "45px";
   const [sidebarWidth, setSidebarWidth] = useState("275px");
@@ -43,43 +27,14 @@ const Layout: React.FC = () => {
     setSidebarWidth((prevWidth) => (prevWidth === "275px" ? barSize : "275px"));
   };
 
+  const handleUploadImage = () => {
+    console.log("Image upload triggered!");
+    // Add actual image upload logic here
+  };
+
   const expandSidebar = () => {
     if (sidebarWidth === barSize) {
       setSidebarWidth("275px");
-    }
-  };
-
-  const calculatedWidth = window.innerWidth - parseInt(sidebarWidth);
-  const calculatedHeight = window.innerHeight - parseInt(barSize);
-
-  const setZoomToPercentage = (percentage: number) => {
-    if (canvasRef.current) {
-      canvasRef.current.setZoomToPercentage(percentage);
-      setZoomLevel(percentage);
-    }
-  };
-
-  const zoomIn = () => {
-    if (canvasRef.current) {
-      canvasRef.current.zoomIn();
-      updateZoomLevel();
-    }
-  };
-
-  const zoomOut = () => {
-    if (canvasRef.current) {
-      canvasRef.current.zoomOut();
-      updateZoomLevel();
-    }
-  };
-
-  const updateZoomLevel = () => {
-    if (canvasRef.current) {
-      const stage = canvasRef.current.getStage();
-      if (stage) {
-        const scale = stage.scaleX();
-        setZoomLevel(Math.round(scale * 100));
-      }
     }
   };
 
@@ -124,16 +79,7 @@ const Layout: React.FC = () => {
             </HStack>
           </HStack>
 
-          <VStack alignItems="right" p={2}>
-            <TopToolbar
-              zoomLevel={zoomLevel}
-              horizontalMenuItems={horizontalMenuItems}
-              verticalMenuItems={verticalMenuItems}
-              zoomIn={zoomIn}
-              zoomOut={zoomOut}
-              setZoomToPercentage={setZoomToPercentage}
-            />
-          </VStack>
+          <VStack alignItems="right" p={2}></VStack>
         </HStack>
 
         {/* Sidebar */}
@@ -152,8 +98,6 @@ const Layout: React.FC = () => {
           overflow="hidden"
         >
           <Sidebar
-            handleColorChange={handleColorChange}
-            handleOpacityChange={handleOpacityChange}
             toggleSidebarWidth={toggleSidebarWidth}
             expandSidebar={expandSidebar}
             isSidebarCollapsed={isSidebarCollapsed}
@@ -187,14 +131,8 @@ const Layout: React.FC = () => {
           }}
         >
           <Canvas
-            ref={canvasRef}
-            width={`${calculatedWidth}`}
-            height={`${calculatedHeight}`}
-            backgroundColor={backgroundColor}
-            opacity={canvasOpacity}
-            onZoomChange={setZoomLevel}
-            selectedShape={selectedShape}
-            setSelectedShape={setSelectedShape} // Pass the state updater function
+            selectedTool={selectedShape}
+            setSelectedTool={setSelectedShape}
           />
         </Center>
 
@@ -211,7 +149,7 @@ const Layout: React.FC = () => {
             <Toolbar
               selectedShape={selectedShape}
               setSelectedShape={setSelectedShape}
-              handleUploadImage={() => canvasRef.current?.handleUploadImage()}
+              handleUploadImage={handleUploadImage}
             />
           </HStack>
         </Flex>
