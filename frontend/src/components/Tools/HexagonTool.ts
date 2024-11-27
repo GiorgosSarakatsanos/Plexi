@@ -20,6 +20,8 @@ export const HexagonTool: Tool = {
       stroke: "green",
       strokeWidth: 2,
       layerId: "",
+      draggable: true,
+      listening: true,
     });
 
     const adjustSides = (event: WheelEvent) => {

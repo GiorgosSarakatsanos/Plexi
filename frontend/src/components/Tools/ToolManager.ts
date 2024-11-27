@@ -3,64 +3,56 @@ import { EllipseTool } from "./EllipseTool";
 import { PenTool } from "./PenTool";
 import { LineTool } from "./LineTool";
 import { HexagonTool } from "./HexagonTool";
-import { TextTool } from "./TextTool";
+import { ImageTool } from "./ImageTool";
 import { Tool } from "./Tool";
 import { SelectedShape } from "./ToolTypes";
+import { uploadImage } from "../../utils/uploadImage"; // Import uploader
+import { displayFloatingThumbnail } from "../../utils/displayFloatingThumbnail";
+import Konva from "konva";
 
-// Define a function to add logging behavior
-const withLogging = (toolName: string, tool: Tool): Tool => ({
-  handleMouseDown: (e, stageRef, setDrawingShape) => {
-    console.log(`${toolName} tool selected`);
-    tool.handleMouseDown(e, stageRef, setDrawingShape);
-  },
-  handleMouseMove: (e, drawingShape, setDrawingShape) => {
-    tool.handleMouseMove(e, drawingShape, setDrawingShape);
-  },
-  handleMouseUp: (
-    setShapes,
-    drawingShape,
-    setDrawingShape,
-    setSelectedTool,
-    stageRef,
-    addLayer,
-    transformerRef,
-    setSelectedShapeId
-  ) => {
-    tool.handleMouseUp(
-      setShapes,
-      drawingShape,
-      setDrawingShape,
-      setSelectedTool,
-      stageRef,
-      addLayer,
-      transformerRef,
-      setSelectedShapeId
-    );
-  },
-});
+// Extend the Tool type to include `setUploadedImage` globally
+export interface ExtendedTool extends Tool {
+  onSelect?: (stage: Konva.Stage) => void | Promise<void>; // Updated to support async
+  setUploadedImage?: (image: HTMLImageElement | null) => void;
+}
 
-// Define default (noop) tool behavior
-const DefaultTool: Tool = {
-  handleMouseDown: () => {},
-  handleMouseMove: () => {},
-  handleMouseUp: () => {},
-};
-
-// Initialize the ToolManager with the tools and logging
-export const ToolManager: Record<SelectedShape, Tool> = {
-  select: DefaultTool,
-  rect: withLogging("Rectangle", RectangleTool),
-  ellipse: withLogging("Ellipse", EllipseTool),
-  line: withLogging("Line", LineTool),
-  pen: withLogging("Pen", PenTool),
-  text: withLogging("Text", TextTool),
-  hexagon: withLogging("Hexagon", HexagonTool),
-  image: withLogging("Image", {
-    ...DefaultTool,
+export const ToolManager: Record<SelectedShape, ExtendedTool> = {
+  select: {
     handleMouseDown: () => {},
-  }),
-  area: withLogging("Area", {
-    ...DefaultTool,
-    handleMouseDown: () => {},
-  }),
+    handleMouseMove: () => {},
+    handleMouseUp: () => {},
+  },
+  rect: RectangleTool,
+  ellipse: EllipseTool,
+  line: LineTool,
+  pen: PenTool,
+  hexagon: HexagonTool,
+  image: {
+    ...ImageTool,
+    onSelect: async (stage: Konva.Stage) => {
+      const imageUrl: string | null = await uploadImage();
+      if (!imageUrl) {
+        console.log("Image upload canceled or failed.");
+        return;
+      }
+
+      const uploadedImage = new Image();
+      uploadedImage.src = imageUrl;
+
+      uploadedImage.onload = () => {
+        displayFloatingThumbnail(stage, uploadedImage);
+        ImageTool.setUploadedImage?.(uploadedImage); // Pass the HTMLImageElement
+      };
+    },
+  },
+  text: {
+    handleMouseDown: () => console.log("Text tool selected"),
+    handleMouseMove: () => {},
+    handleMouseUp: () => {},
+  },
+  area: {
+    handleMouseDown: () => console.log("Area tool selected"),
+    handleMouseMove: () => {},
+    handleMouseUp: () => {},
+  },
 };

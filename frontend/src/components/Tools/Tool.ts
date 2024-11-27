@@ -14,5 +14,6 @@ export interface Tool {
     drawingShape: Shape | null,
     setDrawingShape: React.Dispatch<React.SetStateAction<Shape | null>>
   ) => void;
-  handleMouseUp: typeof commonHandleMouseUp; // Use the shared function type
+  handleMouseUp: typeof commonHandleMouseUp;
+  setUploadedImage?: (image: HTMLImageElement | null) => void; // Accepts HTMLImageElement
 }

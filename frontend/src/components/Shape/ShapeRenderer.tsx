@@ -106,6 +106,7 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
           points={shape.points || []}
           stroke={shape.stroke}
           strokeWidth={shape.strokeWidth}
+          tension={shape.tension}
         />
       );
 
@@ -123,17 +124,15 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
       );
 
     case "image":
-      if (!shape.image) {
-        console.warn(`Image with id ${id} is missing the 'image' property.`);
-        return null;
-      }
       return (
         <Image
           key={id}
           {...commonProps}
+          x={shape.x || 0} // Ensure `x` is explicitly passed
+          y={shape.y || 0} // Ensure `y` is explicitly passed
           image={shape.image}
-          width={shape.width}
-          height={shape.height}
+          width={shape.width || 0}
+          height={shape.height || 0}
         />
       );
 

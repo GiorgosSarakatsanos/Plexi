@@ -8,15 +8,16 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { LuAtom } from "react-icons/lu";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Toolbar from "./components/Toolbar/Toolbar";
 import { LayerProvider } from "./components/Layer/LayerProvider";
 import Canvas from "./components/Canvas/Canvas";
 import { SelectedShape } from "./components/Tools/ToolTypes";
+import Konva from "konva";
 
 const Layout: React.FC = () => {
-  // Add selectedShape state
+  const stageRef = useRef<Konva.Stage>(null);
   const [selectedShape, setSelectedShape] = useState<SelectedShape>("select");
 
   const barSize = "45px";
@@ -25,11 +26,6 @@ const Layout: React.FC = () => {
 
   const toggleSidebarWidth = () => {
     setSidebarWidth((prevWidth) => (prevWidth === "275px" ? barSize : "275px"));
-  };
-
-  const handleUploadImage = () => {
-    console.log("Image upload triggered!");
-    // Add actual image upload logic here
   };
 
   const expandSidebar = () => {
@@ -149,7 +145,7 @@ const Layout: React.FC = () => {
             <Toolbar
               selectedShape={selectedShape}
               setSelectedShape={setSelectedShape}
-              handleUploadImage={handleUploadImage}
+              stageRef={stageRef}
             />
           </HStack>
         </Flex>

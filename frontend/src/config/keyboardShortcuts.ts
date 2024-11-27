@@ -8,8 +8,8 @@ export const keyboardShortcuts = (
   e: () => handleShapeSelection("ellipse"),
   h: () => handleShapeSelection("hexagon"),
   l: () => handleShapeSelection("line"),
-  p: () => handleShapeSelection("pen"),
+  b: () => handleShapeSelection("pen"),
   t: () => handleShapeSelection("text"),
-  i: () => handleShapeSelection("image"),
+  q: () => handleShapeSelection("image"),
   a: () => handleShapeSelection("area"),
 });

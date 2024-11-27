@@ -19,6 +19,8 @@ export const EllipseTool: Tool = {
       stroke: "red",
       strokeWidth: 2,
       layerId: "", // Layer ID will be assigned later
+      draggable: true,
+      listening: true,
     });
   },
   handleMouseMove: (e, drawingShape, setDrawingShape) => {

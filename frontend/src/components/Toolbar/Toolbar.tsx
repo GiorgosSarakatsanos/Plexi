@@ -15,34 +15,57 @@ import { Tooltip } from "../ui/tooltip";
 import { SelectedShape } from "../Tools/ToolTypes";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { keyboardShortcuts } from "../../config/keyboardShortcuts";
+import { ToolManager } from "../Tools/ToolManager";
+import Konva from "konva";
+import { uploadImage } from "../../utils/uploadImage";
+import { ImageTool } from "../Tools/ImageTool";
 
 interface ToolbarProps {
   selectedShape: SelectedShape;
   setSelectedShape: React.Dispatch<React.SetStateAction<SelectedShape>>;
-  handleUploadImage: () => void;
+  stageRef: React.RefObject<Konva.Stage>; // Pass stageRef as a prop
 }
 
 const shapeOptions = [
-  { label: "Select", icon: LuMousePointer2, value: "select" },
-  { label: "Rectangle", icon: LuSquare, value: "rect" },
-  { label: "Ellipse", icon: LuCircle, value: "ellipse" },
-  { label: "Hexagon", icon: LuHexagon, value: "hexagon" },
-  { label: "Line", icon: LuMinus, value: "line" },
-  { label: "Pen", icon: LuPencil, value: "pen" },
-  { label: "Text", icon: LuType, value: "text" },
-  { label: "Image", icon: LuImage, value: "image", onClick: true },
-  { label: "Drawing area", icon: LuFrame, value: "area" },
+  { label: "Select (S)", icon: LuMousePointer2, value: "select" },
+  { label: "Rectangle (R)", icon: LuSquare, value: "rect" },
+  { label: "Ellipse (E)", icon: LuCircle, value: "ellipse" },
+  { label: "Hexagon (H)", icon: LuHexagon, value: "hexagon" },
+  { label: "Line (L)", icon: LuMinus, value: "line" },
+  { label: "Pen (B)", icon: LuPencil, value: "pen" },
+  { label: "Text (T)", icon: LuType, value: "text" },
+  { label: "Image (Q)", icon: LuImage, value: "image" },
+  { label: "Drawing area (A)", icon: LuFrame, value: "area" },
 ];
 
 const Toolbar: React.FC<ToolbarProps> = ({
   selectedShape,
   setSelectedShape,
-  handleUploadImage,
+  stageRef,
 }) => {
-  const handleShapeSelection = (shapeType: SelectedShape) => {
+  const handleShapeSelection = async (shapeType: SelectedShape) => {
     setSelectedShape(shapeType);
+
     if (shapeType === "image") {
-      handleUploadImage();
+      const imageUrl = await uploadImage();
+      if (!imageUrl) {
+        console.log("Image upload canceled or failed.");
+        return;
+      }
+
+      const uploadedImage = new Image();
+      uploadedImage.src = imageUrl;
+
+      uploadedImage.onload = () => {
+        if (ImageTool.setUploadedImage) {
+          ImageTool.setUploadedImage(uploadedImage); // Pass only the uploaded image
+        }
+      };
+    } else {
+      const tool = ToolManager[shapeType];
+      if (tool.onSelect && stageRef.current) {
+        await tool.onSelect(stageRef.current);
+      }
     }
   };
 

@@ -20,6 +20,8 @@ export const TextTool: Tool = {
       fontSize: 16,
       fontFamily: "Arial",
       layerId: "",
+      draggable: true,
+      listening: true,
     });
   },
 

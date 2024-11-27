@@ -18,6 +18,8 @@ export const LineTool: Tool = {
       strokeWidth: 2,
       fill: "transparent",
       layerId: "",
+      draggable: true,
+      listening: true,
     });
   },
 

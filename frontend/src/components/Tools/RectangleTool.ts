@@ -19,6 +19,8 @@ export const RectangleTool: Tool = {
       stroke: "blue",
       strokeWidth: 2,
       layerId: "",
+      draggable: true,
+      listening: true,
     });
   },
   handleMouseMove: (e, drawingShape, setDrawingShape) => {

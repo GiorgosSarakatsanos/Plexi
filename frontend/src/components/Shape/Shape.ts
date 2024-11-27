@@ -25,4 +25,7 @@ export type Shape = {
   radius?: number; // Used for "ellipse", "hexagon"
   image?: HTMLImageElement; // Used for "image"
   groupId?: string; // Optional grouping
+  tension?: number;
+  listening: boolean;
+  draggable: boolean;
 };

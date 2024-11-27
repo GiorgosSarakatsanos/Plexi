@@ -15,9 +15,12 @@ export const PenTool: Tool = {
       y: pointerPos.y,
       points: [pointerPos.x, pointerPos.y], // Initialize with the first point
       stroke: "green",
-      strokeWidth: 2,
+      strokeWidth: 5,
+      tension: 0.5,
       fill: "transparent",
-      layerId: "", // Optional but required for Shape type
+      layerId: "",
+      draggable: true,
+      listening: true,
     });
   },
 
