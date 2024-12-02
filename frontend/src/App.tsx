@@ -1,154 +1,86 @@
-import {
-  Flex,
-  HStack,
-  IconButton,
-  Heading,
-  VStack,
-  Stack,
-  Center,
-} from "@chakra-ui/react";
-import { LuAtom } from "react-icons/lu";
+import { Flex, HStack, VStack, Center, Box } from "@chakra-ui/react";
 import { useState, useRef } from "react";
-import Sidebar from "./components/Sidebar/Sidebar";
-import Toolbar from "./components/Toolbar/Toolbar";
-import { LayerProvider } from "./components/Layer/LayerProvider";
-import Canvas from "./components/Canvas/Canvas";
-import { SelectedShape } from "./components/Tools/ToolTypes";
+import Toolbar from "./features/navigation/Toolbar";
+import LeftSidebar from "./features/navigation/LeftSidebar";
+import { LayerProvider } from "./features/design/Layer/LayerProvider";
+import Canvas from "./features/design/Canvas";
+import { SelectedShape } from "./features/design/helpers/ToolTypes";
 import Konva from "konva";
 
 const Layout: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
   const [selectedShape, setSelectedShape] = useState<SelectedShape>("select");
 
-  const barSize = "45px";
-  const [sidebarWidth, setSidebarWidth] = useState("275px");
-  const isSidebarCollapsed = sidebarWidth === barSize;
-
-  const toggleSidebarWidth = () => {
-    setSidebarWidth((prevWidth) => (prevWidth === "275px" ? barSize : "275px"));
-  };
-
-  const expandSidebar = () => {
-    if (sidebarWidth === barSize) {
-      setSidebarWidth("275px");
-    }
-  };
-
   return (
     <LayerProvider>
-      <Flex
-        className="main-wrapper"
-        width="100%"
-        height="100vh"
-        overflow="hidden"
-        boxSizing={"border-box"}
-      >
-        {/* Top bar */}
-        <HStack
-          justify="space-between"
-          className="top-bar"
-          h={barSize}
-          width="100%"
-          position="fixed"
-          zIndex={2}
+      <Flex width="100vw" height="100vh" overflow="hidden">
+        {/* Left Sidebar */}
+        <Box
+          width="250px"
+          minWidth="200px"
+          maxWidth="350px"
+          resize="horizontal"
+          overflow="auto"
+          height="100%"
           background="bg.panel"
-          borderBottomWidth={"1px"}
+          borderRight="1px solid"
+          borderColor="bg.emphasized"
+          zIndex="2"
         >
-          <HStack
-            justifyContent="space-between"
-            width="275px"
-            p={2}
-            borderRightWidth={"1px"}
-          >
-            <HStack gap={2}>
-              <IconButton
-                variant="subtle"
-                rounded="xl"
-                size="2xs"
-                colorPalette="blue"
-              >
-                <LuAtom />
-              </IconButton>
-              <Heading size="xs" fontWeight="bold">
-                Plexi
-              </Heading>
-            </HStack>
-          </HStack>
-
-          <VStack alignItems="right" p={2}></VStack>
-        </HStack>
-
-        {/* Sidebar */}
-        <Stack
-          className="side-bar"
-          w={sidebarWidth}
-          height={`calc(100vh - ${barSize})`}
-          position="fixed"
-          p={2}
-          inset={`${barSize} 0px 0px 0px`}
-          background="bg.panel"
-          zIndex={4}
-          transition="width 0.3s ease"
-          borderRightWidth={"1px"}
-          flexWrap={"nowrap"}
-          overflow="hidden"
-        >
-          <Sidebar
-            toggleSidebarWidth={toggleSidebarWidth}
-            expandSidebar={expandSidebar}
-            isSidebarCollapsed={isSidebarCollapsed}
-          />
-        </Stack>
+          <LeftSidebar />
+        </Box>
 
         {/* Canvas */}
-        <Center
-          className="canvas"
-          height={`calc(100vh - ${barSize})`}
-          w="auto"
-          position="absolute"
-          background="bg.emphasized"
-          inset={`${barSize} 0px 0px ${sidebarWidth}`}
-          zIndex={1}
-          overflow={"auto"}
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "6px",
-              height: "6px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "6px",
-              height: "6px",
-              background: "bg.panel",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "gray.300",
-              borderRadius: "24px",
-            },
-          }}
+        <Box
+          flex="1"
+          height="100%"
+          bg="gray.100"
+          overflow="hidden"
+          position="relative"
+          zIndex={"1"}
         >
           <Canvas
             selectedTool={selectedShape}
             setSelectedTool={setSelectedShape}
           />
-        </Center>
+        </Box>
 
-        {/* Toolbar */}
-        <Flex
-          position={"fixed"}
-          h="calc({barSize} + 4px)"
-          bottom={"14px"}
-          width={"100%"}
-          justify={"center"}
+        {/* Right Sidebar */}
+        <VStack
+          width="275px"
+          height="100%"
+          bg={"bg.panel"}
+          borderLeftWidth="1px"
           zIndex={3}
         >
-          <HStack dropShadow={"xs"}>
-            <Toolbar
-              selectedShape={selectedShape}
-              setSelectedShape={setSelectedShape}
-              stageRef={stageRef}
-            />
-          </HStack>
-        </Flex>
+          <Center>1</Center>
+        </VStack>
+
+        {/* Toolbar */}
+        <HStack
+          position={"fixed"}
+          justify={"center"}
+          bottom={"14px"}
+          width={"100%"}
+          zIndex={4}
+          pointerEvents="none" // Disable pointer events for the entire toolbar container
+        >
+          <Box
+            bg={"bg.panel"}
+            borderRadius={"xl"}
+            shadow="md"
+            position="relative"
+            pointerEvents="auto"
+          >
+            <Box zIndex={5}>
+              <Toolbar
+                selectedShape={selectedShape}
+                setSelectedShape={setSelectedShape}
+                stageRef={stageRef}
+              />
+            </Box>
+          </Box>
+        </HStack>
       </Flex>
     </LayerProvider>
   );
