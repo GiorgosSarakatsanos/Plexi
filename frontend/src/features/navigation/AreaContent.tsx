@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Stack, HStack, Box, Separator, VStack } from "@chakra-ui/react";
 import {
   AccordionItem,
@@ -7,7 +7,6 @@ import {
   AccordionRoot,
 } from "@/ui/accordion";
 import { accordionItems } from "./AccordionItems";
-
 import NewCustomSize from "./newCustomSize";
 
 const AreaContent: React.FC<{
@@ -15,9 +14,31 @@ const AreaContent: React.FC<{
   setSelectedItem: (item: string) => void;
 }> = ({ selectedItem, setSelectedItem }) => {
   const [value, setValue] = useState(["pixels"]);
+  const [customSizes, setCustomSizes] = useState<
+    { dimension: string; description: string }[]
+  >([]);
+
+  // Load saved custom sizes from local storage on component mount
+  useEffect(() => {
+    const savedSizes = localStorage.getItem("customSizes");
+    if (savedSizes) {
+      setCustomSizes(JSON.parse(savedSizes));
+    }
+  }, []);
+
+  // Save custom sizes to local storage whenever they change
+  useEffect(() => {
+    localStorage.setItem("customSizes", JSON.stringify(customSizes));
+  }, [customSizes]);
+
+  const handleAddCustomSize = (dimension: string, description: string) => {
+    const newCustomSize = { dimension, description };
+    setCustomSizes((prev) => [...prev, newCustomSize]);
+  };
 
   return (
     <Stack>
+      {/* Accordion for predefined items */}
       <AccordionRoot
         p={0}
         value={value}
@@ -75,10 +96,59 @@ const AreaContent: React.FC<{
             <Separator />
           </AccordionItem>
         ))}
+
+        {/* Accordion for custom sizes */}
+        <AccordionItem value="customSizes">
+          <AccordionItemTrigger
+            height={"45px"}
+            px={3}
+            fontSize={"xs"}
+            fontWeight={"normal"}
+          >
+            Custom Sizes
+          </AccordionItemTrigger>
+
+          <AccordionItemContent py={1}>
+            <Stack>
+              {customSizes.map((textItem, idx) => (
+                <HStack
+                  px={3}
+                  key={idx}
+                  justify="space-between"
+                  bg={
+                    selectedItem === textItem.dimension
+                      ? "blue.50"
+                      : "transparent"
+                  }
+                  _hover={{ bg: "gray.100", cursor: "pointer" }}
+                  onClick={() => {
+                    setSelectedItem(textItem.dimension);
+                  }}
+                >
+                  {/* Dimension Box */}
+                  <Box fontWeight="normal" fontSize="xs" w="50%">
+                    {textItem.dimension}
+                  </Box>
+                  {/* Description Box */}
+                  <Box
+                    fontSize="2xs"
+                    w="50%"
+                    color="gray.400"
+                    textAlign="right"
+                  >
+                    {textItem.description}
+                  </Box>
+                </HStack>
+              ))}
+            </Stack>
+          </AccordionItemContent>
+          <Separator />
+        </AccordionItem>
       </AccordionRoot>
 
+      {/* Add new custom size */}
       <VStack>
-        <NewCustomSize />
+        <NewCustomSize onAdd={handleAddCustomSize} />
       </VStack>
       <Separator />
     </Stack>

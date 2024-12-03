@@ -10,6 +10,7 @@ import { TextTool } from "../Tools/TextTool";
 import { SelectedShape } from "./ToolTypes";
 import { uploadImage } from "./uploadImage"; // Import uploader
 import { displayFloatingThumbnail } from "./displayFloatingThumbnail";
+import { AreaTool } from "../Tools/AreaTool";
 
 // Extend the Tool type to include `setUploadedImage` globally
 export interface ExtendedTool extends Tool {
@@ -29,6 +30,7 @@ export const ToolManager: Record<SelectedShape, ExtendedTool> = {
   pen: PenTool,
   hexagon: HexagonTool,
   text: TextTool,
+  area: AreaTool,
   image: {
     ...ImageTool,
     onSelect: async (stage: Konva.Stage) => {
@@ -46,10 +48,5 @@ export const ToolManager: Record<SelectedShape, ExtendedTool> = {
         ImageTool.setUploadedImage?.(uploadedImage); // Pass the HTMLImageElement
       };
     },
-  },
-  area: {
-    handleMouseDown: () => console.log("Area tool selected"),
-    handleMouseMove: () => {},
-    handleMouseUp: () => {},
   },
 };

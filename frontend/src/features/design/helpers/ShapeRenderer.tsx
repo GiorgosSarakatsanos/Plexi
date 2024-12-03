@@ -33,6 +33,7 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
     id,
     draggable: !isDrawing && !isPanning,
     strokeScaleEnabled: false,
+    listening: selectedShape === id, // Only listen if the shape is selected
     onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
       const { x, y } = e.target.position();
       setShapes((prevShapes) =>
@@ -133,6 +134,20 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
           image={shape.image}
           width={shape.width || 0}
           height={shape.height || 0}
+        />
+      );
+
+    case "area":
+      return (
+        <Rect
+          key={id}
+          {...commonProps}
+          {...restProps}
+          width={shape.width || 0}
+          height={shape.height || 0}
+          fill={shape.fill}
+          stroke={shape.stroke}
+          strokeWidth={shape.strokeWidth}
         />
       );
 
