@@ -1,13 +1,34 @@
 import Konva from "konva";
 import { Tool } from "../helpers/Tool";
-import { generateId } from "@/features/utils/idGenerator";
+import { generateId } from "@/features/utils/idGenerator"; // Ensure this is the correct import path
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
 import { Shape } from "../helpers/Shape"; // Assuming Shape is defined in this module
+
+// Utility function to create a shape
+const createShape = (
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): Shape => ({
+  id: generateId("area"),
+  type: "area",
+  x,
+  y,
+  width,
+  height,
+  fill: "white",
+  stroke: "lightgray",
+  strokeWidth: 1,
+  layerId: "",
+  draggable: true,
+  listening: true,
+});
 
 export const AreaTool: Tool & {
   addShapeToStage?: (
     stageRef: React.RefObject<Konva.Stage>,
-    setShapes: React.Dispatch<React.SetStateAction<Shape[]>>, // Use Shape[] instead of any[]
+    setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
     x: number,
     y: number,
     width: number,
@@ -19,20 +40,9 @@ export const AreaTool: Tool & {
     const pointerPos = stage?.getPointerPosition();
     if (!pointerPos) return;
 
-    setDrawingShape({
-      id: generateId("area"),
-      type: "area",
-      x: pointerPos.x,
-      y: pointerPos.y,
-      width: 0,
-      height: 0,
-      fill: "white",
-      stroke: "black",
-      strokeWidth: 1,
-      layerId: "",
-      draggable: true,
-      listening: true,
-    });
+    setDrawingShape(
+      createShape(pointerPos.x, pointerPos.y, 0, 0) // Create initial shape with 0 width and height
+    );
   },
 
   handleMouseMove: (e, drawingShape, setDrawingShape) => {
@@ -58,21 +68,7 @@ export const AreaTool: Tool & {
     const stage = stageRef.current;
     if (!stage) return;
 
-    const newShape: Shape = {
-      id: generateId("area"),
-      type: "area",
-      x,
-      y,
-      width,
-      height,
-      fill: "white",
-      stroke: "black",
-      strokeWidth: 1,
-      layerId: "",
-      draggable: true,
-      listening: true,
-    };
-
+    const newShape = createShape(x, y, width, height); // Use utility to create shape
     setShapes((prevShapes) => [...prevShapes, newShape]);
   },
 };

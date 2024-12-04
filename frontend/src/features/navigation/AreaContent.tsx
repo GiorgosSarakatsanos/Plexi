@@ -12,13 +12,18 @@ import Konva from "konva";
 
 const AreaContent: React.FC<{
   stageRef: React.RefObject<Konva.Stage>;
-
   selectedItem: string | null;
   setSelectedItem: (item: string) => void;
 }> = ({ selectedItem, setSelectedItem }) => {
   const [value, setValue] = useState(["pixels"]);
   const [customSizes, setCustomSizes] = useState<
-    { dimension: string; description: string }[]
+    {
+      dimension: string;
+      description: string;
+      width: number;
+      height: number;
+      unit: "px" | "mm" | "in";
+    }[]
   >([]);
 
   useEffect(() => {
@@ -33,7 +38,17 @@ const AreaContent: React.FC<{
   }, [customSizes]);
 
   const handleAddCustomSize = (dimension: string, description: string) => {
-    const newCustomSize = { dimension, description };
+    const [width, heightWithUnit] = dimension.split(" x ");
+    const unit = heightWithUnit.slice(-2) as "px" | "mm" | "in";
+    const height = parseFloat(heightWithUnit);
+
+    const newCustomSize = {
+      dimension,
+      description,
+      width: parseFloat(width),
+      height,
+      unit,
+    };
     setCustomSizes((prev) => [...prev, newCustomSize]);
   };
 
@@ -41,6 +56,24 @@ const AreaContent: React.FC<{
     px: 1,
     mm: 3.779528,
     in: 96,
+  };
+
+  const createShape = (
+    width: number,
+    height: number,
+    unit: "px" | "mm" | "in"
+  ) => {
+    const conversionFactor = unitToPixelConversion[unit];
+    const widthInPixels = Math.round(width * conversionFactor);
+    const heightInPixels = Math.round(height * conversionFactor);
+
+    const event = new CustomEvent("addShape", {
+      detail: {
+        width: widthInPixels,
+        height: heightInPixels,
+      },
+    });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -80,30 +113,9 @@ const AreaContent: React.FC<{
                     _hover={{ bg: "gray.100", cursor: "pointer" }}
                     onClick={() => {
                       const { width, height, unit } = textItem.dimensions;
-                      const conversionFactor =
-                        unitToPixelConversion[
-                          unit as keyof typeof unitToPixelConversion
-                        ];
-
-                      const widthInPixels = Math.round(
-                        width * conversionFactor
-                      );
-                      const heightInPixels = Math.round(
-                        height * conversionFactor
-                      );
-
-                      const formattedDimensions = `width: ${widthInPixels}, height: ${heightInPixels}, unit: ${unit}`;
-                      console.log(formattedDimensions);
-
+                      // Assert that unit is one of the expected types
+                      createShape(width, height, unit as "px" | "mm" | "in");
                       setSelectedItem(textItem.dimension);
-
-                      const event = new CustomEvent("addShape", {
-                        detail: {
-                          width: widthInPixels,
-                          height: heightInPixels,
-                        },
-                      });
-                      window.dispatchEvent(event);
                     }}
                   >
                     <Box fontWeight="normal" fontSize="xs" w="50%">
@@ -121,6 +133,7 @@ const AreaContent: React.FC<{
                 ))}
               </Stack>
             </AccordionItemContent>
+
             <Separator />
           </AccordionItem>
         ))}
@@ -149,6 +162,7 @@ const AreaContent: React.FC<{
                   }
                   _hover={{ bg: "gray.100", cursor: "pointer" }}
                   onClick={() => {
+                    createShape(textItem.width, textItem.height, textItem.unit);
                     setSelectedItem(textItem.dimension);
                   }}
                 >
