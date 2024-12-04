@@ -10,26 +10,34 @@ export const commonHandleMouseUp = (
   setDrawingShape: React.Dispatch<React.SetStateAction<Shape | null>>,
   setSelectedTool: React.Dispatch<React.SetStateAction<SelectedShape>>,
   stageRef: React.RefObject<Konva.Stage>,
-  addLayer: ((shapeType: string, id: string) => void) | undefined,
+  addLayer: (shapeType: string, id: string) => void,
   transformerRef: React.RefObject<Konva.Transformer>,
   setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>
 ) => {
   if (!drawingShape) return;
 
-  const layerId = generateId("layer");
-  const updatedShape = { ...drawingShape, layerId };
+  // Generate ID for the shape
+  const shapeId = generateId(drawingShape.type);
 
-  // Add shape to the shapes array
+  const updatedShape = {
+    ...drawingShape,
+    id: shapeId, // Assign the generated ID
+  };
+
+  console.log("Generated shape ID:", shapeId);
+
+  // Add the shape to the shapes array
   setShapes((prev) => [...prev, updatedShape]);
-  setDrawingShape(null); // Reset drawing shape
-  setSelectedTool("select"); // Switch back to select tool
+  setDrawingShape(null); // Reset the drawing shape
+  setSelectedTool("select"); // Switch back to the select tool
 
-  // Add layer and select shape
-  if (addLayer) {
-    addLayer(drawingShape.type, updatedShape.id);
-  }
-  setSelectedShapeId(updatedShape.id);
+  // Use the LayerProvider's addLayer to handle the layer
+  addLayer(drawingShape.type, shapeId);
 
-  // Apply transformer
-  applyTransformer(stageRef, transformerRef, updatedShape.id);
+  // Set the selected shape ID
+  setSelectedShapeId(shapeId);
+  console.log("setSelectedShapeId called with:", shapeId);
+
+  // Apply the transformer to the shape
+  applyTransformer(stageRef, transformerRef, shapeId);
 };

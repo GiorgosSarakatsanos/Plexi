@@ -1,5 +1,4 @@
 import { Tool } from "../helpers/Tool";
-import { generateId } from "../../utils/idGenerator";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
 
 export const HexagonTool: Tool = {
@@ -10,7 +9,7 @@ export const HexagonTool: Tool = {
 
     // Create a shape with initial sides and radius
     setDrawingShape({
-      id: generateId("hexagon"),
+      id: "hexagon",
       type: "hexagon",
       x: pointerPos.x,
       y: pointerPos.y,

@@ -1,6 +1,5 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
-import { generateId } from "../../utils/idGenerator";
 
 export const LineTool: Tool = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
@@ -9,7 +8,7 @@ export const LineTool: Tool = {
     if (!pointerPos) return;
 
     setDrawingShape({
-      id: generateId("line"),
+      id: ("line"),
       type: "line",
       x: pointerPos.x,
       y: pointerPos.y,

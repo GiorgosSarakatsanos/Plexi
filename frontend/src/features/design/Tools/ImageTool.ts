@@ -1,6 +1,5 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
-import { generateId } from "../../utils/idGenerator";
 
 let uploadedImage: HTMLImageElement | null = null;
 
@@ -18,7 +17,7 @@ export const ImageTool: Tool = {
     const height = width / aspectRatio;
 
     setDrawingShape({
-      id: generateId("image"),
+      id: "image",
       type: "image",
       x: pointerPos.x, // Use pointer position for placement
       y: pointerPos.y, // Use pointer position for placement

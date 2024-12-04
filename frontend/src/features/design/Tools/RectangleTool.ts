@@ -1,6 +1,5 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
-import { generateId } from "../../utils/idGenerator";
 
 export const RectangleTool: Tool = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
@@ -9,7 +8,7 @@ export const RectangleTool: Tool = {
     if (!pointerPos) return;
 
     setDrawingShape({
-      id: generateId("rect"),
+      id: "rect",
       type: "rect",
       x: pointerPos.x,
       y: pointerPos.y,

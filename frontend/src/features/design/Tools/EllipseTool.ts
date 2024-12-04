@@ -1,6 +1,5 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
-import { generateId } from "../../utils/idGenerator";
 
 export const EllipseTool: Tool = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
@@ -9,7 +8,7 @@ export const EllipseTool: Tool = {
     if (!pointerPos) return;
 
     setDrawingShape({
-      id: generateId("ellipse"),
+      id: ("ellipse"),
       type: "ellipse",
       x: pointerPos.x,
       y: pointerPos.y,

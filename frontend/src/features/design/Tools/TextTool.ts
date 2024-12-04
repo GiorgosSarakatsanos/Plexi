@@ -1,5 +1,4 @@
 import { Tool } from "../helpers/Tool";
-import { generateId } from "../../utils/idGenerator";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
 
 export const TextTool: Tool = {
@@ -9,7 +8,7 @@ export const TextTool: Tool = {
     if (!pointerPos) return;
 
     setDrawingShape({
-      id: generateId("text"),
+      id: "text",
       type: "text",
       x: pointerPos.x,
       y: pointerPos.y,

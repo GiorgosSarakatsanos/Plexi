@@ -1,8 +1,7 @@
 import Konva from "konva";
 import { Tool } from "../helpers/Tool";
-import { generateId } from "@/features/utils/idGenerator"; // Ensure this is the correct import path
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
-import { Shape } from "../helpers/Shape"; // Assuming Shape is defined in this module
+import { Shape } from "../helpers/Shape";
 
 // Utility function to create a shape
 const createShape = (
@@ -11,7 +10,7 @@ const createShape = (
   width: number,
   height: number
 ): Shape => ({
-  id: generateId("area"),
+  id: "area",
   type: "area",
   x,
   y,
@@ -40,9 +39,7 @@ export const AreaTool: Tool & {
     const pointerPos = stage?.getPointerPosition();
     if (!pointerPos) return;
 
-    setDrawingShape(
-      createShape(pointerPos.x, pointerPos.y, 0, 0) // Create initial shape with 0 width and height
-    );
+    setDrawingShape(createShape(pointerPos.x, pointerPos.y, 0, 0));
   },
 
   handleMouseMove: (e, drawingShape, setDrawingShape) => {
@@ -68,7 +65,7 @@ export const AreaTool: Tool & {
     const stage = stageRef.current;
     if (!stage) return;
 
-    const newShape = createShape(x, y, width, height); // Use utility to create shape
+    const newShape = createShape(x, y, width, height);
     setShapes((prevShapes) => [...prevShapes, newShape]);
   },
 };
