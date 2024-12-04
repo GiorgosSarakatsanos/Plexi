@@ -1,4 +1,3 @@
-// src/utils/idGenerator.ts
 let currentId = 0;
 
 // Optionally load the last ID from local storage or a saved state.

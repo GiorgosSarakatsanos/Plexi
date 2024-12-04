@@ -10,7 +10,7 @@ export const commonHandleMouseUp = (
   setDrawingShape: React.Dispatch<React.SetStateAction<Shape | null>>,
   setSelectedTool: React.Dispatch<React.SetStateAction<SelectedShape>>,
   stageRef: React.RefObject<Konva.Stage>,
-  addLayer: (shapeType: string, id: string) => void,
+  addLayer: (shapeType: string, shapeId: string, groupId?: string) => string, // Ensure groupId matches
   transformerRef: React.RefObject<Konva.Transformer>,
   setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>
 ) => {
@@ -19,20 +19,25 @@ export const commonHandleMouseUp = (
   // Generate ID for the shape
   const shapeId = generateId(drawingShape.type);
 
+  // Use the LayerProvider's addLayer to create a layer and get its ID
+  const groupId = drawingShape.groupId || undefined; // Use undefined if not provided
+  const layerId = addLayer(drawingShape.type, shapeId, groupId);
+
   const updatedShape = {
     ...drawingShape,
     id: shapeId, // Assign the generated ID
+    layerId, // Assign the layer ID from addLayer
+    groupId, // Include the groupId (even if undefined)
   };
 
   console.log("Generated shape ID:", shapeId);
+  console.log("Assigned layer ID:", layerId);
+  console.log("Assigned group ID:", groupId ?? "None");
 
   // Add the shape to the shapes array
   setShapes((prev) => [...prev, updatedShape]);
   setDrawingShape(null); // Reset the drawing shape
   setSelectedTool("select"); // Switch back to the select tool
-
-  // Use the LayerProvider's addLayer to handle the layer
-  addLayer(drawingShape.type, shapeId);
 
   // Set the selected shape ID
   setSelectedShapeId(shapeId);

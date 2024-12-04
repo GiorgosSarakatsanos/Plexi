@@ -8,7 +8,7 @@ interface LayerContextProps {
   groupedLayers: Layer[];
   standaloneLayers: Layer[];
   setLayers: React.Dispatch<React.SetStateAction<Layer[]>>; // Expose setLayers
-  addLayer: (shapeType: string, id?: string, groupId?: string) => void;
+  addLayer: (shapeType: string, shapeId: string, groupId?: string) => void;
   toggleVisibility: (id: string) => void;
   selectLayer: (id: string, ctrlKey?: boolean, shiftKey?: boolean) => void;
   deselectLayer: (id?: string) => void;
@@ -35,7 +35,11 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log("Layers updated:", layers);
   }, [layers]);
 
-  const addLayer = (shapeType: string, id?: string, groupId?: string) => {
+  const addLayer = (
+    shapeType: string,
+    shapeId: string,
+    groupId?: string
+  ): string => {
     if (!shapeTypeCounters[shapeType]) {
       shapeTypeCounters[shapeType] = 1;
     } else {
@@ -44,22 +48,26 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const displayShapeType = shapeTypeNames[shapeType] || shapeType;
     const layerName = `${displayShapeType} ${shapeTypeCounters[shapeType]}`;
-    const layerId = id || generateId();
+    const layerId = generateId(); // Generate a unique layer ID
 
     const newLayer: Layer = {
       id: layerId,
       name: layerName,
       isVisible: true,
       shapeType,
-      isGrouped: !!groupId, // Mark as grouped if a groupId is provided
-      groupId, // Store groupId if available
+      groupId, // Optional groupId
+      isGrouped: !!groupId, // Mark as grouped if groupId exists
       isGroupArea: shapeType === "area",
     };
 
     setLayers((prevLayers) => [...prevLayers, newLayer]);
     console.log(
-      `Layer created with name: ${layerName}, ID: ${layerId}, Grouped: ${!!groupId}`
+      `Layer created with name: ${layerName}, Layer ID: ${layerId}, Shape ID: ${shapeId}, Grouped: ${!!groupId}, Group ID: ${
+        groupId ?? "None"
+      }`
     );
+
+    return layerId; // Return the generated layer ID
   };
 
   const toggleVisibility = (id: string) => {

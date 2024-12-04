@@ -58,7 +58,27 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
   }, []);
 
   useEffect(() => {
+    const logSelectedShapeDetails = (shapeId: string | null) => {
+      if (!shapeId) {
+        console.log("No shape selected");
+        return;
+      }
+
+      const selectedShape = shapes.find((shape) => shape.id === shapeId);
+      if (!selectedShape) {
+        console.log("Shape not found");
+        return;
+      }
+
+      console.log("Selected Shape Details:");
+      console.log("Shape ID:", selectedShape.id);
+      console.log("Shape Type:", selectedShape.type);
+      console.log("Layer ID:", selectedShape.layerId || "None");
+      console.log("Group:", selectedShape.groupId || "None");
+    };
+
     applyTransformer(stageRef, transformerRef, selectedShapeId);
+    logSelectedShapeDetails(selectedShapeId); // Log the details of the selected shape
   }, [selectedShapeId, shapes]);
 
   const handleDragEnd = (id: string, x: number, y: number) => {
