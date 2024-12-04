@@ -18,7 +18,6 @@ const AreaContent: React.FC<{
     { dimension: string; description: string }[]
   >([]);
 
-  // Load saved custom sizes from local storage on component mount
   useEffect(() => {
     const savedSizes = localStorage.getItem("customSizes");
     if (savedSizes) {
@@ -26,7 +25,6 @@ const AreaContent: React.FC<{
     }
   }, []);
 
-  // Save custom sizes to local storage whenever they change
   useEffect(() => {
     localStorage.setItem("customSizes", JSON.stringify(customSizes));
   }, [customSizes]);
@@ -36,9 +34,14 @@ const AreaContent: React.FC<{
     setCustomSizes((prev) => [...prev, newCustomSize]);
   };
 
+  const unitToPixelConversion = {
+    px: 1,
+    mm: 3.779528,
+    in: 96,
+  };
+
   return (
     <Stack>
-      {/* Accordion for predefined items */}
       <AccordionRoot
         p={0}
         value={value}
@@ -73,14 +76,28 @@ const AreaContent: React.FC<{
                     }
                     _hover={{ bg: "gray.100", cursor: "pointer" }}
                     onClick={() => {
+                      const { width, height, unit } = textItem.dimensions;
+                      const conversionFactor =
+                        unitToPixelConversion[
+                          unit as keyof typeof unitToPixelConversion
+                        ];
+
+                      const widthInPixels = Math.round(
+                        width * conversionFactor
+                      );
+                      const heightInPixels = Math.round(
+                        height * conversionFactor
+                      );
+
+                      const formattedDimensions = `width: ${widthInPixels}, height: ${heightInPixels}, unit: ${unit}`;
+                      console.log(formattedDimensions);
+
                       setSelectedItem(textItem.dimension);
                     }}
                   >
-                    {/* Dimension Box */}
                     <Box fontWeight="normal" fontSize="xs" w="50%">
                       {textItem.dimension}
                     </Box>
-                    {/* Description Box */}
                     <Box
                       fontSize="2xs"
                       w="50%"
@@ -97,7 +114,6 @@ const AreaContent: React.FC<{
           </AccordionItem>
         ))}
 
-        {/* Accordion for custom sizes */}
         <AccordionItem value="customSizes">
           <AccordionItemTrigger
             height={"45px"}
@@ -125,11 +141,9 @@ const AreaContent: React.FC<{
                     setSelectedItem(textItem.dimension);
                   }}
                 >
-                  {/* Dimension Box */}
                   <Box fontWeight="normal" fontSize="xs" w="50%">
                     {textItem.dimension}
                   </Box>
-                  {/* Description Box */}
                   <Box
                     fontSize="2xs"
                     w="50%"
@@ -146,7 +160,6 @@ const AreaContent: React.FC<{
         </AccordionItem>
       </AccordionRoot>
 
-      {/* Add new custom size */}
       <VStack>
         <NewCustomSize onAdd={handleAddCustomSize} />
       </VStack>
