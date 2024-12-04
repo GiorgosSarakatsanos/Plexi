@@ -1,8 +1,19 @@
+import Konva from "konva";
 import { Tool } from "../helpers/Tool";
 import { generateId } from "@/features/utils/idGenerator";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
+import { Shape } from "../helpers/Shape"; // Assuming Shape is defined in this module
 
-export const AreaTool: Tool = {
+export const AreaTool: Tool & {
+  addShapeToStage?: (
+    stageRef: React.RefObject<Konva.Stage>,
+    setShapes: React.Dispatch<React.SetStateAction<Shape[]>>, // Use Shape[] instead of any[]
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ) => void;
+} = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
     const stage = stageRef.current;
     const pointerPos = stage?.getPointerPosition();
@@ -42,4 +53,26 @@ export const AreaTool: Tool = {
   },
 
   handleMouseUp: commonHandleMouseUp,
+
+  addShapeToStage: (stageRef, setShapes, x, y, width, height) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const newShape: Shape = {
+      id: generateId("area"),
+      type: "area",
+      x,
+      y,
+      width,
+      height,
+      fill: "white",
+      stroke: "black",
+      strokeWidth: 1,
+      layerId: "",
+      draggable: true,
+      listening: true,
+    };
+
+    setShapes((prevShapes) => [...prevShapes, newShape]);
+  },
 };

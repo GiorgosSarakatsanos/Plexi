@@ -8,8 +8,11 @@ import {
 } from "@/ui/accordion";
 import { accordionItems } from "./AccordionItems";
 import NewCustomSize from "./newCustomSize";
+import Konva from "konva";
 
 const AreaContent: React.FC<{
+  stageRef: React.RefObject<Konva.Stage>;
+
   selectedItem: string | null;
   setSelectedItem: (item: string) => void;
 }> = ({ selectedItem, setSelectedItem }) => {
@@ -93,6 +96,14 @@ const AreaContent: React.FC<{
                       console.log(formattedDimensions);
 
                       setSelectedItem(textItem.dimension);
+
+                      const event = new CustomEvent("addShape", {
+                        detail: {
+                          width: widthInPixels,
+                          height: heightInPixels,
+                        },
+                      });
+                      window.dispatchEvent(event);
                     }}
                   >
                     <Box fontWeight="normal" fontSize="xs" w="50%">

@@ -8,6 +8,7 @@ import { SelectedShape } from "./helpers//ToolTypes";
 import { applyTransformer } from "./helpers//applyTransformer";
 import { useLayerContext } from "./Layer/useLayerContext";
 import { handleDoubleClick } from "./mouseActions/handleDoubleClick";
+import { AreaTool } from "./Tools/AreaTool";
 
 interface CanvasProps {
   selectedTool: SelectedShape;
@@ -30,10 +31,31 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
   const { addLayer, setSelectedLayerIds } = useLayerContext();
   const transformerRef = useRef<Konva.Transformer>(null);
 
-  const { setLayers } = useLayerContext();
-  if (!setLayers) {
-    throw new Error("setLayers is not defined in the LayerContext");
-  }
+  const stageRef = useRef<Konva.Stage>(null);
+
+  const handleAddShape = (width: number, height: number) => {
+    const x = Math.random() * 200; // Random x position
+    const y = Math.random() * 200; // Random y position
+    AreaTool.addShapeToStage?.(stageRef, setShapes, x, y, width, height);
+  };
+
+  useEffect(() => {
+    const handleAddShapeEvent = (
+      e: CustomEvent<{ width: number; height: number }>
+    ) => {
+      const { width, height } = e.detail;
+      handleAddShape(width, height);
+    };
+
+    window.addEventListener("addShape", handleAddShapeEvent as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "addShape",
+        handleAddShapeEvent as EventListener
+      );
+    };
+  }, []);
 
   useEffect(() => {
     applyTransformer(stageRef, transformerRef, selectedShapeId);
@@ -50,8 +72,6 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
       setSelectedLayerIds([]);
     }
   };
-
-  const stageRef = useRef<Konva.Stage>(null);
 
   const currentTool = ToolManager[selectedTool];
 
@@ -76,7 +96,7 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
           stageRef,
           addLayer,
           transformerRef,
-          setSelectedShapeId // Pass setSelectedShapeId here
+          setSelectedShapeId
         )
       }
     >
@@ -114,7 +134,6 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
         )}
         <Transformer ref={transformerRef} />
       </Layer>
-      <Layer id="preview-layer"></Layer>
     </Stage>
   );
 };

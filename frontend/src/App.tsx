@@ -27,7 +27,7 @@ const Layout: React.FC = () => {
           borderColor="bg.emphasized"
           zIndex="2"
         >
-          <LeftSidebar />
+          <LeftSidebar stageRef={stageRef} />
         </Box>
 
         {/* Canvas */}

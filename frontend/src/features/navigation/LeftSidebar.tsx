@@ -12,8 +12,13 @@ import LayerPanel from "../design/Layer/LayerList";
 import AreaContent from "./AreaContent"; // Import AreaContent
 import TabTrigger from "./TabTrigger"; // Import TabTrigger
 import FooterButton from "./FooterButton"; // Import FooterButton
+import Konva from "konva";
 
-const LeftSidebar: React.FC = () => {
+interface LeftSidebarProps {
+  stageRef: React.RefObject<Konva.Stage>;
+}
+
+const LeftSidebar: React.FC<LeftSidebarProps> = ({ stageRef }) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
   return (
@@ -37,6 +42,7 @@ const LeftSidebar: React.FC = () => {
           {/* Tab Content */}
           <Tabs.Content p={0} value="area">
             <AreaContent
+              stageRef={stageRef} // Pass stageRef here
               selectedItem={selectedItem}
               setSelectedItem={setSelectedItem}
             />
