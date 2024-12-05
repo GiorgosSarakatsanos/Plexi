@@ -9,18 +9,29 @@ import {
   AccordionItemTrigger,
   AccordionRoot,
 } from "../../../ui/accordion";
-
+import { handleShapeSelection } from "../mouseActions/handleShapeSelection";
 import { LuFrame } from "react-icons/lu";
+import Konva from "konva";
+import { applyTransformer } from "../helpers/applyTransformer";
 
-const LayerPanel: React.FC = () => {
-  const { layers, selectedLayerIds, selectLayer } = useLayerContext();
+const LayerPanel: React.FC<{
+  stageRef: React.RefObject<Konva.Stage>;
+  transformerRef: React.RefObject<Konva.Transformer>;
+  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedLayerIds: React.Dispatch<React.SetStateAction<string[]>>;
+}> = ({
+  stageRef,
+  transformerRef,
+  setSelectedShapeId,
+  setSelectedLayerIds,
+}) => {
+  const { layers, selectedLayerIds, selectLayer, deselectLayer } =
+    useLayerContext();
 
-  // Separate standalone layers
   const standaloneLayers = layers.filter(
     (layer) => !layer.isGrouped && !layer.isGroupArea
   );
 
-  // Group layers by groupId
   const groupedLayersMap: { [groupId: string]: Layer[] } = {};
   layers.forEach((layer) => {
     if (layer.groupId && !layer.isGroupArea) {
@@ -33,7 +44,6 @@ const LayerPanel: React.FC = () => {
 
   return (
     <Stack align={"flex-start"}>
-      {/* Grouped Layers Section as Accordion */}
       <Stack width="full">
         <AccordionRoot collapsible variant={"plain"}>
           {Object.entries(groupedLayersMap).map(([groupId, groupLayers]) => (
@@ -67,14 +77,24 @@ const LayerPanel: React.FC = () => {
                         pl={4}
                         key={layer.id}
                         onClick={(e) => {
-                          selectLayer(
-                            layer.id,
-                            e.ctrlKey || e.metaKey,
-                            e.shiftKey
-                          );
-                          console.log(
-                            `Layer in group ${groupId} selected with ID: ${layer.id}`
-                          );
+                          console.log(`Clicked Layer ID: ${layer.id}`);
+                          if (selectedLayerIds.includes(layer.id)) {
+                            deselectLayer(layer.id);
+                            applyTransformer(stageRef, transformerRef, null);
+                          } else {
+                            selectLayer(
+                              layer.id,
+                              e.ctrlKey || e.metaKey,
+                              e.shiftKey
+                            );
+                            handleShapeSelection(
+                              stageRef,
+                              transformerRef,
+                              setSelectedShapeId,
+                              setSelectedLayerIds,
+                              layer.id
+                            );
+                          }
                         }}
                         className={`layer-item ${
                           selectedLayerIds.includes(layer.id) ? "selected" : ""
@@ -97,7 +117,6 @@ const LayerPanel: React.FC = () => {
         </AccordionRoot>
       </Stack>
 
-      {/* Standalone Layers Section */}
       {standaloneLayers.map((layer) => {
         const shapeInfo = shapeTypeNames[layer.shapeType];
         const IconComponent = shapeInfo?.icon || shapeTypeNames["line"].icon;
@@ -106,15 +125,24 @@ const LayerPanel: React.FC = () => {
           <HStack
             fontSize={"xs"}
             key={layer.id}
-            onClick={(e) => {
-              selectLayer(layer.id, e.ctrlKey || e.metaKey, e.shiftKey);
-              console.log(`Standalone layer selected with ID: ${layer.id}`);
+            onClick={() => {
+              if (selectedLayerIds.includes(layer.id)) {
+                deselectLayer(layer.id);
+                applyTransformer(stageRef, transformerRef, null); // Remove transformer
+              } else {
+                selectLayer(layer.id, false, false);
+                setSelectedShapeId(layer.id);
+                setSelectedLayerIds([layer.id]);
+                applyTransformer(stageRef, transformerRef, layer.id); // Apply transformer
+              }
             }}
             className={`layer-item ${
               selectedLayerIds.includes(layer.id) ? "selected" : ""
             }`}
             style={{
-              fontWeight: selectedLayerIds.includes(layer.id) ? "bold" : "xs",
+              fontWeight: selectedLayerIds.includes(layer.id)
+                ? "bold"
+                : "normal",
             }}
           >
             <IconComponent />

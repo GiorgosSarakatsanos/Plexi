@@ -16,9 +16,17 @@ import Konva from "konva";
 
 interface LeftSidebarProps {
   stageRef: React.RefObject<Konva.Stage>;
+  transformerRef: React.RefObject<Konva.Transformer>;
+  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedLayerIds: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const LeftSidebar: React.FC<LeftSidebarProps> = ({ stageRef }) => {
+const LeftSidebar: React.FC<LeftSidebarProps> = ({
+  stageRef,
+  transformerRef,
+  setSelectedShapeId,
+  setSelectedLayerIds,
+}) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
   return (
@@ -42,13 +50,18 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ stageRef }) => {
           {/* Tab Content */}
           <Tabs.Content p={0} value="area">
             <AreaContent
-              stageRef={stageRef} // Pass stageRef here
+              stageRef={stageRef}
               selectedItem={selectedItem}
               setSelectedItem={setSelectedItem}
             />
           </Tabs.Content>
           <Tabs.Content value="layers" px={3}>
-            <LayerPanel />
+            <LayerPanel
+              stageRef={stageRef}
+              transformerRef={transformerRef}
+              setSelectedShapeId={setSelectedShapeId}
+              setSelectedLayerIds={setSelectedLayerIds}
+            />
           </Tabs.Content>
           <Tabs.Content value="projects">Manage your projects</Tabs.Content>
         </Tabs.Root>

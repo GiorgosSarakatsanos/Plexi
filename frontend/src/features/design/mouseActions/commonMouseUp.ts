@@ -2,7 +2,7 @@ import Konva from "konva";
 import { Shape } from "../helpers/Shape";
 import { SelectedShape } from "../helpers/ToolTypes";
 import { generateId } from "../../utils/idGenerator";
-import { applyTransformer } from "../helpers/applyTransformer";
+import { handleShapeSelection } from "./handleShapeSelection";
 
 export const commonHandleMouseUp = (
   setShapes: React.Dispatch<React.SetStateAction<Shape[]>>,
@@ -10,39 +10,38 @@ export const commonHandleMouseUp = (
   setDrawingShape: React.Dispatch<React.SetStateAction<Shape | null>>,
   setSelectedTool: React.Dispatch<React.SetStateAction<SelectedShape>>,
   stageRef: React.RefObject<Konva.Stage>,
-  addLayer: (shapeType: string, shapeId: string, groupId?: string) => string, // Ensure groupId matches
+  addLayer: (shapeType: string, shapeId: string, groupId?: string) => string,
   transformerRef: React.RefObject<Konva.Transformer>,
-  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>
+  setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>,
+  setSelectedLayerIds: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   if (!drawingShape) return;
 
-  // Generate ID for the shape
   const shapeId = generateId(drawingShape.type);
-
-  // Use the LayerProvider's addLayer to create a layer and get its ID
-  const groupId = drawingShape.groupId || undefined; // Use undefined if not provided
+  const groupId = drawingShape.groupId || undefined;
   const layerId = addLayer(drawingShape.type, shapeId, groupId);
+
+  if (!layerId) {
+    console.error("Layer ID could not be generated for the shape.");
+    return;
+  }
 
   const updatedShape = {
     ...drawingShape,
-    id: shapeId, // Assign the generated ID
-    layerId, // Assign the layer ID from addLayer
-    groupId, // Include the groupId (even if undefined)
+    id: shapeId,
+    layerId,
+    groupId,
   };
 
-  console.log("Generated shape ID:", shapeId);
-  console.log("Assigned layer ID:", layerId);
-  console.log("Assigned group ID:", groupId ?? "None");
-
-  // Add the shape to the shapes array
   setShapes((prev) => [...prev, updatedShape]);
-  setDrawingShape(null); // Reset the drawing shape
-  setSelectedTool("select"); // Switch back to the select tool
+  setDrawingShape(null);
+  setSelectedTool("select");
 
-  // Set the selected shape ID
-  setSelectedShapeId(shapeId);
-  console.log("setSelectedShapeId called with:", shapeId);
-
-  // Apply the transformer to the shape
-  applyTransformer(stageRef, transformerRef, shapeId);
+  handleShapeSelection(
+    stageRef,
+    transformerRef,
+    setSelectedShapeId,
+    setSelectedLayerIds,
+    layerId
+  );
 };

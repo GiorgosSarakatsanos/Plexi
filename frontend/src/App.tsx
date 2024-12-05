@@ -9,6 +9,9 @@ import Konva from "konva";
 
 const Layout: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
+  const [, setSelectedShapeId] = useState<string | null>(null);
+  const [, setSelectedLayerIds] = useState<string[]>([]);
   const [selectedShape, setSelectedShape] = useState<SelectedShape>("select");
 
   return (
@@ -27,7 +30,12 @@ const Layout: React.FC = () => {
           borderColor="bg.emphasized"
           zIndex="2"
         >
-          <LeftSidebar stageRef={stageRef} />
+          <LeftSidebar
+            stageRef={stageRef}
+            transformerRef={transformerRef}
+            setSelectedShapeId={setSelectedShapeId}
+            setSelectedLayerIds={setSelectedLayerIds}
+          />
         </Box>
 
         {/* Canvas */}
@@ -63,7 +71,7 @@ const Layout: React.FC = () => {
           bottom={"14px"}
           width={"100%"}
           zIndex={4}
-          pointerEvents="none" // Disable pointer events for the entire toolbar container
+          pointerEvents="none"
         >
           <Box
             bg={"bg.panel"}
