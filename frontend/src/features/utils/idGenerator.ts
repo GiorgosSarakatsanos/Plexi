@@ -13,3 +13,9 @@ export function generateId(prefix = "shape"): string {
   }
   return `${prefix}-${currentId}`; // Add prefix for clarity
 }
+
+// import { v4 as uuidv4 } from "uuid";
+
+// export function generateId(type: string): string {
+//   return `${type}-${uuidv4()}`; // Combine type with the generated UUID
+// }

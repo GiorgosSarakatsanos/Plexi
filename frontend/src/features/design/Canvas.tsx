@@ -4,16 +4,11 @@ import { Stage, Layer, Transformer } from "react-konva";
 import { ToolManager } from "./helpers/ToolManager";
 import ShapeRenderer from "./helpers/ShapeRenderer";
 import { Shape } from "./helpers/Shape";
-import { SelectedShape } from "./helpers//ToolTypes";
 import { applyTransformer } from "./helpers//applyTransformer";
 import { useLayerContext } from "./Layer/useLayerContext";
 import { handleDoubleClick } from "./mouseActions/handleDoubleClick";
 import { AreaTool } from "./Tools/AreaTool";
-
-interface CanvasProps {
-  selectedTool: SelectedShape;
-  setSelectedTool: React.Dispatch<React.SetStateAction<SelectedShape>>;
-}
+import { SelectedShape } from "./helpers/ToolTypes";
 
 export interface CanvasRef {
   zoomIn: () => void;
@@ -22,6 +17,11 @@ export interface CanvasRef {
   getStage: () => Konva.Stage | null;
   selectShapeById: (shapeId: string) => void; // Add this line
   handleUploadImage: () => void; // Add this
+}
+
+interface CanvasProps {
+  selectedTool: SelectedShape;
+  setSelectedTool: React.Dispatch<React.SetStateAction<SelectedShape>>;
 }
 
 const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
@@ -86,12 +86,28 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
   };
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    console.log("Clicked target:", e.target);
+    console.log("Target layerId:", e.target.attrs.layerId);
+
     if (e.target === stageRef.current) {
-      // Deselect any selected shape
       setSelectedShapeId(null);
       setSelectedLayerIds([]);
+    } else {
+      const clickedShape = shapes.find(
+        (shape) => shape.layerId === e.target.attrs.layerId
+      );
+      console.log("Clicked shape:", clickedShape);
+
+      if (clickedShape) {
+        setSelectedShapeId(clickedShape.layerId);
+        setSelectedLayerIds([clickedShape.layerId]);
+      }
     }
   };
+
+  useEffect(() => {
+    applyTransformer(stageRef, transformerRef, selectedShapeId);
+  }, [selectedShapeId, shapes]);
 
   const currentTool = ToolManager[selectedTool];
 
@@ -116,7 +132,8 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
           stageRef,
           addLayer,
           transformerRef,
-          setSelectedShapeId
+          setSelectedShapeId,
+          setSelectedLayerIds
         )
       }
     >

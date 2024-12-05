@@ -26,14 +26,15 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
   handleDoubleClick,
   selectedShape,
 }) => {
-  const { id, type, ...restProps } = shape;
+  const { id, type, layerId, ...restProps } = shape; // Destructure `layerId`
 
   // Common props for all shapes
   const commonProps = {
     id,
+    layerId,
     draggable: !isDrawing && !isPanning,
     strokeScaleEnabled: false,
-    listening: selectedShape === id, // Only listen if the shape is selected
+    listening: selectedShape === layerId, // Only listen if the shape is selected by `layerId`
     onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
       const { x, y } = e.target.position();
       setShapes((prevShapes) =>
@@ -47,8 +48,8 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
     onClick:
       selectedShape === "select"
         ? () => {
-            setSelectedShapeId(id);
-            setSelectedLayerIds([shape.layerId]);
+            setSelectedShapeId(layerId); // Use `layerId` instead of `id`
+            setSelectedLayerIds([layerId]); // Set the selected `layerId`
           }
         : undefined,
   };
