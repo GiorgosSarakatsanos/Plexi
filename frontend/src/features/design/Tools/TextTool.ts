@@ -1,5 +1,6 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
+import { createShapeBase } from "../helpers/ShapeBase";
 
 export const TextTool: Tool = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
@@ -10,23 +11,16 @@ export const TextTool: Tool = {
     setDrawingShape({
       id: "text",
       type: "text",
-      x: pointerPos.x,
-      y: pointerPos.y,
       text: "Double-click to edit",
-      fill: "black",
-      stroke: "transparent",
-      strokeWidth: 0,
       fontSize: 16,
       fontFamily: "Arial",
-      layerId: "",
-      draggable: true,
-      listening: true,
+      ...createShapeBase(pointerPos), // Use defaults from createShapeBase
+      stroke: "transparent", // Override if needed
+      fill: "black", // Override if needed
     });
   },
-
   handleMouseMove: () => {
     // No move logic required for text placement
   },
-
   handleMouseUp: commonHandleMouseUp,
 };

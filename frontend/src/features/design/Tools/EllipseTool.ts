@@ -1,5 +1,6 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
+import { createShapeBase } from "../helpers/ShapeBase";
 
 export const EllipseTool: Tool = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
@@ -8,18 +9,11 @@ export const EllipseTool: Tool = {
     if (!pointerPos) return;
 
     setDrawingShape({
-      id: ("ellipse"),
+      id: "ellipse",
       type: "ellipse",
-      x: pointerPos.x,
-      y: pointerPos.y,
       width: 0,
       height: 0,
-      fill: "rgba(255, 0, 0, 0.2)",
-      stroke: "red",
-      strokeWidth: 2,
-      layerId: "", // Layer ID will be assigned later
-      draggable: true,
-      listening: true,
+      ...createShapeBase(pointerPos),
     });
   },
   handleMouseMove: (e, drawingShape, setDrawingShape) => {

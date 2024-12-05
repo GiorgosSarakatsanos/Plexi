@@ -1,5 +1,6 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
+import { createShapeBase } from "../helpers/ShapeBase";
 
 export const PenTool: Tool = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
@@ -8,21 +9,13 @@ export const PenTool: Tool = {
     if (!pointerPos) return;
 
     setDrawingShape({
-      id: ("pen"),
+      id: "pen",
       type: "pen",
-      x: pointerPos.x,
-      y: pointerPos.y,
-      points: [pointerPos.x, pointerPos.y], // Initialize with the first point
-      stroke: "green",
-      strokeWidth: 5,
+      points: [pointerPos.x, pointerPos.y],
       tension: 0.5,
-      fill: "transparent",
-      layerId: "",
-      draggable: true,
-      listening: true,
+      ...createShapeBase(pointerPos),
     });
   },
-
   handleMouseMove: (e, drawingShape, setDrawingShape) => {
     if (!drawingShape || drawingShape.type !== "pen") return;
 
@@ -32,12 +25,9 @@ export const PenTool: Tool = {
 
     setDrawingShape((prev) => {
       if (!prev) return null;
-
-      const currentPoints = prev.points || []; // Ensure points is always an array
-      const newPoints = [...currentPoints, pointerPos.x, pointerPos.y];
-      return { ...prev, points: newPoints }; // Update the points
+      const newPoints = [...(prev.points || []), pointerPos.x, pointerPos.y];
+      return { ...prev, points: newPoints };
     });
   },
-
   handleMouseUp: commonHandleMouseUp,
 };

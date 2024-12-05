@@ -1,5 +1,6 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
+import { createShapeBase } from "../helpers/ShapeBase";
 
 export const LineTool: Tool = {
   handleMouseDown: (_e, stageRef, setDrawingShape) => {
@@ -8,20 +9,12 @@ export const LineTool: Tool = {
     if (!pointerPos) return;
 
     setDrawingShape({
-      id: ("line"),
+      id: "line",
       type: "line",
-      x: pointerPos.x,
-      y: pointerPos.y,
-      points: [pointerPos.x, pointerPos.y, pointerPos.x, pointerPos.y], // Initialize start and end points
-      stroke: "orange",
-      strokeWidth: 2,
-      fill: "transparent",
-      layerId: "",
-      draggable: true,
-      listening: true,
+      points: [pointerPos.x, pointerPos.y, pointerPos.x, pointerPos.y],
+      ...createShapeBase(pointerPos),
     });
   },
-
   handleMouseMove: (e, drawingShape, setDrawingShape) => {
     if (!drawingShape || drawingShape.type !== "line") return;
 
@@ -31,14 +24,9 @@ export const LineTool: Tool = {
 
     setDrawingShape((prev) => {
       if (!prev) return null;
-
-      const [startX, startY] = prev.points || [prev.x, prev.y]; // Safely default to initial coordinates
-      return {
-        ...prev,
-        points: [startX, startY, pointerPos.x, pointerPos.y], // Update end point
-      };
+      const [startX, startY] = prev.points || [prev.x, prev.y];
+      return { ...prev, points: [startX, startY, pointerPos.x, pointerPos.y] };
     });
   },
-
   handleMouseUp: commonHandleMouseUp,
 };

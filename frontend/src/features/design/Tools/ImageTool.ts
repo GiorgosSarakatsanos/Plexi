@@ -1,5 +1,6 @@
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
+import { createShapeBase } from "../helpers/ShapeBase";
 
 let uploadedImage: HTMLImageElement | null = null;
 
@@ -17,19 +18,14 @@ export const ImageTool: Tool = {
     const height = width / aspectRatio;
 
     setDrawingShape({
+      ...createShapeBase(pointerPos), // Base properties
       id: "image",
       type: "image",
-      x: pointerPos.x, // Use pointer position for placement
-      y: pointerPos.y, // Use pointer position for placement
       width: width,
       height: height,
       image: uploadedImage,
-      layerId: "",
-      draggable: true,
-      listening: true,
-      strokeWidth: 0, // Default strokeWidth for images
-      stroke: "", // Default stroke for images (or any value you find suitable)
-      fill: "transparent", // Images typically don't use a fill color
+      strokeWidth: 0, // Images don't typically use stroke
+      stroke: "", // No stroke by default for images
     });
   },
   handleMouseMove: () => {

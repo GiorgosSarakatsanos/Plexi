@@ -1,28 +1,8 @@
 import Konva from "konva";
 import { Tool } from "../helpers/Tool";
 import { commonHandleMouseUp } from "../mouseActions/commonMouseUp";
+import { createShapeBase } from "../helpers/ShapeBase";
 import { Shape } from "../helpers/Shape";
-
-// Utility function to create a shape
-const createShape = (
-  x: number,
-  y: number,
-  width: number,
-  height: number
-): Shape => ({
-  id: "area",
-  type: "area",
-  x,
-  y,
-  width,
-  height,
-  fill: "white",
-  stroke: "lightgray",
-  strokeWidth: 1,
-  layerId: "",
-  draggable: true,
-  listening: true,
-});
 
 export const AreaTool: Tool & {
   addShapeToStage?: (
@@ -39,7 +19,16 @@ export const AreaTool: Tool & {
     const pointerPos = stage?.getPointerPosition();
     if (!pointerPos) return;
 
-    setDrawingShape(createShape(pointerPos.x, pointerPos.y, 0, 0));
+    setDrawingShape({
+      ...createShapeBase(pointerPos), // Use base properties
+      id: "area",
+      type: "area", // Ensure type is explicitly "area"
+      width: 0,
+      height: 0,
+      fill: "white", // Override to white
+      stroke: "lightgray", // Light gray for stroke
+      strokeWidth: 1, // Specific stroke width
+    });
   },
 
   handleMouseMove: (e, drawingShape, setDrawingShape) => {
@@ -65,7 +54,16 @@ export const AreaTool: Tool & {
     const stage = stageRef.current;
     if (!stage) return;
 
-    const newShape = createShape(x, y, width, height);
-    setShapes((prevShapes) => [...prevShapes, newShape]);
+    const newShape: Shape = {
+      ...createShapeBase({ x, y }), // Use base properties
+      id: "area",
+      type: "area", // Explicitly set the type as "area"
+      width,
+      height,
+      fill: "white", // Override to white
+      stroke: "lightgray",
+      strokeWidth: 1,
+    };
+    setShapes((prevShapes) => [...prevShapes, newShape]); // Ensure correct type for new shapes
   },
 };
