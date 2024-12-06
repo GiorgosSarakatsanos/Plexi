@@ -30,32 +30,33 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
   return (
-    <VStack gap={0} w="100%" h={"100%"} justify={"space-between"}>
+    <VStack gap={0} h={"100%"} justify={"space-between"} w={"full"}>
       {/* Tabs Section */}
-      <VStack gap={0} w="100%" align={"flex-start"}>
-        <Tabs.Root p={0} defaultValue="area" size="sm" variant="plain" w="100%">
-          <Tabs.List
-            p={0}
-            height={"45px"}
-            display="flex"
-            alignItems="center"
-            borderRadius={0}
-            bg={"bg.subtle"}
-          >
-            <TabTrigger value="area" icon={<LuFrame />} label="Area" />
-            <TabTrigger value="layers" icon={<LuLayers />} label="Layers" />
-            <TabTrigger value="projects" icon={<LuFolder />} label="Files" />
+      <VStack gap={0} w="100%" alignItems={"flex-start"}>
+        <Tabs.Root
+          p={0}
+          defaultValue="area"
+          size="sm"
+          variant="plain"
+          orientation="vertical"
+          alignItems={"flex-start"}
+          w={"full"}
+        >
+          <Tabs.List py={2} gap={4} h={"45px"} borderRadius={0}>
+            <TabTrigger value="area" icon={<LuFrame />} label="" />
+            <TabTrigger value="layers" icon={<LuLayers />} label="" />
+            <TabTrigger value="projects" icon={<LuFolder />} label="" />
           </Tabs.List>
 
           {/* Tab Content */}
-          <Tabs.Content p={0} value="area">
+          <Tabs.Content p={0} value="area" w={"full"} px={2}>
             <AreaContent
               stageRef={stageRef}
               selectedItem={selectedItem}
               setSelectedItem={setSelectedItem}
             />
           </Tabs.Content>
-          <Tabs.Content value="layers" px={3}>
+          <Tabs.Content value="layers" px={0}>
             <LayerPanel
               stageRef={stageRef}
               transformerRef={transformerRef}
@@ -63,6 +64,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
               setSelectedLayerIds={setSelectedLayerIds}
             />
           </Tabs.Content>
+          <Tabs.Content value="projects">Manage your projects</Tabs.Content>
           <Tabs.Content value="projects">Manage your projects</Tabs.Content>
         </Tabs.Root>
       </VStack>

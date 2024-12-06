@@ -28,16 +28,18 @@ const NewCustomSize: React.FC<{
   };
 
   return (
-    <Stack px={2}>
-      <Fieldset.Root size="sm" fontSize={"xs"}>
-        <Stack fontSize={"xs"}>
-          <Fieldset.Legend>Create a new custom size</Fieldset.Legend>
+    <Stack w={"180px"}>
+      <Fieldset.Root size="sm" fontSize={"2xs"}>
+        <Stack fontSize={"2xs"}>
+          <Fieldset.Legend fontSize={"2xs"}>
+            Create a new custom size
+          </Fieldset.Legend>
         </Stack>
 
         <Fieldset.Content>
           <HStack>
             {/* Width Input */}
-            <Field fontSize={"xs"} label="Width">
+            <Field fontSize={"2xs"}>
               <Input
                 name="width"
                 placeholder="Enter width"
@@ -50,7 +52,7 @@ const NewCustomSize: React.FC<{
             </Field>
 
             {/* Height Input */}
-            <Field fontSize={"xs"} label="Height">
+            <Field fontSize={"2xs"}>
               <Input
                 name="height"
                 placeholder="Enter height"
@@ -65,7 +67,7 @@ const NewCustomSize: React.FC<{
 
           {/* Unit Selector */}
           <HStack>
-            <Field fontSize={"xs"} label="Unit">
+            <Field fontSize={"2xs"}>
               <NativeSelectRoot size={"xs"}>
                 <NativeSelectField
                   focusRing={"none"}
@@ -78,7 +80,7 @@ const NewCustomSize: React.FC<{
             </Field>
 
             {/* Name Input */}
-            <Field fontSize={"xs"} label="Name">
+            <Field fontSize={"2xs"}>
               <Input
                 name="name"
                 placeholder="Enter name"
@@ -93,7 +95,7 @@ const NewCustomSize: React.FC<{
         </Fieldset.Content>
 
         <HStack w={"full"} h={"25px"}>
-          <Button size={"xs"} flex={1} onClick={handleSubmit}>
+          <Button size={"2xs"} flex={1} onClick={handleSubmit}>
             Add
           </Button>
         </HStack>

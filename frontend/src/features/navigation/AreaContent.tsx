@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Stack, HStack, Box, Separator, VStack } from "@chakra-ui/react";
+import {
+  Stack,
+  HStack,
+  Box,
+  Separator,
+  VStack,
+  IconButton,
+} from "@chakra-ui/react";
 import {
   AccordionItem,
   AccordionItemContent,
@@ -9,6 +16,7 @@ import {
 import { accordionItems } from "./AccordionItems";
 import NewCustomSize from "./newCustomSize";
 import Konva from "konva";
+import { LuPlus } from "react-icons/lu";
 
 const AreaContent: React.FC<{
   stageRef: React.RefObject<Konva.Stage>;
@@ -25,6 +33,7 @@ const AreaContent: React.FC<{
       unit: "px" | "mm" | "in";
     }[]
   >([]);
+  const [isAddingCustomSize, setIsAddingCustomSize] = useState(false); // State to toggle input visibility
 
   useEffect(() => {
     const savedSizes = localStorage.getItem("customSizes");
@@ -50,6 +59,7 @@ const AreaContent: React.FC<{
       unit,
     };
     setCustomSizes((prev) => [...prev, newCustomSize]);
+    setIsAddingCustomSize(false); // Hide the input after adding a new custom size
   };
 
   const unitToPixelConversion = {
@@ -77,32 +87,36 @@ const AreaContent: React.FC<{
   };
 
   return (
-    <Stack>
+    <Stack p={0} w="full">
       <AccordionRoot
         p={0}
+        w="full" // Make it take the full width
         value={value}
         onValueChange={(e) => setValue(e.value)}
         variant={"plain"}
         size={"sm"}
-        fontSize={"xs"}
+        fontSize={"2xs"}
         fontWeight={"normal"}
+        collapsible
       >
         {accordionItems.map((item, index) => (
           <AccordionItem key={index} value={item.value}>
             <AccordionItemTrigger
-              height={"45px"}
-              px={3}
-              fontSize={"xs"}
+              py={1}
+              px={1}
+              fontSize={"2xs"}
               fontWeight={"normal"}
             >
               {item.title}
             </AccordionItemTrigger>
 
-            <AccordionItemContent py={1}>
-              <Stack>
+            <AccordionItemContent p={0}>
+              <Stack w="full" flex={1}>
+                {" "}
+                {/* Use w="full" for dynamic width */}
                 {item.content.map((textItem, idx) => (
                   <HStack
-                    px={3}
+                    px={0} // Remove unnecessary padding for full-width layout
                     key={idx}
                     justify="space-between"
                     bg={
@@ -113,12 +127,12 @@ const AreaContent: React.FC<{
                     _hover={{ bg: "gray.100", cursor: "pointer" }}
                     onClick={() => {
                       const { width, height, unit } = textItem.dimensions;
-                      // Assert that unit is one of the expected types
                       createShape(width, height, unit as "px" | "mm" | "in");
                       setSelectedItem(textItem.dimension);
                     }}
+                    w="full" // Ensure HStack also takes full width
                   >
-                    <Box fontWeight="normal" fontSize="xs" w="50%">
+                    <Box fontWeight="semibold" fontSize="2xs" w="50%">
                       {textItem.dimension}
                     </Box>
                     <Box
@@ -138,21 +152,24 @@ const AreaContent: React.FC<{
           </AccordionItem>
         ))}
 
-        <AccordionItem value="customSizes">
-          <AccordionItemTrigger
-            height={"45px"}
-            px={3}
-            fontSize={"xs"}
-            fontWeight={"normal"}
-          >
-            Custom Sizes
+        <AccordionItem value="customSizes" p={0}>
+          <AccordionItemTrigger p={1} fontSize={"2xs"} fontWeight={"normal"}>
+            <IconButton
+              px={0}
+              size={"2xs"}
+              variant={"plain"}
+              fontSize={"2xs"}
+              onClick={() => setIsAddingCustomSize((prev) => !prev)} // Toggle input visibility
+            >
+              Add new custom size
+              <LuPlus />
+            </IconButton>
           </AccordionItemTrigger>
 
-          <AccordionItemContent py={1}>
+          <AccordionItemContent p={0}>
             <Stack>
               {customSizes.map((textItem, idx) => (
                 <HStack
-                  px={3}
                   key={idx}
                   justify="space-between"
                   bg={
@@ -166,7 +183,7 @@ const AreaContent: React.FC<{
                     setSelectedItem(textItem.dimension);
                   }}
                 >
-                  <Box fontWeight="normal" fontSize="xs" w="50%">
+                  <Box fontWeight="normal" fontSize="2xs" w="50%">
                     {textItem.dimension}
                   </Box>
                   <Box
@@ -186,9 +203,8 @@ const AreaContent: React.FC<{
       </AccordionRoot>
 
       <VStack>
-        <NewCustomSize onAdd={handleAddCustomSize} />
+        {isAddingCustomSize && <NewCustomSize onAdd={handleAddCustomSize} />}
       </VStack>
-      <Separator />
     </Stack>
   );
 };
