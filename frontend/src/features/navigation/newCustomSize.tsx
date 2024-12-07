@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Button, Fieldset, HStack, Input, Stack } from "@chakra-ui/react";
+import { Button, Fieldset, HStack, Stack, Text } from "@chakra-ui/react";
 import { Field } from "@/ui/field";
 import { NativeSelectField, NativeSelectRoot } from "@/ui/native-select";
+import ReusableInput from "../utils/ReusableInput";
 
 const NewCustomSize: React.FC<{
   onAdd: (dimension: string, description: string, unit: string) => void;
-}> = ({ onAdd }) => {
+  onCancel: () => void; // Pass an `onCancel` callback from parent
+}> = ({ onAdd, onCancel }) => {
   const [width, setWidth] = useState<string>("");
   const [height, setHeight] = useState<string>("");
   const [name, setName] = useState<string>("");
@@ -27,76 +29,79 @@ const NewCustomSize: React.FC<{
     }
   };
 
+  const handleCancel = () => {
+    // Reset fields
+    setWidth("");
+    setHeight("");
+    setName("");
+    setUnit("px");
+    // Close the form
+    onCancel();
+  };
+
   return (
-    <Stack w={"180px"}>
-      <Fieldset.Root size="sm" fontSize={"2xs"}>
-        <Stack fontSize={"2xs"}>
-          <Fieldset.Legend fontSize={"2xs"}>
-            Create a new custom size
-          </Fieldset.Legend>
-        </Stack>
+    <Stack>
+      <Fieldset.Root size="sm" fontSize={"xs"}>
+        <Stack fontSize={"xs"}></Stack>
 
         <Fieldset.Content>
           <HStack>
             {/* Width Input */}
-            <Field fontSize={"2xs"}>
-              <Input
-                name="width"
-                placeholder="Enter width"
-                size={"2xs"}
-                variant={"flushed"}
-                value={width}
-                onChange={(e) => setWidth(e.target.value)}
-                required
-              />
-            </Field>
+            <ReusableInput
+              name="width"
+              value={width}
+              onChange={(e) => setWidth(e.target.value)}
+            />
 
             {/* Height Input */}
-            <Field fontSize={"2xs"}>
-              <Input
-                name="height"
-                placeholder="Enter height"
-                size={"2xs"}
-                variant={"flushed"}
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                required
-              />
-            </Field>
+            <ReusableInput
+              name="height"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+            />
           </HStack>
 
-          {/* Unit Selector */}
           <HStack>
-            <Field fontSize={"2xs"}>
-              <NativeSelectRoot size={"xs"}>
-                <NativeSelectField
-                  focusRing={"none"}
-                  name="unit"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                  items={["px", "mm", "in"]} // Unit options
-                />
-              </NativeSelectRoot>
+            {/* Unit Selector */}
+            <Field>
+              <HStack w={"full"}>
+                <Text fontSize={"xs"} fontWeight="medium" color="gray.500">
+                  U:
+                </Text>
+                <NativeSelectRoot size={"xs"} variant={"plain"}>
+                  <NativeSelectField
+                    focusRing={"none"}
+                    h={5}
+                    p={0}
+                    name="unit"
+                    fontSize={"xs"}
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                    items={["pixels", "milimetres", "inches"]} // Unit options
+                    color={"gray.500"}
+                    borderBottom={"1px solid"}
+                    borderColor={"gray.200"}
+                    rounded={0}
+                  />
+                </NativeSelectRoot>
+              </HStack>
             </Field>
 
             {/* Name Input */}
-            <Field fontSize={"2xs"}>
-              <Input
-                name="name"
-                placeholder="Enter name"
-                size={"2xs"}
-                variant={"flushed"}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </Field>
+            <ReusableInput
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </HStack>
         </Fieldset.Content>
 
-        <HStack w={"full"} h={"25px"}>
-          <Button size={"2xs"} flex={1} onClick={handleSubmit}>
+        <HStack w={"full"} h={2} py={4}>
+          <Button size={"xs"} flex={1} onClick={handleSubmit}>
             Add
+          </Button>
+          <Button size={"xs"} flex={1} onClick={handleCancel} variant={"plain"}>
+            Cancel
           </Button>
         </HStack>
       </Fieldset.Root>

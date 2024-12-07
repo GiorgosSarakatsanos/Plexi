@@ -45,7 +45,7 @@ export const accordionItems = [
       },
       {
         dimension: "1366 x 768 px",
-        description: "Web Design Standard",
+        description: "Web Standard",
         dimensions: { width: 1366, height: 768, unit: "px" },
       },
       {
