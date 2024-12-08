@@ -14,27 +14,33 @@ const Layout: React.FC = () => {
   const [, setSelectedLayerIds] = useState<string[]>([]);
   const [selectedShape, setSelectedShape] = useState<SelectedShape>("select");
 
+  // State to manage sidebar width
+  const [sidebarWidth, setSidebarWidth] = useState("38px");
+
+  const toggleSidebarWidth = () => {
+    setSidebarWidth((prevWidth) => (prevWidth === "38px" ? "250px" : "38px"));
+  };
+
   return (
     <LayerProvider>
       <Flex width="100vw" height="100vh" overflow="hidden">
         {/* Left Sidebar */}
         <Box
-          width="250px"
-          minWidth="200px"
-          maxWidth="350px"
-          resize="horizontal"
+          width={sidebarWidth}
           overflow="auto"
           height="100%"
           background="bg.panel"
           borderRight="1px solid"
           borderColor="bg.emphasized"
           zIndex="2"
+          overflowX={"hidden"}
         >
           <LeftSidebar
             stageRef={stageRef}
             transformerRef={transformerRef}
             setSelectedShapeId={setSelectedShapeId}
             setSelectedLayerIds={setSelectedLayerIds}
+            toggleSidebarWidth={toggleSidebarWidth}
           />
         </Box>
 

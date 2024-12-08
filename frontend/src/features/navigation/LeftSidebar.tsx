@@ -18,6 +18,7 @@ interface LeftSidebarProps {
   transformerRef: React.RefObject<Konva.Transformer>;
   setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedLayerIds: React.Dispatch<React.SetStateAction<string[]>>;
+  toggleSidebarWidth: () => void;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -25,6 +26,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   transformerRef,
   setSelectedShapeId,
   setSelectedLayerIds,
+  toggleSidebarWidth,
 }) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const barSize = "38px";
@@ -94,7 +96,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <IconButton size={"xs"} variant={"plain"}>
           <LuHelpCircle />
         </IconButton>
-        <IconButton size={"xs"} variant={"plain"}>
+        <IconButton size="xs" variant="plain" onClick={toggleSidebarWidth}>
           <LuChevronsLeftRight />
         </IconButton>
       </VStack>
