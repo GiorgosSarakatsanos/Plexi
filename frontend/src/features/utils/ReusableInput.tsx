@@ -1,5 +1,5 @@
 import React from "react";
-import { HStack, Text, Input } from "@chakra-ui/react";
+import { HStack, Input } from "@chakra-ui/react";
 
 interface ReusableInputProps {
   name: string;
@@ -22,10 +22,6 @@ const ReusableInput: React.FC<ReusableInputProps> = ({
 }) => {
   return (
     <HStack align="center" w="full">
-      {/* Static label with the first letter of the name capitalized */}
-      <Text fontSize={fontSize} fontWeight="medium" color="gray.500">
-        {name.charAt(0).toUpperCase()}:
-      </Text>
       {/* Input Field */}
       <Input
         name={name}
@@ -33,9 +29,12 @@ const ReusableInput: React.FC<ReusableInputProps> = ({
         onChange={onChange}
         required={required}
         fontSize={fontSize}
+        bg={"bg.subtle"}
+        p={3}
+        rounded={"md"}
         h={h}
         size="xs"
-        variant="flushed"
+        variant="outline"
       />
     </HStack>
   );

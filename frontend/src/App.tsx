@@ -62,7 +62,7 @@ const Layout: React.FC = () => {
 
         {/* Right Sidebar */}
         <VStack
-          width="150px"
+          width="200px"
           height="100%"
           bg={"bg.panel"}
           borderLeftWidth="1px"
