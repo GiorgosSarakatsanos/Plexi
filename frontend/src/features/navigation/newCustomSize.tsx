@@ -42,7 +42,6 @@ const NewCustomSize: React.FC<{
   return (
     <Stack>
       <Fieldset.Root size="sm" fontSize={"xs"}>
-        <Stack fontSize={"xs"}></Stack>
 
         <Fieldset.Content>
           <HStack>

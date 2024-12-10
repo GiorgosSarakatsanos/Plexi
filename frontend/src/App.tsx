@@ -1,4 +1,4 @@
-import { Flex, HStack, VStack, Center, Box } from "@chakra-ui/react";
+import { Flex, HStack, VStack, Box } from "@chakra-ui/react";
 import { useState, useRef } from "react";
 import Toolbar from "./features/navigation/Toolbar";
 import LeftSidebar from "./features/navigation/LeftSidebar";
@@ -6,6 +6,7 @@ import { LayerProvider } from "./features/design/Layer/LayerProvider";
 import Canvas from "./features/design/Canvas";
 import { SelectedShape } from "./features/design/helpers/ToolTypes";
 import Konva from "konva";
+import RightSidebar from "./features/navigation/RightSidebar";
 
 const Layout: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
@@ -61,13 +62,14 @@ const Layout: React.FC = () => {
 
         {/* Right Sidebar */}
         <VStack
-          width="275px"
+          width="150px"
           height="100%"
           bg={"bg.panel"}
           borderLeftWidth="1px"
           zIndex={3}
+          p={3}
         >
-          <Center>1</Center>
+          <RightSidebar />
         </VStack>
 
         {/* Toolbar */}
