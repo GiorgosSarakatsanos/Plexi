@@ -144,27 +144,31 @@ const AreaContent: React.FC<{
               selectedItem={selectedItem}
               onSelect={handleSelect}
             />
+            <Separator />
+            <VStack align={"start"} py={3}>
+              <IconButton
+                p={0}
+                size={"xs"}
+                height={2}
+                variant={"plain"}
+                fontSize={"xs"}
+                fontWeight={"normal"}
+                onClick={() => setIsAddingCustomSize((prev) => !prev)}
+              >
+                <LuPlus />
+                New custom size
+              </IconButton>
+              {isAddingCustomSize && (
+                <NewCustomSize
+                  onAdd={handleAddCustomSize}
+                  onCancel={handleCancel}
+                />
+              )}
+            </VStack>
           </AccordionItemContent>
           <Separator />
         </AccordionItem>
       </AccordionRoot>
-
-      <VStack align={"start"}>
-        <IconButton
-          p={0}
-          size={"xs"}
-          height={2}
-          variant={"plain"}
-          fontSize={"xs"}
-          onClick={() => setIsAddingCustomSize((prev) => !prev)}
-        >
-          Add new custom size
-          <LuPlus />
-        </IconButton>
-        {isAddingCustomSize && (
-          <NewCustomSize onAdd={handleAddCustomSize} onCancel={handleCancel} />
-        )}
-      </VStack>
     </Stack>
   );
 };

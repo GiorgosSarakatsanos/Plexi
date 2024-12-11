@@ -1,5 +1,5 @@
 import React from "react";
-import { HStack, Input } from "@chakra-ui/react";
+import { Box, Input } from "@chakra-ui/react";
 
 interface ReusableInputProps {
   name: string;
@@ -10,6 +10,7 @@ interface ReusableInputProps {
   h?: number | string;
   size?: string;
   variant?: string;
+  gridColumn?: string;
 }
 
 const ReusableInput: React.FC<ReusableInputProps> = ({
@@ -19,9 +20,10 @@ const ReusableInput: React.FC<ReusableInputProps> = ({
   required = false,
   fontSize = "xs",
   h = 3,
+  gridColumn,
 }) => {
   return (
-    <HStack align="center" w="full">
+    <Box gridColumn={gridColumn}>
       {/* Input Field */}
       <Input
         name={name}
@@ -35,8 +37,9 @@ const ReusableInput: React.FC<ReusableInputProps> = ({
         h={h}
         size="xs"
         variant="outline"
+        focusRing={"none"}
       />
-    </HStack>
+    </Box>
   );
 };
 

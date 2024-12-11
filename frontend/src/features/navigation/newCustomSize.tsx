@@ -1,12 +1,18 @@
 import React, { useState } from "react";
-import { Button, Fieldset, HStack, Stack, Text } from "@chakra-ui/react";
-import { Field } from "@/ui/field";
-import { NativeSelectField, NativeSelectRoot } from "@/ui/native-select";
+import {
+  Box,
+  Button,
+  Grid,
+  Heading,
+  HStack,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import ReusableInput from "../utils/ReusableInput";
 
 const NewCustomSize: React.FC<{
   onAdd: (dimension: string, description: string, unit: string) => void;
-  onCancel: () => void; // Pass an `onCancel` callback from parent
+  onCancel: () => void;
 }> = ({ onAdd, onCancel }) => {
   const [width, setWidth] = useState<string>("");
   const [height, setHeight] = useState<string>("");
@@ -15,13 +21,8 @@ const NewCustomSize: React.FC<{
 
   const handleSubmit = () => {
     if (width && height && name) {
-      // Format the dimension string (e.g., "1080 x 1080 px")
       const dimension = `${width} x ${height} ${unit}`;
-
-      // Pass the formatted custom size to the parent
       onAdd(dimension, name, unit);
-
-      // Reset the input fields
       setWidth("");
       setHeight("");
       setName("");
@@ -30,80 +31,107 @@ const NewCustomSize: React.FC<{
   };
 
   const handleCancel = () => {
-    // Reset fields
     setWidth("");
     setHeight("");
     setName("");
     setUnit("px");
-    // Close the form
     onCancel();
   };
 
   return (
-    <Stack>
-      <Fieldset.Root size="sm" fontSize={"xs"}>
+    <Stack gap={4}>
+      <Heading fontSize="xs">Define size and name</Heading>
 
-        <Fieldset.Content>
-          <HStack>
-            {/* Width Input */}
-            <ReusableInput
-              name="width"
-              value={width}
-              onChange={(e) => setWidth(e.target.value)}
-            />
+      <Grid templateColumns="1fr 16px 60px 60px" gap={1}>
+        {/* First Row: Width & Height */}
+        <Text gridColumn="span 1" fontSize="2xs" alignSelf="center">
+          W, H
+        </Text>
+        <Box gridColumn="span 1" />
+        <ReusableInput
+          name="Width"
+          value={width}
+          onChange={(e) => setWidth(e.target.value)}
+        />
+        <ReusableInput
+          name="Height"
+          value={height}
+          onChange={(e) => setHeight(e.target.value)}
+        />
 
-            {/* Height Input */}
-            <ReusableInput
-              name="height"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-            />
-          </HStack>
+        {/* Second Row: Name */}
+        <Text gridColumn="span 1" fontSize="2xs" alignSelf="center">
+          Name
+        </Text>
+        <Box gridColumn="span 1" />
+        <ReusableInput
+          name="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          gridColumn="span 2" // Span last two columns
+        />
 
-          <HStack>
-            {/* Unit Selector */}
-            <Field>
-              <HStack w={"full"}>
-                <Text fontSize={"xs"} fontWeight="medium" color="gray.500">
-                  U:
-                </Text>
-                <NativeSelectRoot size={"xs"} variant={"plain"}>
-                  <NativeSelectField
-                    focusRing={"none"}
-                    h={5}
-                    p={0}
-                    name="unit"
-                    fontSize={"xs"}
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
-                    items={["pixels", "milimetres", "inches"]} // Unit options
-                    color={"gray.500"}
-                    borderBottom={"1px solid"}
-                    borderColor={"gray.200"}
-                    rounded={0}
-                  />
-                </NativeSelectRoot>
-              </HStack>
-            </Field>
+        {/* Third Row: Unit */}
+        <Text gridColumn="span 1" fontSize="2xs" alignSelf="center">
+          Unit
+        </Text>
+        <Box gridColumn="span 1" />
+        <HStack gridColumn="span 2" gap={1}>
+          <Button
+            flex="1"
+            size="2xs"
+            fontSize={"2xs"}
+            variant={unit === "px" ? "solid" : "subtle"}
+            bg={unit === "px" ? "transparent" : "bg.subtle"}
+            border="1px solid"
+            borderColor={unit === "px" ? "blue.500" : "bg.emphasized"} // Change active border color
+            color={unit === "px" ? "black" : "gray.500"} // Change active text color
+            onClick={() => setUnit("px")}
+          >
+            px
+          </Button>
+          <Button
+            flex="1"
+            size="2xs"
+            fontSize={"2xs"}
+            variant={unit === "mm" ? "solid" : "subtle"}
+            bg={unit === "mm" ? "transparent" : "bg.subtle"}
+            border="1px solid"
+            borderColor={unit === "mm" ? "blue.500" : "bg.emphasized"} // Change active border color
+            color={unit === "mm" ? "black" : "gray.500"} // Change active text color
+            onClick={() => setUnit("mm")}
+          >
+            mm
+          </Button>
+          <Button
+            flex="1"
+            size="2xs"
+            fontSize={"2xs"}
+            variant={unit === "in" ? "solid" : "subtle"}
+            bg={unit === "in" ? "transparent" : "bg.subtle"}
+            border="1px solid"
+            borderColor={unit === "in" ? "blue.500" : "bg.emphasized"} // Change active border color
+            color={unit === "in" ? "black" : "gray.500"} // Change active text color
+            onClick={() => setUnit("in")}
+          >
+            in
+          </Button>
+        </HStack>
 
-            {/* Name Input */}
-            <ReusableInput
-              name="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </HStack>
-        </Fieldset.Content>
-
-        <HStack w={"full"} h={2} py={4}>
-          <Button size={"xs"} flex={1} onClick={handleSubmit}>
+        {/* Fourth Row: Save/Cancel */}
+        <Text gridColumn="span 1" fontSize="2xs" alignSelf="center">
+          Save?
+        </Text>
+        <Box gridColumn="span 1" />
+        <HStack gridColumn="span 2" gap={1}>
+          <Button size="2xs" flex={1} onClick={handleSubmit}>
             Add
           </Button>
-          <Button size={"xs"} flex={1} onClick={handleCancel} variant={"plain"}>
+          <Button size="2xs" flex={1} onClick={handleCancel} variant="plain">
             Cancel
           </Button>
         </HStack>
-      </Fieldset.Root>
+      </Grid>
     </Stack>
   );
 };

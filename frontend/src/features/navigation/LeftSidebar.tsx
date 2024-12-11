@@ -9,8 +9,8 @@ import {
 } from "react-icons/lu";
 
 import LayerPanel from "../design/Layer/LayerList";
-import AreaContent from "./AreaContent"; // Import AreaContent
-import TabTrigger from "./TabTrigger"; // Import TabTrigger
+import AreaContent from "./AreaContent";
+import TabTrigger from "./TabTrigger";
 import Konva from "konva";
 
 interface LeftSidebarProps {
@@ -18,7 +18,8 @@ interface LeftSidebarProps {
   transformerRef: React.RefObject<Konva.Transformer>;
   setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedLayerIds: React.Dispatch<React.SetStateAction<string[]>>;
-  toggleSidebarWidth: () => void;
+  toggleSidebarWidth: () => void; // For <IconButton>
+  expandSidebar: () => void; // For <Tabs.List>
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
@@ -27,6 +28,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   setSelectedShapeId,
   setSelectedLayerIds,
   toggleSidebarWidth,
+  expandSidebar,
 }) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const barSize = "38px";
@@ -42,8 +44,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
           variant="plain"
           orientation="vertical"
           alignItems="flex-start"
-          display="flex" // Use flexbox
-          h="100vh" // Ensure full height
+          display="flex"
+          h="100vh"
           w={"full"}
         >
           {/* Tab List with barSize */}
@@ -51,9 +53,10 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
             py={2}
             gap={4}
             w={barSize}
-            minW={barSize} // Prevent shrinking
-            maxW={barSize} // Prevent expansion
-            flexShrink={0} // Ensure it doesn't shrink in flex layout
+            minW={barSize}
+            maxW={barSize}
+            flexShrink={0}
+            onClick={expandSidebar} // Always expand the sidebar
           >
             <TabTrigger value="area" icon={<LuFrame />} label="" />
             <TabTrigger value="layers" icon={<LuLayers />} label="" />
@@ -89,7 +92,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         position={"absolute"}
         left={0}
         bottom={0}
-        p={1}
+        p={0}
         justify={"space-between"}
       >
         <Separator />

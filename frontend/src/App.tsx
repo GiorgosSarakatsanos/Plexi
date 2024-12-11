@@ -16,10 +16,14 @@ const Layout: React.FC = () => {
   const [selectedShape, setSelectedShape] = useState<SelectedShape>("select");
 
   // State to manage sidebar width
-  const [sidebarWidth, setSidebarWidth] = useState("38px");
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
   const toggleSidebarWidth = () => {
-    setSidebarWidth((prevWidth) => (prevWidth === "38px" ? "250px" : "38px"));
+    setIsSidebarExpanded((prev) => !prev); // Toggle between expanded and collapsed
+  };
+
+  const expandSidebar = () => {
+    setIsSidebarExpanded(true); // Always expand the sidebar
   };
 
   return (
@@ -27,7 +31,9 @@ const Layout: React.FC = () => {
       <Flex width="100vw" height="100vh" overflow="hidden">
         {/* Left Sidebar */}
         <Box
-          width={sidebarWidth}
+          width={isSidebarExpanded ? "auto" : "38px"} // Expand or collapse
+          minWidth={isSidebarExpanded ? "237px" : "38px"} // Minimum width when expanded
+          maxWidth={isSidebarExpanded ? "100%" : "38px"} // Optional: limit max width
           overflow="auto"
           height="100%"
           background="bg.panel"
@@ -35,13 +41,15 @@ const Layout: React.FC = () => {
           borderColor="bg.emphasized"
           zIndex="2"
           overflowX={"hidden"}
+          transition="width 0.3s ease, min-width 0.3s ease" // Smooth transition for width and min-width
         >
           <LeftSidebar
             stageRef={stageRef}
             transformerRef={transformerRef}
             setSelectedShapeId={setSelectedShapeId}
             setSelectedLayerIds={setSelectedLayerIds}
-            toggleSidebarWidth={toggleSidebarWidth}
+            toggleSidebarWidth={toggleSidebarWidth} // Passed for <IconButton>
+            expandSidebar={expandSidebar} // Passed for <Tabs.List>
           />
         </Box>
 
@@ -62,7 +70,6 @@ const Layout: React.FC = () => {
 
         {/* Right Sidebar */}
         <VStack
-          width="200px"
           height="100%"
           bg={"bg.panel"}
           borderLeftWidth="1px"

@@ -35,10 +35,16 @@ const AccordionContent: React.FC<AccordionContentProps> = ({
           _hover={{ bg: "gray.100", cursor: "pointer" }}
           onClick={() => onSelect(item)}
         >
-          <Box fontWeight="semibold" fontSize="xs" w="50%">
+          <Box fontSize="xs" w="50%" textWrap={"nowrap"}>
             {item.dimension}
           </Box>
-          <Box fontSize="xs" w="50%" color="gray.400" textAlign="right">
+          <Box
+            fontSize="2xs"
+            w="50%"
+            color="gray.400"
+            textAlign="right"
+            textWrap={"nowrap"}
+          >
             {item.description}
           </Box>
         </HStack>
