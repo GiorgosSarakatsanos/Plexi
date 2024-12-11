@@ -43,7 +43,7 @@ const LayerPanel: React.FC<{
   });
 
   return (
-    <Stack align={"flex-start"}>
+    <Stack p={0} align={"flex-start"}>
       <Stack width="full">
         <AccordionRoot collapsible variant={"plain"}>
           {Object.entries(groupedLayersMap).map(([groupId, groupLayers]) => (
@@ -146,7 +146,23 @@ const LayerPanel: React.FC<{
             }}
           >
             <IconComponent />
-            {shapeInfo?.name || "Unknown"}
+            <Editable.Root
+              defaultValue={shapeInfo?.name || "Unknown"}
+              activationMode="dblclick" // Allows double-click activation
+              size="sm"
+              fontSize="xs"
+              w={"150px"}
+              p={0}
+              h={5}
+              onSubmit={(event) => {
+                const newValue = (event.target as HTMLInputElement).value; // Extract the value
+                layer.name = newValue; // Assuming `name` exists in `layer`
+                console.log(`Updated layer name: ${newValue}`);
+              }}
+            >
+              <Editable.Preview p={0} />
+              <Editable.Input p={0} focusRing={"none"} />
+            </Editable.Root>
           </HStack>
         );
       })}

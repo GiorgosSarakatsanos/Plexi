@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { VStack, Tabs, Separator, IconButton, Box } from "@chakra-ui/react";
+import {
+  Tabs,
+  Separator,
+  IconButton,
+  Stack,
+  Heading,
+} from "@chakra-ui/react";
 import {
   LuFolder,
   LuLayers,
@@ -34,9 +40,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const barSize = "38px";
 
   return (
-    <VStack gap={0} h={"100%"} justify={"space-between"} w={"full"}>
+    <Stack gap={0} h={"100%"} justify={"space-between"} w={"full"}>
       {/* Tabs Section */}
-      <VStack gap={0} w="100%" alignItems={"flex-start"}>
+      <Stack gap={0} w="100%" alignItems={"flex-start"}>
         <Tabs.Root
           p={0}
           defaultValue="area"
@@ -66,8 +72,10 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
           <Separator orientation="vertical" h="100%" />
 
           {/* Content Section */}
-          <Box flex="1" h="100%">
-            <Tabs.Content p={0} value="area" w="full" px={2}>
+          <Stack px={2} gap={4} flex="1" h="100%">
+            <Tabs.Content value="area" w="full" px={0}>
+              <Heading fontSize="xs">Drawing area size</Heading>
+
               <AreaContent
                 stageRef={stageRef}
                 selectedItem={selectedItem}
@@ -75,6 +83,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
               />
             </Tabs.Content>
             <Tabs.Content value="layers" px={0}>
+              <Heading fontSize="xs">Layer items</Heading>
+
               <LayerPanel
                 stageRef={stageRef}
                 transformerRef={transformerRef}
@@ -82,13 +92,15 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 setSelectedLayerIds={setSelectedLayerIds}
               />
             </Tabs.Content>
-            <Tabs.Content value="projects">Manage your projects</Tabs.Content>
-          </Box>
+            <Tabs.Content value="projects" px={0}>
+              Manage your projects
+            </Tabs.Content>
+          </Stack>
         </Tabs.Root>
-      </VStack>
+      </Stack>
 
       {/* Footer Section */}
-      <VStack
+      <Stack
         position={"absolute"}
         left={0}
         bottom={0}
@@ -102,8 +114,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <IconButton size="xs" variant="plain" onClick={toggleSidebarWidth}>
           <LuChevronsLeftRight />
         </IconButton>
-      </VStack>
-    </VStack>
+      </Stack>
+    </Stack>
   );
 };
 

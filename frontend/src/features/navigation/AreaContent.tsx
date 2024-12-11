@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Stack, Separator, VStack, IconButton } from "@chakra-ui/react";
+import {
+  Stack,
+  Separator,
+  VStack,
+  IconButton,
+} from "@chakra-ui/react";
 import {
   AccordionItem,
   AccordionItemContent,
@@ -90,9 +95,8 @@ const AreaContent: React.FC<{
   };
 
   return (
-    <Stack p={0} w="full">
+    <Stack>
       <AccordionRoot
-        p={0}
         w="full"
         value={value}
         onValueChange={(e) => setValue(e.value)}
