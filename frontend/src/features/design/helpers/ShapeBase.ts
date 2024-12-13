@@ -1,12 +1,13 @@
-// createShapeBase.ts
-
-export const createShapeBase = (pointerPos: { x: number; y: number }) => ({
+export const createShapeBase = (
+  pointerPos: { x: number; y: number },
+  layerId: string
+) => ({
   x: pointerPos.x,
   y: pointerPos.y,
   fill: "transparent",
   stroke: "blue",
   strokeWidth: 2,
-  layerId: "",
+  layerId, // Dynamically assign `layerId`
   draggable: true,
   listening: true,
 });

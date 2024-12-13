@@ -4,7 +4,7 @@ import { Stage, Layer, Transformer } from "react-konva";
 import { ToolManager } from "./helpers/ToolManager";
 import ShapeRenderer from "./helpers/ShapeRenderer";
 import { Shape } from "./helpers/Shape";
-import { applyTransformer } from "./helpers//applyTransformer";
+import { useTransformer } from "./helpers/useTransformer";
 import { useLayerContext } from "./Layer/useLayerContext";
 import { handleDoubleClick } from "./mouseActions/handleDoubleClick";
 import { AreaTool } from "./Tools/AreaTool";
@@ -15,8 +15,8 @@ export interface CanvasRef {
   zoomOut: () => void;
   setZoomToPercentage: (percentage: number) => void;
   getStage: () => Konva.Stage | null;
-  selectShapeById: (shapeId: string) => void; // Add this line
-  handleUploadImage: () => void; // Add this
+  selectShapeById: (shapeId: string) => void;
+  handleUploadImage: () => void;
 }
 
 interface CanvasProps {
@@ -27,11 +27,18 @@ interface CanvasProps {
 const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [drawingShape, setDrawingShape] = useState<Shape | null>(null);
-  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const { addLayer, setSelectedLayerIds } = useLayerContext();
-  const transformerRef = useRef<Konva.Transformer>(null);
+
+  const {
+    addLayer,
+    selectedLayerIds,
+    selectLayer,
+    deselectLayer,
+    setSelectedLayerIds,
+  } = useLayerContext();
 
   const stageRef = useRef<Konva.Stage>(null);
+  const { transformerRef, applyTransformer, clearTransformer } =
+    useTransformer();
 
   const handleAddShape = (width: number, height: number) => {
     const x = Math.random() * 200; // Random x position
@@ -58,56 +65,37 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
   }, []);
 
   useEffect(() => {
-    const logSelectedShapeDetails = (shapeId: string | null) => {
-      if (!shapeId) {
-        console.log("No shape selected");
-        return;
-      }
-
-      const selectedShape = shapes.find((shape) => shape.id === shapeId);
-      if (!selectedShape) {
-        console.log("Shape not found");
-        return;
-      }
-
-      console.log("Selected Shape Details:");
-      console.log("Shape ID:", selectedShape.id);
-      console.log("Shape Type:", selectedShape.type);
-      console.log("Layer ID:", selectedShape.layerId || "None");
-      console.log("Group:", selectedShape.groupId || "None");
-    };
-
-    applyTransformer(stageRef, transformerRef, selectedShapeId);
-    logSelectedShapeDetails(selectedShapeId); // Log the details of the selected shape
-  }, [selectedShapeId, shapes]);
-
-  const handleDragEnd = (id: string, x: number, y: number) => {
-    console.log(`Shape ${id} moved to (${x}, ${y})`);
-  };
+    if (selectedLayerIds.length > 0) {
+      applyTransformer(stageRef, selectedLayerIds[selectedLayerIds.length - 1]);
+    } else {
+      clearTransformer();
+    }
+  }, [selectedLayerIds, applyTransformer, clearTransformer]);
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    console.log("Clicked target:", e.target);
-    console.log("Target layerId:", e.target.attrs.layerId);
+    const { ctrlKey, shiftKey } = e.evt;
 
     if (e.target === stageRef.current) {
-      setSelectedShapeId(null);
-      setSelectedLayerIds([]);
+      deselectLayer();
+      clearTransformer();
     } else {
       const clickedShape = shapes.find(
         (shape) => shape.layerId === e.target.attrs.layerId
       );
-      console.log("Clicked shape:", clickedShape);
 
       if (clickedShape) {
-        setSelectedShapeId(clickedShape.layerId);
+        selectLayer(clickedShape.layerId, ctrlKey, shiftKey);
         setSelectedLayerIds([clickedShape.layerId]);
       }
     }
   };
 
-  useEffect(() => {
-    applyTransformer(stageRef, transformerRef, selectedShapeId);
-  }, [selectedShapeId, shapes]);
+  const handleDragEnd = (id: string, x: number, y: number) => {
+    console.log(`Shape ${id} moved to (${x}, ${y})`);
+    setShapes((prevShapes) =>
+      prevShapes.map((shape) => (shape.id === id ? { ...shape, x, y } : shape))
+    );
+  };
 
   const currentTool = ToolManager[selectedTool];
 
@@ -132,7 +120,7 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
           stageRef,
           addLayer,
           transformerRef,
-          setSelectedShapeId,
+          (id: string) => selectLayer(id),
           setSelectedLayerIds
         )
       }
@@ -143,15 +131,24 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
             key={shape.id}
             shape={shape}
             isDrawing={!!drawingShape}
+            selected={selectedLayerIds.includes(shape.layerId)}
             isPanning={false}
             setShapes={setShapes}
-            setSelectedShapeId={setSelectedShapeId}
-            setSelectedLayerIds={setSelectedLayerIds}
             handleDragEnd={handleDragEnd}
             handleDoubleClick={(id) =>
               handleDoubleClick(id, shapes, setShapes, stageRef)
             }
             selectedShape={selectedTool}
+            onClick={() => selectLayer(shape.layerId)} // Ensure shape.layerId is always a string
+            setSelectedShapeId={(idOrUpdater) => {
+              if (typeof idOrUpdater === "function") {
+                const id = idOrUpdater(null);
+                if (id !== null) selectLayer(id);
+              } else if (idOrUpdater !== null) {
+                selectLayer(idOrUpdater);
+              }
+            }}
+            setSelectedLayerIds={setSelectedLayerIds}
           />
         ))}
         {drawingShape && (
@@ -160,15 +157,17 @@ const Canvas: React.FC<CanvasProps> = ({ selectedTool, setSelectedTool }) => {
             isDrawing={true}
             isPanning={false}
             setShapes={setShapes}
-            setSelectedShapeId={setSelectedShapeId}
-            setSelectedLayerIds={setSelectedLayerIds}
             handleDragEnd={handleDragEnd}
             handleDoubleClick={(id) =>
               handleDoubleClick(id, shapes, setShapes, stageRef)
             }
             selectedShape={selectedTool}
+            selected={false}
+            setSelectedShapeId={() => {}} // No-op function for drawing shapes
+            setSelectedLayerIds={() => {}} // No-op function for drawing shapes
           />
         )}
+
         <Transformer ref={transformerRef} />
       </Layer>
     </Stage>

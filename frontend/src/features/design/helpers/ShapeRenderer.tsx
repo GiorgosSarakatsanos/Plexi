@@ -13,6 +13,8 @@ interface ShapeRendererProps {
   handleDragEnd: (id: string, x: number, y: number) => void;
   handleDoubleClick: (id: string) => void;
   selectedShape: string | null;
+  selected: boolean;
+  onClick?: () => void;
 }
 
 const ShapeRenderer: React.FC<ShapeRendererProps> = ({
@@ -24,17 +26,16 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
   setSelectedLayerIds,
   handleDragEnd,
   handleDoubleClick,
-  selectedShape,
+  selected,
 }) => {
-  const { id, type, layerId, ...restProps } = shape; // Destructure `layerId`
+  const { id, type, layerId, ...restProps } = shape;
 
-  // Common props for all shapes
   const commonProps = {
     id,
     layerId,
     draggable: !isDrawing && !isPanning,
     strokeScaleEnabled: false,
-    listening: selectedShape === layerId, // Only listen if the shape is selected by `layerId`
+    listening: selected, // Use `selected` to determine interaction
     onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => {
       const { x, y } = e.target.position();
       setShapes((prevShapes) =>
@@ -45,13 +46,12 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
       const { x, y } = e.target.position();
       handleDragEnd(id, x, y);
     },
-    onClick:
-      selectedShape === "select"
-        ? () => {
-            setSelectedShapeId(layerId); // Use `layerId` instead of `id`
-            setSelectedLayerIds([layerId]); // Set the selected `layerId`
-          }
-        : undefined,
+    onClick: selected
+      ? () => {
+          setSelectedShapeId(layerId); // Use `layerId` instead of `id`
+          setSelectedLayerIds([layerId]); // Set the selected `layerId`
+        }
+      : undefined,
   };
 
   // Render based on shape type
@@ -119,9 +119,9 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
           {...commonProps}
           {...restProps}
           text={shape.text || ""}
-          fontSize={shape.fontSize || 14} // Default font size
+          fontSize={shape.fontSize || 14}
           fontFamily={shape.fontFamily || "Arial"}
-          onDblClick={() => handleDoubleClick(id)} // Allow editing on double-click
+          onDblClick={() => handleDoubleClick(id)}
         />
       );
 
@@ -130,8 +130,8 @@ const ShapeRenderer: React.FC<ShapeRendererProps> = ({
         <Image
           key={id}
           {...commonProps}
-          x={shape.x || 0} // Ensure `x` is explicitly passed
-          y={shape.y || 0} // Ensure `y` is explicitly passed
+          x={shape.x || 0}
+          y={shape.y || 0}
           image={shape.image}
           width={shape.width || 0}
           height={shape.height || 0}

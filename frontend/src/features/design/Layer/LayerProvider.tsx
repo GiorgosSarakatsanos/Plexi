@@ -1,13 +1,17 @@
-import React, { createContext, useState, useEffect } from "react";
-import { Layer } from "./LayerHelpers";
+import React, { createContext, useState, useEffect, useRef } from "react";
+import { Stage, Layer, Transformer } from "react-konva";
+import { Layer as LayerType } from "./LayerHelpers";
 import { generateId } from "../../utils/idGenerator";
 import { shapeTypeNames } from "./ShapeTypeNames";
+import { useTransformer } from "../helpers/useTransformer";
+import { useSelection } from "../helpers/useSelection";
+import Konva from "konva";
 
 interface LayerContextProps {
-  layers: Layer[];
-  groupedLayers: Layer[];
-  standaloneLayers: Layer[];
-  setLayers: React.Dispatch<React.SetStateAction<Layer[]>>; // Expose setLayers
+  layers: LayerType[];
+  groupedLayers: LayerType[];
+  standaloneLayers: LayerType[];
+  setLayers: React.Dispatch<React.SetStateAction<LayerType[]>>;
   addLayer: (shapeType: string, shapeId: string, groupId?: string) => void;
   toggleVisibility: (id: string) => void;
   selectLayer: (id: string, ctrlKey?: boolean, shiftKey?: boolean) => void;
@@ -25,38 +29,53 @@ const shapeTypeCounters: { [key: string]: number } = {};
 export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [layers, setLayers] = useState<Layer[]>([]);
-  const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
-
+  const [layers, setLayers] = useState<LayerType[]>([]);
   const groupedLayers = layers.filter((layer) => layer.isGrouped);
   const standaloneLayers = layers.filter((layer) => !layer.isGrouped);
+
+  const { transformerRef, applyTransformer, clearTransformer } =
+    useTransformer();
+  const stageRef = useRef<Konva.Stage>(null);
+
+  const {
+    selectedIds: selectedLayerIds,
+    selectItem: selectLayer,
+    deselectItem: deselectLayer,
+    setSelectedIds: setSelectedLayerIds,
+  } = useSelection(layers);
 
   useEffect(() => {
     console.log("Layers updated:", layers);
   }, [layers]);
+
+  useEffect(() => {
+    if (selectedLayerIds.length > 0) {
+      applyTransformer(stageRef, selectedLayerIds[selectedLayerIds.length - 1]);
+    } else {
+      clearTransformer();
+    }
+  }, [applyTransformer, clearTransformer, selectedLayerIds]);
 
   const addLayer = (
     shapeType: string,
     shapeId: string,
     groupId?: string
   ): string => {
-    if (!shapeTypeCounters[shapeType]) {
-      shapeTypeCounters[shapeType] = 1;
-    } else {
-      shapeTypeCounters[shapeType] += 1;
-    }
+    const layerId = generateId();
+    console.log(`Generated layerId: ${layerId} for shapeId: ${shapeId}`);
 
     const displayShapeType = shapeTypeNames[shapeType] || shapeType;
-    const layerName = `${displayShapeType} ${shapeTypeCounters[shapeType]}`;
-    const layerId = generateId(); // Generate a unique layer ID
+    const layerName = `${displayShapeType} ${
+      shapeTypeCounters[shapeType] || 1
+    }`;
 
-    const newLayer: Layer = {
+    const newLayer: LayerType = {
       id: layerId,
       name: layerName,
       isVisible: true,
       shapeType,
-      groupId, // Optional groupId
-      isGrouped: !!groupId, // Mark as grouped if groupId exists
+      groupId,
+      isGrouped: !!groupId,
       isGroupArea: shapeType === "area",
     };
 
@@ -78,50 +97,13 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
-  const selectLayer = (id: string, ctrlKey = false, shiftKey = false) => {
-    setSelectedLayerIds((prevSelected) => {
-      if (shiftKey) {
-        const lastSelectedId = prevSelected[prevSelected.length - 1];
-        const lastSelectedIndex = layers.findIndex(
-          (layer) => layer.id === lastSelectedId
-        );
-        const clickedIndex = layers.findIndex((layer) => layer.id === id);
-
-        if (lastSelectedIndex >= 0 && clickedIndex >= 0) {
-          const [start, end] = [
-            Math.min(lastSelectedIndex, clickedIndex),
-            Math.max(lastSelectedIndex, clickedIndex),
-          ];
-          const rangeIds = layers
-            .slice(start, end + 1)
-            .map((layer) => layer.id);
-          return Array.from(new Set([...prevSelected, ...rangeIds]));
-        }
-      }
-
-      if (ctrlKey) {
-        return prevSelected.includes(id)
-          ? prevSelected.filter((layerId) => layerId !== id)
-          : [...prevSelected, id];
-      }
-
-      return [id];
-    });
-  };
-
-  const deselectLayer = (id?: string) => {
-    setSelectedLayerIds((prevSelected) =>
-      id ? prevSelected.filter((layerId) => layerId !== id) : []
-    );
-  };
-
   return (
     <LayerContext.Provider
       value={{
         layers,
         groupedLayers,
         standaloneLayers,
-        setLayers, // Include setLayers here
+        setLayers,
         addLayer,
         toggleVisibility,
         selectLayer,
@@ -130,6 +112,11 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
         selectedLayerIds,
       }}
     >
+      <Stage ref={stageRef}>
+        <Layer>
+          <Transformer ref={transformerRef} />
+        </Layer>
+      </Stage>
       {children}
     </LayerContext.Provider>
   );

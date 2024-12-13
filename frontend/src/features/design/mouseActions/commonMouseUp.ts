@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { Shape } from "../helpers/Shape";
 import { SelectedShape } from "../helpers/ToolTypes";
-import { generateId } from "../../utils/idGenerator";
+import { createShapeWithLayer } from "../helpers/createShapeWithLayer";
 import { handleShapeSelection } from "./handleShapeSelection";
 
 export const commonHandleMouseUp = (
@@ -10,38 +10,30 @@ export const commonHandleMouseUp = (
   setDrawingShape: React.Dispatch<React.SetStateAction<Shape | null>>,
   setSelectedTool: React.Dispatch<React.SetStateAction<SelectedShape>>,
   stageRef: React.RefObject<Konva.Stage>,
-  addLayer: (shapeType: string, shapeId: string, groupId?: string) => string,
+  addLayer: (shapeType: string, shapeId: string, groupId?: string) => string, // Updated to ensure it returns a string
   transformerRef: React.RefObject<Konva.Transformer>,
   setSelectedShapeId: React.Dispatch<React.SetStateAction<string | null>>,
   setSelectedLayerIds: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   if (!drawingShape) return;
 
-  const shapeId = generateId(drawingShape.type);
-  const groupId = drawingShape.groupId || undefined;
-  const layerId = addLayer(drawingShape.type, shapeId, groupId);
+  // Use the helper to create the shape with its associated layer
+  const updatedShape = createShapeWithLayer(drawingShape, addLayer);
 
-  if (!layerId) {
-    console.error("Layer ID could not be generated for the shape.");
-    return;
-  }
+  // If the shape creation failed, exit early
+  if (!updatedShape) return;
 
-  const updatedShape = {
-    ...drawingShape,
-    id: shapeId,
-    layerId,
-    groupId,
-  };
-
+  // Update state with the new shape and reset tool/drawing state
   setShapes((prev) => [...prev, updatedShape]);
   setDrawingShape(null);
   setSelectedTool("select");
 
+  // Select the new shape
   handleShapeSelection(
     stageRef,
     transformerRef,
     setSelectedShapeId,
     setSelectedLayerIds,
-    layerId
+    updatedShape.layerId
   );
 };
